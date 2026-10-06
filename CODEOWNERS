@@ -1,0 +1,9 @@
+/hospital/                      @dev-a
+/services/doc-pipeline/         @dev-a
+/services/vision-service/       @dev-a
+/infra/redis/ /infra/minio/ /infra/clamav/ /infra/keycloak/   @dev-a
+/insurer/                       @dev-b
+/services/llm-gateway/ /services/rag-service/ /services/tpa-sim/   @dev-b
+/infra/qdrant/ /infra/langfuse/ /infra/ollama/   @dev-b
+/contract/                      @dev-a @dev-b
+/docs/implementation/01-shared-contract/   @dev-a @dev-b

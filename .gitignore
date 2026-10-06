@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+node_modules/
+infra/certs/
+.coverage
+infra/redis/rendered/
+infra/keycloak/rendered/
+backups/

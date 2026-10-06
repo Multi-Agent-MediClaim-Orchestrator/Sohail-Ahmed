@@ -1,0 +1,32 @@
+[project]
+name = "claims-monorepo"
+version = "0.0.0"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = ["contract/python", "hospital/api"]
+
+[tool.ruff]
+extend-exclude = ["docs"]
+line-length = 100
+target-version = "py312"
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "ASYNC"]
+[tool.ruff.lint.per-file-ignores]
+"infra/tests/**" = ["S101", "S603", "S607"]
+"hospital/api/alembic/versions/*" = ["E501"]   # raw DDL copied from the spec
+"hospital/api/app/models/*" = ["E501", "UP042"]  # generated from the migrated schema
+"hospital/api/tests/*" = ["S101", "S608", "E501"]
+"hospital/api/seed/*" = ["S311", "E501"]  # seeded fake data, not security-sensitive
+"**/tests/**" = ["S101"]
+
+[tool.pytest.ini_options]
+markers = ["unit", "integration", "contract", "e2e", "slow", "llm"]
+asyncio_mode = "auto"
+pythonpath = ["contract/python"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "minio>=7.2.20",
+]

@@ -1,0 +1,17 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-packages
+      - run: uv run ruff check .
+      - run: uv run mypy contract/python/claim_contract
+      - run: uv run pytest contract/tests -q
+  provider-key-grep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: "! git grep -nE '(GEMINI|OPENAI|ANTHROPIC)_API_KEY' -- ':!services/llm-gateway' ':!infra/compose' ':!.env.example' ':!docs'"
