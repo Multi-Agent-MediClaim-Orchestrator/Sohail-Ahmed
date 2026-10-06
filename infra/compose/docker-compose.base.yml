@@ -1,0 +1,9 @@
+name: claims
+networks:
+  hospital_net: {}
+  insurer_net: {}
+  shared_net: {}
+volumes:
+  hospital_pg: {}
+  minio_data: {}
+  clamav_db: {}

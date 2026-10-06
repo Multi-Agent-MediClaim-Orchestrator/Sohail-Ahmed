@@ -1,0 +1,44 @@
+{
+ "Version": "2012-10-17",
+ "Statement": [
+  {
+   "Effect": "Allow",
+   "Action": [
+    "s3:GetObject"
+   ],
+   "Resource": [
+    "arn:aws:s3:::hospital-docs/*/*/original.*"
+   ]
+  },
+  {
+   "Effect": "Allow",
+   "Action": [
+    "s3:GetObject",
+    "s3:PutObject"
+   ],
+   "Resource": [
+    "arn:aws:s3:::hospital-docs/*/*/parsed.json",
+    "arn:aws:s3:::hospital-docs/*/*/pii_map.enc",
+    "arn:aws:s3:::hospital-docs/*/*/pages/*"
+   ]
+  },
+  {
+   "Effect": "Allow",
+   "Action": [
+    "s3:ListBucket"
+   ],
+   "Resource": [
+    "arn:aws:s3:::hospital-docs"
+   ]
+  },
+  {
+   "Effect": "Allow",
+   "Action": [
+    "s3:GetBucketLocation"
+   ],
+   "Resource": [
+    "arn:aws:s3:::hospital-docs"
+   ]
+  }
+ ]
+}

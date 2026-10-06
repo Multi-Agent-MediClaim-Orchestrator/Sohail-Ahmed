@@ -1,0 +1,102 @@
+# Infra services owned by Dev A. Dev B adds insurer-db, qdrant under the same profile.
+services:
+  hospital-db:
+    image: postgres:16
+    profiles: [infra]
+    restart: unless-stopped
+    mem_limit: 512m
+    shm_size: 128m
+    command: ["postgres", "-c", "shared_buffers=128MB", "-c", "max_connections=60", "-c", "log_min_duration_statement=250", "-c", "idle_in_transaction_session_timeout=30000"]
+    environment:
+      POSTGRES_USER: ${HOSP_DB_USER}
+      POSTGRES_PASSWORD: ${HOSP_DB_PASSWORD}
+      POSTGRES_DB: ${HOSP_DB_NAME}
+      HOSP_OWNER_PW: ${HOSP_OWNER_PW}
+      HOSP_APP_PW: ${HOSP_APP_PW}
+      HOSP_READONLY_PW: ${HOSP_READONLY_PW}
+      N8N_APP_PW: ${N8N_APP_PW}
+    ports: ["${HOSP_DB_PORT:-5432}:5432"]
+    volumes:
+      - hospital_pg:/var/lib/postgresql/data
+      - ../postgres-init/10-roles.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+    networks: [hospital_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${HOSP_DB_USER} -d ${HOSP_DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7
+    profiles: [infra]
+    restart: unless-stopped
+    mem_limit: 256m
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    environment:
+      REDISCLI_AUTH: ${SHARED_REDIS_PASSWORD}
+    ports: ["${SHARED_REDIS_PORT:-6379}:6379"]
+    volumes:
+      - ../redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ../redis/rendered/users.acl:/usr/local/etc/redis/users.acl:ro
+    networks: [hospital_net, insurer_net, shared_net]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --user admin ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    profiles: [infra]
+    restart: unless-stopped
+    mem_limit: 512m
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${SHARED_MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${SHARED_MINIO_ROOT_PASSWORD}
+      MINIO_KMS_SECRET_KEY: ${MINIO_KMS_SECRET_KEY}
+    ports: ["${SHARED_MINIO_PORT:-9000}:9000", "${SHARED_MINIO_CONSOLE_PORT:-9001}:9001"]
+    volumes: ["minio_data:/data"]
+    networks: [hospital_net, insurer_net, shared_net]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  clamav:
+    image: clamav/clamav:stable
+    profiles: [infra]
+    restart: unless-stopped
+    mem_limit: 1536m
+    ports: ["3310:3310"]
+    volumes:
+      - clamav_db:/var/lib/clamav
+      - ../clamav/clamd.conf:/etc/clamav/clamd.conf:ro
+    networks: [hospital_net, shared_net]
+    healthcheck:
+      test: ["CMD-SHELL", "clamdcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    profiles: [infra]
+    restart: unless-stopped
+    mem_limit: 768m
+    command: ["start-dev", "--import-realm", "--health-enabled=true"]
+    environment:
+      KEYCLOAK_ADMIN: ${KC_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
+    ports: ["8080:8080", "9090:9000"]
+    volumes: ["../keycloak/rendered:/opt/keycloak/data/import:ro"]
+    networks: [hospital_net, insurer_net, shared_net]
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
