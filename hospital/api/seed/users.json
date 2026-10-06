@@ -26,5 +26,12 @@
     "email": "hadmin@claims.local",
     "display_name": "Hadmin",
     "sub": "d1b1fd83-9c1c-5e9c-bef2-c37de9852c41"
+  },
+  {
+    "username": "hadmin2",
+    "role": "admin",
+    "email": "hadmin2@claims.local",
+    "display_name": "Hadmin2",
+    "sub": "bd405de0-400f-55bd-a19a-1c54856df71c"
   }
 ]

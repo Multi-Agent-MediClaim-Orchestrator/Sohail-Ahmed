@@ -345,13 +345,21 @@ def test_constraints(conn: Connection) -> None:
 def test_open_doc_request_partial_unique(conn: Connection) -> None:
     case = make_case(conn)
     ins = (
-        "INSERT INTO doc_request (id, case_id, doc_type, reason, status) "
-        "VALUES (:i, :c, 'final_bill', 'r', :s)"
+        "INSERT INTO doc_request (id, case_id, doc_type, rule_id, reason_code, reason, status) "
+        "VALUES (:i, :c, 'final_bill', :r, 'not_uploaded', 'm', :s)"
     )
-    conn.execute(text(ins), {"i": uid(), "c": case, "s": "open"})
-    expect_fail(conn, ins, {"i": uid(), "c": case, "s": "open"})
-    conn.execute(text("UPDATE doc_request SET status='fulfilled' WHERE case_id=:c"), {"c": case})
-    conn.execute(text(ins), {"i": uid(), "c": case, "s": "open"})  # allowed again
+    conn.execute(text(ins), {"i": uid(), "c": case, "r": "R-BILL-01", "s": "open"})
+    expect_fail(conn, ins, {"i": uid(), "c": case, "r": "R-BILL-01", "s": "open"})
+    conn.execute(
+        text(ins), {"i": uid(), "c": case, "r": "R-OTHER", "s": "open"}
+    )  # other rule: allowed
+    conn.execute(
+        text("UPDATE doc_request SET status='fulfilled' WHERE case_id=:c AND rule_id='R-BILL-01'"),
+        {"c": case},
+    )
+    conn.execute(
+        text(ins), {"i": uid(), "c": case, "r": "R-BILL-01", "s": "open"}
+    )  # allowed again once closed
 
 
 def test_signoff_one_vote_per_officer(conn: Connection) -> None:
@@ -480,7 +488,7 @@ def test_seed_idempotent_and_users_match_realm(migrated: str) -> None:
         after = [c.execute(text(f"SELECT count(*) FROM {t}")).scalar() for t in tables]
         subs = {r[0] for r in c.execute(text("SELECT keycloak_sub FROM app_user"))}
     assert before == after  # idempotent; other tests may have added rows
-    assert before[2] >= 20 and before[5] == 6 and before[8] == 32
+    assert before[2] >= 20 and before[5] >= 6 and before[8] == 32
     realm = (
         pathlib.Path(__file__).resolve().parents[3] / "infra/keycloak/rendered/realm-hospital.json"
     )

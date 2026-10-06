@@ -17,13 +17,13 @@ from app.auth.jwks import JwksCache
 from app.core.config import Settings, get_settings
 from app.core.errors import install_handlers
 from app.core.logging import RequestIdMiddleware, setup_logging
-from app.events import InMemoryHub, noop_completeness
+from app.events import InMemoryHub
 from app.routers import admin_users, health, me
 from app.services.n8n import HttpN8n
 from app.storage.clamav import ClamAV
 from app.storage.minio import ObjectStore
 
-CODE_HEAD = "0018"
+CODE_HEAD = "0019"
 
 
 def create_app(
@@ -57,7 +57,10 @@ def create_app(
         app.state.settings = s
         app.state.hub = hub or InMemoryHub()
         app.state.code_head = CODE_HEAD
-        app.state.completeness = services.get("completeness", noop_completeness)
+        from app.completeness.service import CompletenessScheduler
+
+        app.state.scheduler = CompletenessScheduler(app)
+        app.state.completeness = services.get("completeness") or app.state.scheduler.schedule
         app.state.store = services.get("store") or ObjectStore(
             s.minio_endpoint, s.minio_access_key, s.minio_secret_key, s.minio_bucket, s.minio_secure
         )

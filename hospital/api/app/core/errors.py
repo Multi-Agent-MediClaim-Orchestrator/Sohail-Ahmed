@@ -52,6 +52,13 @@ PRIVATE: dict[str, tuple[int, str]] = {
     "rate_limited": (429, "Rate limited"),
     "validation_error": (422, "Validation error"),
     "bad_request": (400, "Bad request"),
+    "not_waivable": (409, "Requirement not waivable"),
+    "reason_too_short": (422, "Reason too short"),
+    "unknown_rule": (404, "Unknown rule"),
+    "config_unavailable": (503, "Configuration unavailable"),
+    "two_person_rule": (409, "Two-person rule"),
+    "config_invalid": (422, "Configuration invalid"),
+    "config_conflict": (409, "Configuration conflict"),
     "internal_error": (500, "Internal error"),
 }
 

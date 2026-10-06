@@ -122,6 +122,13 @@ EVENT_TYPES = frozenset(
         "doc.reparse",
         "doc.quality",
         "parse.agreement",
+        "doc_request.opened",
+        "doc_request.closed",
+        "requirement.waived",
+        "requirement.waiver_revoked",
+        "signoff.invalidated",
+        "config.drafted",
+        "config.validated",
         "audit.verify.failed",
         "validation.failed",
     }

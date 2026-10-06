@@ -5,11 +5,17 @@ import decimal
 import uuid
 from typing import Any
 
+from claim_contract.enums import (
+    DocType,
+)
 from sqlalchemy import (
+    CHAR,
     Boolean,
     CheckConstraint,
     DateTime,
+    Enum,
     ForeignKeyConstraint,
+    Index,
     Integer,
     Numeric,
     PrimaryKeyConstraint,
@@ -27,11 +33,16 @@ from app.db.base import Base
 class CompletenessCheck(Base):
     __tablename__ = "completeness_check"
     __table_args__ = (
+        CheckConstraint(
+            "trigger = ANY (ARRAY['doc_event'::text, 'manual'::text, 'waive'::text, 'reclassify'::text, 'nightly'::text, 'config_republish'::text, 'claim_build_precheck'::text])",
+            name="ck_completeness_trigger",
+        ),
         ForeignKeyConstraint(
             ["case_id"], ["claim_case.id"], name="completeness_check_case_id_fkey"
         ),
         PrimaryKeyConstraint("id", name="completeness_check_pkey"),
         UniqueConstraint("case_id", "run_no", name="uq_completeness_run"),
+        Index("ix_completeness_case_latest", "case_id", "run_no"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
@@ -40,10 +51,57 @@ class CompletenessCheck(Base):
     run_no: Mapped[int] = mapped_column(Integer, nullable=False)
     complete: Mapped[bool] = mapped_column(Boolean, nullable=False)
     result: Mapped[Any] = mapped_column(JSONB, nullable=False)
+    trigger: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
-    trigger: Mapped[str | None] = mapped_column(Text)
+    provisional: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    blocker_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    warning_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    result_hash: Mapped[str] = mapped_column(CHAR(64), nullable=False)
+
+
+class RequirementWaiver(Base):
+    __tablename__ = "requirement_waiver"
+    __table_args__ = (
+        CheckConstraint("length(reason) >= 10", name="ck_requirement_waiver_reason"),
+        ForeignKeyConstraint(
+            ["case_id"], ["claim_case.id"], name="requirement_waiver_case_id_fkey"
+        ),
+        ForeignKeyConstraint(
+            ["revoked_by"], ["app_user.id"], name="requirement_waiver_revoked_by_fkey"
+        ),
+        ForeignKeyConstraint(
+            ["waived_by"], ["app_user.id"], name="requirement_waiver_waived_by_fkey"
+        ),
+        PrimaryKeyConstraint("id", name="requirement_waiver_pkey"),
+        Index(
+            "uq_requirement_waiver_active",
+            "case_id",
+            "rule_id",
+            postgresql_where="(revoked_at IS NULL)",
+            unique=True,
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, primary_key=True, server_default=text("uuid_generate_v7()")
+    )
+    case_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    rule_id: Mapped[str] = mapped_column(Text, nullable=False)
+    doc_type: Mapped[DocType] = mapped_column(
+        Enum(
+            DocType, values_callable=lambda cls: [member.value for member in cls], name="doc_type"
+        ),
+        nullable=False,
+    )
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    waived_by: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(True), nullable=False, server_default=text("now()")
+    )
+    revoked_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
+    revoked_by: Mapped[uuid.UUID | None] = mapped_column(Uuid)
 
 
 class ClaimDraft(Base):
@@ -125,3 +183,5 @@ class Signoff(Base):
         DateTime(True), nullable=False, server_default=text("now()")
     )
     comment: Mapped[str | None] = mapped_column(Text)
+    invalidated_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
+    invalidated_reason: Mapped[str | None] = mapped_column(Text)

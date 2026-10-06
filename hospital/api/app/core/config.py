@@ -39,6 +39,7 @@ class Settings(BaseModel):
     presign_ttl_s: int = 300
     upload_rate_per_min: int = 30
     name_match_min: int = 90
+    completeness_debounce_s: float = 5.0
     # integrations
     n8n_webhook_base: str = "http://localhost:5678/webhook"
     insurer_base_url: str = "http://localhost:8100"

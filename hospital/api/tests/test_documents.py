@@ -757,7 +757,7 @@ async def test_tombstone_purge_stale_and_orphans(
     flagged = "SELECT stale_flagged_at IS NOT NULL FROM claim_case WHERE id=:i"
     assert sql(settings, flagged, i=old_draft["id"])[0][0] is True
     assert sql(settings, flagged, i=c2["id"])[0][0] is False
-    orphan = f"{uuid.uuid4()}/{uuid.uuid4()}/original.pdf"
+    orphan = f"00000000-{uuid.uuid4().hex[:8]}/{uuid.uuid4()}/original.pdf"  # sorts first: the report is capped at 200 keys
     await app.state.store.put(orphan, b"x")
     r = await client.post("/v1/internal/jobs/orphan-scan", headers=svc)
     assert orphan in r.json()["orphans"]

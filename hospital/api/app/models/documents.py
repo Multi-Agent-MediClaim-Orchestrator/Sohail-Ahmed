@@ -80,6 +80,13 @@ class Document(Base):
             postgresql_where="((parse_status = 'pending'::text) AND (scan_status = 'clean'::text))",
         ),
         Index("ix_doc_purge", "purge_after", postgresql_where="(purge_after IS NOT NULL)"),
+        Index(
+            "uq_document_case_sha",
+            "case_id",
+            "sha256",
+            postgresql_where="(lifecycle <> 'deleted'::text)",
+            unique=True,
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
@@ -88,7 +95,6 @@ class Document(Base):
     mime_type: Mapped[str] = mapped_column(Text, nullable=False)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     sha256: Mapped[str] = mapped_column(CHAR(64), nullable=False)
-    storage_key: Mapped[str | None] = mapped_column(Text)
     scan_status: Mapped[str] = mapped_column(
         Text, nullable=False, server_default=text("'pending'::text")
     )
@@ -110,6 +116,7 @@ class Document(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
+    storage_key: Mapped[str | None] = mapped_column(Text)
     pages: Mapped[int | None] = mapped_column(Integer)
     doc_type: Mapped[DocType | None] = mapped_column(
         Enum(DocType, values_callable=lambda cls: [member.value for member in cls], name="doc_type")
@@ -184,7 +191,8 @@ class DocRequest(Base):
         Index(
             "uq_doc_request_open",
             "case_id",
-            "doc_type",
+            "rule_id",
+            "reason_code",
             postgresql_where="(status = 'open'::text)",
             unique=True,
         ),
@@ -198,6 +206,7 @@ class DocRequest(Base):
         ),
         nullable=False,
     )
+    rule_id: Mapped[str] = mapped_column(Text, nullable=False)
     reason: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("'open'::text"))
     reminders_sent: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
@@ -207,8 +216,11 @@ class DocRequest(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
-    rule_id: Mapped[str | None] = mapped_column(Text)
+    reason_code: Mapped[str] = mapped_column(Text, nullable=False)
     due_by: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
     fulfilled_by_doc: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     waived_by: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     waive_reason: Mapped[str | None] = mapped_column(Text)
+    opened_by_run: Mapped[int | None] = mapped_column(Integer)
+    last_seen_run: Mapped[int | None] = mapped_column(Integer)
+    closed_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))

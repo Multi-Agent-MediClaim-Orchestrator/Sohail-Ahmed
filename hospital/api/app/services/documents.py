@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.auth.deps import case_scope_sql
 from app.auth.principal import Principal
+from app.completeness.service import invalidate_signoffs
 from app.core.config import Settings
 from app.core.errors import ApiError
 from app.core.uow import UoW
@@ -334,6 +335,8 @@ async def _ingest_one(
             await transitions.transition(
                 uow, case.id, new_status, p, reason="document uploaded", hub=d.hub
             )
+            if status_of(case) == "ready_for_review":
+                await invalidate_signoffs(uow, case.id, "document uploaded")
         await s.execute(
             text("UPDATE document SET last_trigger_at = now() WHERE id=:i"), {"i": doc_id}
         )
@@ -525,6 +528,7 @@ async def delete_doc(uow: UoW, d: Ingest, p: Principal, doc_id: str) -> None:
         await transitions.transition(
             uow, row.case_id, "docs_pending", p, reason="document deleted", hub=d.hub
         )
+        await invalidate_signoffs(uow, row.case_id, "document deleted")
     await uow.commit()
     await d.completeness(str(row.case_id), "doc_event")
 

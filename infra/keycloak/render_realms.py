@@ -150,6 +150,7 @@ HOSP = realm(
         user("officer1", ["officer"], {"hospital_id": ["HOSP-0001"]}),
         user("officer2", ["officer"], {"hospital_id": ["HOSP-0001"]}),
         user("hadmin", ["admin"]),
+        user("hadmin2", ["admin"]),
     ],
     {
         "n8n": ENV["HOSP_N8N_CLIENT_SECRET"],

@@ -245,3 +245,32 @@ async def unit_client(settings: Settings, rsa_key: Any):  # type: ignore[no-unty
 
 
 __all__ = ["json"]
+
+
+@pytest_asyncio.fixture(scope="session")
+async def rapp(settings: Settings):  # type: ignore[no-untyped-def]
+    """App with the REAL completeness scheduler (inline: debounce 0), recording n8n and an in-memory hub."""
+    from app.events import InMemoryHub
+    from app.services.n8n import RecordingN8n
+
+    application = create_checked_app(
+        settings.model_copy(update={"completeness_debounce_s": 0}),
+        hub=InMemoryHub(),
+        n8n=RecordingN8n(),
+    )
+    async with application.router.lifespan_context(application):
+        yield application
+
+
+@pytest_asyncio.fixture(scope="session")
+async def rclient(rapp: Any) -> AsyncIterator[httpx.AsyncClient]:
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=rapp), base_url="http://hospital"
+    ) as c:
+        yield c
+
+
+import logging  # noqa: E402
+
+for _name in ("httpx", "app.access", "httpcore"):  # keep test output readable
+    logging.getLogger(_name).setLevel(logging.WARNING)
