@@ -896,7 +896,12 @@ async def cb_classify(
     uow.after_commit(after)
     await uow.commit()
     await d.completeness(str(row.case_id), "doc_event")
-    return {"document_id": str(row.id), "accepted": ok, "parse_status": res["parse_status"]}
+    return {
+        "document_id": str(row.id),
+        "case_id": str(row.case_id),
+        "accepted": ok,
+        "parse_status": res["parse_status"],
+    }
 
 
 async def cb_status(uow: UoW, d: Ingest, svc: Principal, doc_id: str, body: Any) -> dict[str, Any]:

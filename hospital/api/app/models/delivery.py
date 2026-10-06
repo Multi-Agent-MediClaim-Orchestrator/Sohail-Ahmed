@@ -5,6 +5,7 @@ import uuid
 from typing import Any
 
 from sqlalchemy import (
+    CHAR,
     BigInteger,
     Boolean,
     CheckConstraint,
@@ -94,3 +95,30 @@ class InboundCallback(Base):
         DateTime(True), nullable=False, server_default=text("now()")
     )
     process_error: Mapped[str | None] = mapped_column(Text)
+
+
+class RouteHistory(Base):
+    __tablename__ = "route_history"
+    __table_args__ = (
+        CheckConstraint(
+            "trigger = ANY (ARRAY['create'::text, 'patch'::text, 'doc_classified'::text, 'draft_totals'::text, 'config_republish'::text, 'manual'::text, 'override'::text, 'ack'::text, 'post_submission'::text])",
+            name="ck_route_history_trigger",
+        ),
+        ForeignKeyConstraint(["case_id"], ["claim_case.id"], name="route_history_case_id_fkey"),
+        PrimaryKeyConstraint("id", name="route_history_pkey"),
+        UniqueConstraint("case_id", "seq", name="uq_route_history_seq"),
+        Index("ix_route_history_case", "case_id", "seq"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, primary_key=True, server_default=text("uuid_generate_v7()")
+    )
+    case_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    seq: Mapped[int] = mapped_column(Integer, nullable=False)
+    decision: Mapped[Any] = mapped_column(JSONB, nullable=False)
+    decision_hash: Mapped[str] = mapped_column(CHAR(64), nullable=False)
+    trigger: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(True), nullable=False, server_default=text("now()")
+    )

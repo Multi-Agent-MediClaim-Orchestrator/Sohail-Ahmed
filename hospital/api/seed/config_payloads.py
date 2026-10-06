@@ -60,10 +60,12 @@ DEADLINES = {
     "query_response_sla_hours": 72,
     "request_sla_hours": 72,
     "intimation_emergency_hours": 24,
+    "planned_preauth_lead_hours": 48,
 }
 
 ROUTER_RULES = {
     "claim_type_rules": [
+        {"if": {"admission_source": "ER", "hospital_network": True}, "then": "cashless"},
         {"if": {"preauth_ref_present": True, "hospital_network": True}, "then": "cashless"},
         {"if": {"default": True}, "then": "reimbursement"},
     ],

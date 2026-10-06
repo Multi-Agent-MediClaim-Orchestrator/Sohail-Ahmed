@@ -129,6 +129,10 @@ EVENT_TYPES = frozenset(
         "signoff.invalidated",
         "config.drafted",
         "config.validated",
+        "router.decided",
+        "router.override",
+        "router.ack",
+        "router.converted",
         "audit.verify.failed",
         "validation.failed",
     }

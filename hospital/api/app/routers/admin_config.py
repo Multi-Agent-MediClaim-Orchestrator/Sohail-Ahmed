@@ -129,9 +129,19 @@ async def publish(
     uow: UoW = Depends(get_uow),
 ) -> Any:
     b = body or PublishBody()
-    return await svc.publish(
+    out = await svc.publish(
         uow, p, domain, version, request.app.state.redis, b.name, b.effective_from
     )
+    if (
+        domain == "router_rules"
+    ):  # in-flight draft/docs_pending cases follow the new rules (doc 05 §5.5)
+        from app.router_engine import service as router_svc  # noqa: PLC0415
+
+        st = request.app.state
+        out["cases_recomputed"] = await router_svc.recompute_open_cases(
+            uow, st.hub, st.completeness, version
+        )
+    return out
 
 
 @router.post("/{domain}/{version}/retire", operation_id="retireConfigVersion")

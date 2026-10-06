@@ -7,7 +7,14 @@ from typing import Any
 
 def routers() -> list[Any]:
     out: list[Any] = []
-    for mod in ("cases", "documents", "internal_documents", "completeness", "admin_config"):
+    for mod in (
+        "cases",
+        "documents",
+        "internal_documents",
+        "completeness",
+        "admin_config",
+        "route",
+    ):
         try:
             m = __import__(f"app.routers.{mod}", fromlist=["router"])
         except ModuleNotFoundError as e:

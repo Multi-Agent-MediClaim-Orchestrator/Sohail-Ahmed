@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Literal
 
 from claim_contract.enums import AdmissionType, ClaimType
@@ -40,6 +40,9 @@ class CaseCreate(Strict):
     admission_type: AdmissionType
     admitted_on: date | None = None
     discharged_on: date | None = None
+    admitted_at: datetime | None = None
+    discharged_at: datetime | None = None
+    admission_source: Literal["ER", "OPD", "referral"] | None = None
     preauth_ref: str | None = Field(default=None, max_length=64)
     treating_doctor: str | None = Field(default=None, max_length=120)
     diagnosis_codes: list[str] = Field(default_factory=list, max_length=10)
@@ -74,6 +77,9 @@ class PolicyPatch(Strict):
 class CasePatch(Strict):
     admitted_on: date | None = None
     discharged_on: date | None = None
+    admitted_at: datetime | None = None
+    discharged_at: datetime | None = None
+    admission_source: Literal["ER", "OPD", "referral"] | None = None
     diagnosis_codes: list[str] | None = Field(default=None, max_length=10)
     procedure_codes: list[str] | None = Field(default=None, max_length=10)
     treating_doctor: str | None = Field(default=None, max_length=120)

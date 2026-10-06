@@ -84,6 +84,14 @@ async def patch_case(
     uow: UoW = Depends(get_uow),
 ) -> dict[str, Any]:
     out = await svc.patch_case(uow, p, case_id, body, if_match, request.app.state.settings)
+    if svc.ROUTE_FIELDS & set(body.model_dump(exclude_unset=True)):
+        from app.router_engine import service as router_svc  # noqa: PLC0415
+
+        st = request.app.state
+        await router_svc.recompute(
+            uow, out["id"], "patch", p.actor_id, hub=st.hub, completeness=st.completeness
+        )
+        out = await svc.get_case(uow, p, out["id"], st.settings)
     response.headers["ETag"] = f'"{out["version"]}"'
     return out
 

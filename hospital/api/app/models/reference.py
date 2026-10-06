@@ -2,8 +2,21 @@
 
 import datetime
 import decimal
+import uuid
 
-from sqlalchemy import Boolean, CheckConstraint, Date, Index, Numeric, PrimaryKeyConstraint, Text
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKeyConstraint,
+    Index,
+    Numeric,
+    PrimaryKeyConstraint,
+    Text,
+    Uuid,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -11,18 +24,27 @@ from app.db.base import Base
 
 class NetworkInsurer(Base):
     __tablename__ = "network_insurer"
-    __table_args__ = (PrimaryKeyConstraint("insurer_name", name="network_insurer_pkey"),)
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["updated_by"], ["app_user.id"], name="network_insurer_updated_by_fkey"
+        ),
+        PrimaryKeyConstraint("insurer_name", name="network_insurer_pkey"),
+    )
 
     insurer_name: Mapped[str] = mapped_column(Text, primary_key=True)
     cashless_supported: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(True), nullable=False, server_default=text("now()")
+    )
     notes: Mapped[str | None] = mapped_column(Text)
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(Uuid)
 
 
 class SimulatedPreauth(Base):
     __tablename__ = "simulated_preauth"
     __table_args__ = (
         CheckConstraint(
-            "status = ANY (ARRAY['approved'::text, 'enhanced'::text, 'cancelled'::text, 'expired'::text])",
+            "status = ANY (ARRAY['approved'::text, 'enhanced'::text, 'cancelled'::text, 'expired'::text, 'revoked'::text, 'pending'::text])",
             name="ck_simulated_preauth_status",
         ),
         CheckConstraint("valid_to >= valid_from", name="ck_simulated_preauth_validity"),

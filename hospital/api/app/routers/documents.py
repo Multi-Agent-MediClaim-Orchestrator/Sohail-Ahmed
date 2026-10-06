@@ -13,6 +13,7 @@ from app.core.uow import UoW
 from app.schemas.documents import DocTypePatch
 from app.services import documents as svc
 from app.services.cases import load_case
+from app.services.route_triggers import request_state, route_on_doc
 
 router = APIRouter(tags=["documents"])
 Staff = Depends(require_role("desk", "officer"))
@@ -154,7 +155,9 @@ async def patch_document(
     uow: UoW = Depends(get_uow),
     d: Any = Depends(get_ingest),
 ) -> dict[str, Any]:
-    return await svc.reclassify(uow, d, p, doc_id, body.doc_type.value)
+    out = await svc.reclassify(uow, d, p, doc_id, body.doc_type.value)
+    await route_on_doc(uow, request_state(d), out["case_id"], body.doc_type.value, p.actor_id)
+    return out
 
 
 @router.delete("/v1/documents/{doc_id}", status_code=204, operation_id="deleteDocument")

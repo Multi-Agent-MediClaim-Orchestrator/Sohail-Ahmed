@@ -18,9 +18,20 @@ from app.core.config import Settings
 from app.core.errors import ApiError
 from app.core.uow import UoW
 from app.schemas.cases import CaseCreate, CasePatch
-from app.services import audit, config_service, preauth, transitions
+from app.services import audit, config_service, transitions
 
 EDITABLE_STATUSES = {"draft", "docs_pending", "docs_complete"}
+ROUTE_FIELDS = {
+    "admitted_on",
+    "discharged_on",
+    "admitted_at",
+    "discharged_at",
+    "admission_source",
+    "diagnosis_codes",
+    "procedure_codes",
+    "preauth_ref",
+    "policy",
+}
 
 
 def _iso(v: Any) -> Any:
@@ -135,10 +146,11 @@ async def create_case(
         await s.execute(
             text(
                 "INSERT INTO claim_case (id, claim_ref, hospital_id, patient_id, policy_ref_id, claim_type, "
-                "admission_type, admitted_on, discharged_on, diagnosis_codes, procedure_codes, treating_doctor, "
-                "preauth_ref, filing_deadline, config_versions, created_by) VALUES (uuid_generate_v7(), :ref, :h, :p, "
-                ":pol, CAST(:ct AS claim_type), CAST(:at AS admission_type), :ad, :dd, :dx, :px, :doc, :pre, :fd, "
-                "CAST(:cv AS jsonb), :u) RETURNING id"
+                "admission_type, admitted_on, discharged_on, admitted_at, discharged_at, admission_source, diagnosis_codes, "
+                "procedure_codes, treating_doctor, preauth_ref, filing_deadline, config_versions, created_by, route) "
+                "VALUES (uuid_generate_v7(), :ref, :h, :p, :pol, CAST(:ct AS claim_type), CAST(:at AS admission_type), "
+                ":ad, :dd, :ada, :dda, :src, :dx, :px, :doc, :pre, :fd, CAST(:cv AS jsonb), :u, CAST(:route AS jsonb)) "
+                "RETURNING id"
             ),
             {
                 "ref": ref,
@@ -149,6 +161,19 @@ async def create_case(
                 "at": req.admission_type.value,
                 "ad": req.admitted_on,
                 "dd": req.discharged_on,
+                "ada": req.admitted_at,
+                "dda": req.discharged_at,
+                "src": req.admission_source
+                or ("ER" if req.admission_type.value == "emergency" else "OPD"),  # form default
+                "route": json.dumps(
+                    {
+                        "proposal": {
+                            "claim_type": req.claim_type.value,
+                            "admission_type": req.admission_type.value,
+                            "by": str(p.id),
+                        }
+                    }
+                ),
                 "dx": req.diagnosis_codes,
                 "px": req.procedure_codes,
                 "doc": req.treating_doctor,
@@ -175,7 +200,14 @@ async def create_case(
         actor_id=p.actor_id,
         config_versions=cfg,
     )
-    warnings = await preauth.check(s, req.claim_type.value, req.preauth_ref, req.policy.member_id)
+    from app.router_engine import service as router_svc  # noqa: PLC0415  (avoids an import cycle)
+
+    await router_svc.recompute(uow, case_id, "create", p.actor_id, hub=hub, commit=False)
+    route = await router_svc.get_route(uow, case_id)
+    warnings = route["warnings"]
+    filing = (
+        await s.execute(text("SELECT filing_deadline FROM claim_case WHERE id=:i"), {"i": case_id})
+    ).scalar()
 
     async def publish() -> None:
         await hub.publish("case.created", str(case_id), {"claim_ref": ref})
@@ -188,6 +220,13 @@ async def create_case(
         "status": "draft",
         "version": 1,
         "filing_deadline": _iso(filing),
+        "claim_type": route["decision"]["pipeline"],
+        "route": {
+            "pipeline": route["decision"]["pipeline"],
+            "admission_type": route["decision"]["admission_type"],
+            "flags": route["decision"]["flags"],
+            "provisional": route["provisional"],
+        },
         "warnings": warnings,
     }
 

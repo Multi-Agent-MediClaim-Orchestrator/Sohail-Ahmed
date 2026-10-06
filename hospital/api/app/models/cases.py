@@ -40,6 +40,10 @@ class ClaimCase(Base):
             name="ck_case_amounts",
         ),
         CheckConstraint(
+            "admission_source IS NULL OR (admission_source = ANY (ARRAY['ER'::text, 'OPD'::text, 'referral'::text]))",
+            name="ck_case_admission_source",
+        ),
+        CheckConstraint(
             "discharged_on IS NULL OR admitted_on IS NULL OR discharged_on >= admitted_on",
             name="ck_case_dates",
         ),
@@ -48,6 +52,12 @@ class ClaimCase(Base):
             name="ck_case_cashless_preauth_amount",
         ),
         ForeignKeyConstraint(["assigned_to"], ["app_user.id"], name="claim_case_assigned_to_fkey"),
+        ForeignKeyConstraint(
+            ["converted_from"], ["claim_case.id"], name="claim_case_converted_from_fkey"
+        ),
+        ForeignKeyConstraint(
+            ["converted_to"], ["claim_case.id"], name="claim_case_converted_to_fkey"
+        ),
         ForeignKeyConstraint(["created_by"], ["app_user.id"], name="claim_case_created_by_fkey"),
         ForeignKeyConstraint(["hospital_id"], ["hospital.id"], name="claim_case_hospital_id_fkey"),
         ForeignKeyConstraint(["patient_id"], ["patient.id"], name="claim_case_patient_id_fkey"),
@@ -62,6 +72,11 @@ class ClaimCase(Base):
             "claim_ref",
             postgresql_ops={"claim_ref": "gin_trgm_ops"},
             postgresql_using="gin",
+        ),
+        Index(
+            "ix_case_converted_from",
+            "converted_from",
+            postgresql_where="(converted_from IS NOT NULL)",
         ),
         Index("ix_case_created_keyset", "created_at", "id"),
         Index(
@@ -152,6 +167,10 @@ class ClaimCase(Base):
     short_pay_amount: Mapped[decimal.Decimal | None] = mapped_column(Numeric(14, 2))
     settled_amount: Mapped[decimal.Decimal | None] = mapped_column(Numeric(14, 2))
     settled_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
+    discharged_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
+    admission_source: Mapped[str | None] = mapped_column(Text)
+    converted_from: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+    converted_to: Mapped[uuid.UUID | None] = mapped_column(Uuid)
 
 
 class CaseStatusHistory(Base):

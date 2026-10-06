@@ -86,7 +86,11 @@ async def test_reimbursement_deadline_and_no_preauth_warning(
     assert c["filing_deadline"] == "2026-11-01"  # discharged 2026-10-02 + 30 days (config)
     assert c["warnings"] == []
     c2 = await new_case(client, tok("officer1"), U(), preauth_ref=None)
-    assert [w["code"] for w in c2["warnings"]] == ["preauth_missing"]
+    # the router decides: no pre-auth reference at an OPD admission -> reimbursement, with an acknowledgement-worthy warning
+    assert c2["claim_type"] == "reimbursement"
+    assert [(w["code"], w["needs_ack"]) for w in c2["warnings"]] == [
+        ("claim_type_disagrees_with_selection", True)
+    ]
     c3 = await new_case(client, tok("officer1"), U(), preauth_ref="PA-DOES-NOT-EXIST")
     assert [w["code"] for w in c3["warnings"]] == ["preauth_not_found"]
 

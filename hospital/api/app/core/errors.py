@@ -52,6 +52,8 @@ PRIVATE: dict[str, tuple[int, str]] = {
     "rate_limited": (429, "Rate limited"),
     "validation_error": (422, "Validation error"),
     "bad_request": (400, "Bad request"),
+    "override_conflicts_evidence": (409, "Override conflicts with evidence"),
+    "already_converted": (409, "Case already converted"),
     "not_waivable": (409, "Requirement not waivable"),
     "reason_too_short": (422, "Reason too short"),
     "unknown_rule": (404, "Unknown rule"),

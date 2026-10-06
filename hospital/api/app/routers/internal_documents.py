@@ -12,6 +12,7 @@ from app.core.deps import get_ingest, get_uow
 from app.core.uow import UoW
 from app.schemas.documents import ClassifyIn, ParseIn, QualityIn, SplitIn, StatusIn
 from app.services import documents as svc
+from app.services.route_triggers import request_state, route_on_doc
 
 router = APIRouter(prefix="/v1/internal", tags=["internal"])
 Svc = Depends(require_service("svc-n8n", "svc-crew", "svc-internal"))
@@ -58,7 +59,10 @@ async def classify(
     uow: UoW = Depends(get_uow),
     d: Any = Depends(get_ingest),
 ) -> dict[str, Any]:
-    return await svc.cb_classify(uow, d, p, doc_id, body)
+    out = await svc.cb_classify(uow, d, p, doc_id, body)
+    if out.get("accepted") and body.doc_type is not None:
+        await route_on_doc(uow, request_state(d), out["case_id"], body.doc_type.value, p.actor_id)
+    return out
 
 
 @router.post("/documents/{doc_id}/status", operation_id="cbStatus")

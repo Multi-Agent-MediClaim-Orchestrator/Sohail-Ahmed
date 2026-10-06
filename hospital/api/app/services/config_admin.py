@@ -31,6 +31,7 @@ class Deadlines(Strict):
     query_response_sla_hours: int = Field(gt=0, le=720)
     request_sla_hours: int = Field(gt=0, le=720)
     intimation_emergency_hours: int = Field(gt=0, le=168)
+    planned_preauth_lead_hours: int = Field(default=48, gt=0, le=720)
 
 
 class Gates(Strict):
@@ -80,6 +81,10 @@ def validate(domain: str, payload: dict[str, Any]) -> list[str]:
         raise ApiError("not_found", f"unknown config domain {domain}")
     if domain == "doc_requirements":
         return validate_payload(payload)[1]
+    if domain == "router_rules":
+        from app.router_engine.schema import validate_rules
+
+        return validate_rules(payload)
     try:
         MODELS[domain].model_validate(payload)
     except ValidationError as e:
