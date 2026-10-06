@@ -1,0 +1,30 @@
+[
+  {
+    "username": "desk1",
+    "role": "desk",
+    "email": "desk1@claims.local",
+    "display_name": "Desk1",
+    "sub": "8333c707-b7be-5c6f-9469-b152d45d0f85"
+  },
+  {
+    "username": "officer1",
+    "role": "officer",
+    "email": "officer1@claims.local",
+    "display_name": "Officer1",
+    "sub": "66b75745-4dcd-5c38-9941-6beb116ee279"
+  },
+  {
+    "username": "officer2",
+    "role": "officer",
+    "email": "officer2@claims.local",
+    "display_name": "Officer2",
+    "sub": "5527298a-549c-5930-a0d0-0da053a3ef72"
+  },
+  {
+    "username": "hadmin",
+    "role": "admin",
+    "email": "hadmin@claims.local",
+    "display_name": "Hadmin",
+    "sub": "d1b1fd83-9c1c-5e9c-bef2-c37de9852c41"
+  }
+]
