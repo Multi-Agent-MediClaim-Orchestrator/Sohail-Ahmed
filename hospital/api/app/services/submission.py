@@ -320,6 +320,51 @@ async def signoff(
     return {"signoff_id": str(sid), "draft_version": d.version}
 
 
+async def _refs(
+    store: Any, docs: Any, ttl: int, received_via: str = "upload"
+) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    now = datetime.now(UTC)
+    for d in docs:
+        if d.dtype is None:
+            continue
+        try:
+            url = await store.presign_get(d.storage_key, ttl)
+        except Exception:  # noqa: BLE001
+            raise ApiError("storage_unavailable", "document storage is unavailable") from None
+        refs.append(
+            {
+                "doc_id": str(d.id),
+                "doc_type": d.dtype,
+                "filename": d.original_filename[:200],
+                "sha256": d.sha256,
+                "size_bytes": d.size_bytes,
+                "mime_type": d.mime_type,
+                "download_url": url,
+                "url_expires_at": (now + timedelta(seconds=ttl)).isoformat(),
+                "parse_confidence": d.parse_confidence,
+                "pages": d.pages or 1,
+                "received_via": received_via,
+            }
+        )
+    return refs
+
+
+async def doc_refs_for(
+    uow: UoW, store: Any, case: Any, doc_ids: list[str], ttl: int
+) -> list[dict[str, Any]]:
+    docs = (
+        await uow.session.execute(
+            text(
+                "SELECT d.*, d.doc_type::text AS dtype FROM document d WHERE d.case_id=:c AND d.id = ANY(CAST(:ids AS uuid[])) AND "
+                "d.lifecycle='active' AND d.scan_status='clean' AND d.storage_key IS NOT NULL ORDER BY d.created_at"
+            ),
+            {"c": case.id, "ids": doc_ids},
+        )
+    ).all()
+    return await _refs(store, docs, ttl, "supplement")
+
+
 async def assemble(
     uow: UoW, case: Any, draft: Any, store: Any, settings: Any, late_reason: str | None
 ) -> cm.ClaimSubmission:
@@ -343,31 +388,8 @@ async def assemble(
             {"c": case.id},
         )
     ).all()
-    refs = []
-    ttl = settings.presign_submit_ttl_s
     now = datetime.now(UTC)
-    for d in docs:
-        if d.dtype is None:
-            continue
-        try:
-            url = await store.presign_get(d.storage_key, ttl)
-        except Exception:  # noqa: BLE001
-            raise ApiError("storage_unavailable", "document storage is unavailable") from None
-        refs.append(
-            {
-                "doc_id": str(d.id),
-                "doc_type": d.dtype,
-                "filename": d.original_filename[:200],
-                "sha256": d.sha256,
-                "size_bytes": d.size_bytes,
-                "mime_type": d.mime_type,
-                "download_url": url,
-                "url_expires_at": (now + timedelta(seconds=ttl)).isoformat(),
-                "parse_confidence": d.parse_confidence,
-                "pages": d.pages or 1,
-                "received_via": "upload",
-            }
-        )
+    refs = await _refs(store, docs, settings.presign_submit_ttl_s)
     pl = draft.payload
     lines = [
         {

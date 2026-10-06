@@ -20,6 +20,7 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "hospital/api/tests/*" = ["S101", "S608", "E501", "S311"]
 "hospital/api/app/**" = ["B008"]  # FastAPI Depends() defaults
 "hospital/api/app/services/cases.py" = ["S608"]
+"hospital/api/app/services/queries.py" = ["S608"]
 "hospital/api/app/services/documents.py" = ["S608", "B007"]  # SQL built only from constants and validated model field names
 "hospital/api/seed/*" = ["S311", "E501"]  # seeded fake data, not security-sensitive
 "**/tests/**" = ["S101"]

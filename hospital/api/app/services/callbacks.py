@@ -255,7 +255,7 @@ async def handle_decision(
     )
 
     async def pub() -> None:
-        await hub.publish("case.decision", str(case.id), {"outcome": decision.outcome.value})
+        await hub.publish("decision.received", str(case.id), {"outcome": decision.outcome.value})
 
     uow.after_commit(pub)
     return 204, None
@@ -316,4 +316,9 @@ async def handle_settlement(
             actor_type="external",
             actor_id="insurer",
         )
+
+    async def pub() -> None:
+        await hub.publish("settlement.received", str(case.id), {"amount": str(st_.amount.amount)})
+
+    uow.after_commit(pub)
     return 204, None

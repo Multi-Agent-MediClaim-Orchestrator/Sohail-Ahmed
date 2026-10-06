@@ -285,6 +285,9 @@ class OutboxWorker:
 # ---------------------------------------------------------------------------------- success handlers
 @on_success("claim.submit")
 async def _submit_ok(uow: UoW, row: Any, body: Any, app: Any) -> None:
+    from app.services.queries import _mark_sent
+
+    await _mark_sent(uow, row, body, app)
     ack = cm.Acknowledgement.model_validate(body)
     await uow.session.execute(
         text(

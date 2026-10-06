@@ -350,10 +350,10 @@ async def _ingest_one(
 
     async def after() -> None:
         await d.hub.publish(
-            "document.uploaded", str(case.id), {"document_id": str(doc_id), "filename": name}
+            "doc.uploaded", str(case.id), {"document_id": str(doc_id), "filename": name}
         )
         await d.hub.publish(
-            "document.scanned", str(case.id), {"document_id": str(doc_id), "result": "clean"}
+            "doc.scanned", str(case.id), {"document_id": str(doc_id), "result": "clean"}
         )
         await d.n8n.trigger(
             "intake/document-uploaded",
@@ -443,7 +443,7 @@ async def _quarantine(
 
     async def alert() -> None:
         await d.hub.publish(
-            "document.scanned", str(case.id), {"document_id": str(doc_id), "result": "infected"}
+            "doc.scanned", str(case.id), {"document_id": str(doc_id), "result": "infected"}
         )
 
     uow.after_commit(alert)
@@ -484,7 +484,7 @@ async def reclassify(
 
     async def after() -> None:
         await d.hub.publish(
-            "document.classified",
+            "doc.classified",
             str(row.case_id),
             {"document_id": str(row.id), "doc_type": new_type},
         )
@@ -817,7 +817,7 @@ async def cb_parse(uow: UoW, d: Ingest, svc: Principal, doc_id: str, body: Any) 
 
     async def after() -> None:
         await d.hub.publish(
-            "document.parsed",
+            "doc.parsed",
             str(row.case_id),
             {
                 "document_id": str(row.id),
@@ -885,7 +885,7 @@ async def cb_classify(
 
     async def after() -> None:
         await d.hub.publish(
-            "document.classified",
+            "doc.classified",
             str(row.case_id),
             {
                 "document_id": str(row.id),
@@ -920,7 +920,7 @@ async def cb_status(uow: UoW, d: Ingest, svc: Principal, doc_id: str, body: Any)
 
     async def after() -> None:
         await d.hub.publish(
-            "document.parsed",
+            "doc.parsed",
             str(row.case_id),
             {"document_id": str(row.id), "parse_status": body.parse_status},
         )
@@ -997,7 +997,7 @@ async def cb_split(uow: UoW, d: Ingest, svc: Principal, doc_id: str, body: Any) 
             await d.n8n.trigger(
                 "intake/document-uploaded", {"case_id": str(row.case_id), "document_id": c}, c
             )
-        await d.hub.publish("document.uploaded", str(row.case_id), {"children": children})
+        await d.hub.publish("doc.uploaded", str(row.case_id), {"children": children})
 
     uow.after_commit(after)
     await uow.commit()

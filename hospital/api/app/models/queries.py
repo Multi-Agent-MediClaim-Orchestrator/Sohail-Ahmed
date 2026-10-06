@@ -11,6 +11,7 @@ from claim_contract.enums import (
 )
 from sqlalchemy import (
     ARRAY,
+    Boolean,
     CheckConstraint,
     DateTime,
     Enum,
@@ -34,10 +35,18 @@ class InsurerQuery(Base):
     __tablename__ = "insurer_query"
     __table_args__ = (
         CheckConstraint("round >= 1 AND round <= 3", name="ck_insurer_query_round"),
+        CheckConstraint(
+            "triage_source IS NULL OR (triage_source = ANY (ARRAY['crew'::text, 'rules'::text, 'officer'::text]))",
+            name="ck_insurer_query_triage_source",
+        ),
+        ForeignKeyConstraint(
+            ["assigned_to"], ["app_user.id"], name="insurer_query_assigned_to_fkey"
+        ),
         ForeignKeyConstraint(["case_id"], ["claim_case.id"], name="insurer_query_case_id_fkey"),
         PrimaryKeyConstraint("id", name="insurer_query_pkey"),
         UniqueConstraint("insurer_query_id", name="uq_insurer_query_id"),
         Index("ix_query_case", "case_id", "round"),
+        Index("ix_query_inbox", "status", "due_by", "id"),
         Index(
             "ix_query_open_due",
             "due_by",
@@ -84,10 +93,17 @@ class InsurerQuery(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
+    escalation_risk: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("1"))
     due_by: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
     triage: Mapped[Any | None] = mapped_column(JSONB)
     overdue_notified_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
     responded_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
+    triage_source: Mapped[str | None] = mapped_column(Text)
+    assigned_to: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+    closed_reason: Mapped[str | None] = mapped_column(Text)
 
 
 class QueryResponse(Base):
@@ -98,11 +114,11 @@ class QueryResponse(Base):
             name="ck_query_response_distinct",
         ),
         CheckConstraint(
-            "source = ANY (ARRAY['agent'::text, 'human_edit'::text])",
+            "source = ANY (ARRAY['agent'::text, 'human'::text, 'human_edit'::text])",
             name="ck_query_response_source",
         ),
         CheckConstraint(
-            "status = ANY (ARRAY['draft'::text, 'approved'::text, 'sent'::text])",
+            "status = ANY (ARRAY['draft'::text, 'needs_attention'::text, 'approved'::text, 'sent'::text, 'superseded'::text])",
             name="ck_query_response_status",
         ),
         ForeignKeyConstraint(
@@ -130,8 +146,13 @@ class QueryResponse(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
     citations: Mapped[Any | None] = mapped_column(JSONB)
     unsupported_claims: Mapped[Any | None] = mapped_column(JSONB)
     approved_by: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     second_approver: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     sent_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
+    grounding: Mapped[Any | None] = mapped_column(JSONB)
+    override_note: Mapped[str | None] = mapped_column(Text)
+    model_info: Mapped[Any | None] = mapped_column(JSONB)
+    approved_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))

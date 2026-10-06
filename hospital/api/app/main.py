@@ -24,15 +24,15 @@ from app.auth.jwks import JwksCache
 from app.core.config import Settings, get_settings
 from app.core.errors import install_handlers
 from app.core.logging import RequestIdMiddleware, setup_logging
-from app.events import InMemoryHub
 from app.outbox.worker import OutboxWorker
 from app.routers import admin_users, health, me
 from app.services.crew import HttpCrew
 from app.services.n8n import HttpN8n
+from app.sse.hub import RedisHub
 from app.storage.clamav import ClamAV
 from app.storage.minio import ObjectStore
 
-CODE_HEAD = "0021"
+CODE_HEAD = "0022"
 
 
 def create_app(
@@ -64,7 +64,10 @@ def create_app(
         )
         await app.state.jwks.prefetch()
         app.state.settings = s
-        app.state.hub = hub or InMemoryHub()
+        app.state.hub = hub or RedisHub(
+            app.state.redis, app.state.sessionmaker, s.sse_stream_maxlen
+        )
+        app.state.sse_conns = {}
         app.state.code_head = CODE_HEAD
         from app.completeness.service import CompletenessScheduler
 

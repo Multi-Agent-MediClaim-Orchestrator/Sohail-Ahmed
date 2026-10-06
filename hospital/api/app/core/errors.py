@@ -75,6 +75,15 @@ PRIVATE: dict[str, tuple[int, str]] = {
     "two_person_rule": (409, "Two-person rule"),
     "config_invalid": (422, "Configuration invalid"),
     "config_conflict": (409, "Configuration conflict"),
+    "not_approved": (409, "Response not approved"),
+    "query_closed": (409, "Query closed"),
+    "no_draft": (409, "No draft"),
+    "already_sent": (409, "Already sent"),
+    "override_note_required": (422, "Override note required"),
+    "duplicate_approver": (409, "Same approver twice"),
+    "version_conflict": (409, "Version conflict"),
+    "max_rounds_exceeded": (422, "Maximum query rounds exceeded"),
+    "service_unavailable": (503, "Service unavailable"),
     "internal_error": (500, "Internal error"),
 }
 

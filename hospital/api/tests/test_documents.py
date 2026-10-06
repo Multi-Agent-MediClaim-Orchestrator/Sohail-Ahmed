@@ -108,7 +108,7 @@ async def test_upload_clean_pdf_full_effects(
     assert key == f"{case['id']}/{d['id']}/original.pdf" and await app.state.store.exists(key)
     # SSE order and audit
     evs = [e.type for e in app.state.hub.events if e.data.get("document_id") == d["id"]]
-    assert evs == ["document.uploaded", "document.scanned"]
+    assert evs == ["doc.uploaded", "doc.scanned"]
     types = [
         r[0]
         for r in sql(

@@ -16,6 +16,8 @@ def routers() -> list[Any]:
         "route",
         "claims",
         "callbacks",
+        "queries",
+        "stream",
     ):
         try:
             m = __import__(f"app.routers.{mod}", fromlist=["router"])

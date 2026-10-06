@@ -47,6 +47,12 @@ class _Decision(BaseModel):
     decision: cm.Decision
 
 
+class _Query(BaseModel):
+    claim_ref: str
+    sequence: int
+    query: cm.Query
+
+
 class _Settlement(BaseModel):
     claim_ref: str
     sequence: int
@@ -101,6 +107,35 @@ async def settlements(
     )
     await uow.commit()
     return _reply(st, body, request)
+
+
+@router.post("/queries", operation_id="callbackQuery", status_code=204)
+async def queries(
+    request: Request, _: str = Depends(insurer_hmac), uow: UoW = Depends(get_uow)
+) -> Response:
+    import json as _json
+
+    from app.services import queries as qsvc
+
+    try:
+        rnd = (_json.loads(await request.body()).get("query") or {}).get("round")
+    except ValueError:
+        rnd = None
+    if isinstance(rnd, int) and rnd > 3:
+        ref = _json.loads(await request.body()).get("claim_ref", "")
+        await qsvc.record_anomaly(uow, ref, {"reason": "round_exceeds_max", "round": rnd})
+        await uow.commit()
+        raise ApiError(
+            "max_rounds_exceeded", "the maximum of 3 query rounds was exceeded", status=422
+        )
+    b = await _parse(request, _Query)
+    raw = b.model_dump(mode="json")
+    st = request.app.state
+    code, body = await qsvc.handle_query(
+        uow, b.claim_ref, b.sequence, b.query, _idem(request), raw, st.hub, st.n8n
+    )
+    await uow.commit()
+    return _reply(code, body, request)
 
 
 @router.post("/documents/{doc_id}/refresh-url", operation_id="refreshDocumentUrl")

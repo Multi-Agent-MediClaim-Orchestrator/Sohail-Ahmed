@@ -41,6 +41,10 @@ class Settings(BaseModel):
     name_match_min: int = 90
     completeness_debounce_s: float = 5.0
     outbox_enabled: bool = True
+    sse_heartbeat_s: float = 15.0
+    sse_stream_maxlen: int = 10000
+    sse_ticket_ttl_s: int = 30
+    sse_max_connections: int = 5
     outbox_poll_ms: int = 1000
     presign_submit_ttl_s: int = 86400
     crew_url: str = "http://localhost:8010"

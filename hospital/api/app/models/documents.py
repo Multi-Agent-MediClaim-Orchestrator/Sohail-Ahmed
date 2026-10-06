@@ -116,6 +116,9 @@ class Document(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
+    supplementary: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
     storage_key: Mapped[str | None] = mapped_column(Text)
     pages: Mapped[int | None] = mapped_column(Integer)
     doc_type: Mapped[DocType | None] = mapped_column(
@@ -135,6 +138,7 @@ class Document(Base):
     deleted_by: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     purge_after: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
     uploaded_by: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+    sent_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
 
 
 class DocumentParse(Base):

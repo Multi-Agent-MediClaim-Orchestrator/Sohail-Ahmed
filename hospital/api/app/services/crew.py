@@ -14,14 +14,22 @@ log = logging.getLogger("app.crew")
 class CrewClient(Protocol):
     async def start_claim_build(self, job: dict[str, Any]) -> bool: ...
 
+    async def start_query_job(self, kind: str, job: dict[str, Any]) -> bool: ...
+
 
 class HttpCrew:
     def __init__(self, base_url: str, client: httpx.AsyncClient | None = None) -> None:
         self.base, self.client = base_url.rstrip("/"), client or httpx.AsyncClient(timeout=10)
 
     async def start_claim_build(self, job: dict[str, Any]) -> bool:
+        return await self._post("claim-build", job)
+
+    async def start_query_job(self, kind: str, job: dict[str, Any]) -> bool:
+        return await self._post(kind, job)
+
+    async def _post(self, name: str, job: dict[str, Any]) -> bool:
         try:
-            r = await self.client.post(f"{self.base}/v1/jobs/claim-build", json=job)
+            r = await self.client.post(f"{self.base}/v1/jobs/{name}", json=job)
             return r.status_code < 300
         except httpx.HTTPError as e:
             log.warning("crew unreachable: %s", type(e).__name__)
@@ -39,4 +47,10 @@ class RecordingCrew:
         if self.fail:
             return False
         self.jobs.append(job)
+        return True
+
+    async def start_query_job(self, kind: str, job: dict[str, Any]) -> bool:
+        if self.fail:
+            return False
+        self.jobs.append({"kind": kind, **job})
         return True
