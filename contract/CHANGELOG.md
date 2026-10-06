@@ -9,5 +9,8 @@ Joint file: both developers approve every change. Versions follow docs/implement
 - Insurer state machine: `ready_for_decision` may go straight to `approved|partially_approved` (system auto-approve at or below `T_auto`, audit `decision.auto_approved`).
 - Package additions: Redis idempotency store, ASGI contract middleware (HMAC, rate limit, idempotency, ids), OpenAPI generator, `testing.hospital_sim`.
 
+- Hospital state machine: `submitted -> ready_for_review` is allowed (receiver rejected the submission with a terminal 4xx, so nothing was accepted; doc 06 §8.1).
+- Audit event types for claim building, submission and callbacks; `testing.insurer_sim` (reference insurer for the hospital-side tests, usable by Dev B as a contract fixture).
+
 ## 1.0.0 (baseline, tag `contract-v1.0` pending Dev B review)
 - Models, enums, state machines, signing (vectors V1/V2), idempotency, inbox sequencing, outbox sender, audit hash chain.

@@ -8,6 +8,13 @@ from typing import Any
 
 import httpx
 import redis.asyncio as aioredis
+from claim_contract.idempotency import RedisStore
+from claim_contract.middleware import (
+    ContractConfig,
+    ContractMiddleware,
+    RateLimiter,
+    starlette_route_matcher,
+)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -18,12 +25,14 @@ from app.core.config import Settings, get_settings
 from app.core.errors import install_handlers
 from app.core.logging import RequestIdMiddleware, setup_logging
 from app.events import InMemoryHub
+from app.outbox.worker import OutboxWorker
 from app.routers import admin_users, health, me
+from app.services.crew import HttpCrew
 from app.services.n8n import HttpN8n
 from app.storage.clamav import ClamAV
 from app.storage.minio import ObjectStore
 
-CODE_HEAD = "0020"
+CODE_HEAD = "0021"
 
 
 def create_app(
@@ -66,9 +75,17 @@ def create_app(
         )
         app.state.clam = services.get("clam") or ClamAV(s.clamav_host, s.clamav_port)
         app.state.n8n = services.get("n8n") or HttpN8n(s.n8n_webhook_base)
+        app.state.crew = services.get("crew") or HttpCrew(s.crew_url)
+        app.state.insurer_client = services.get("insurer_client") or httpx.AsyncClient(
+            base_url=s.insurer_base_url
+        )
         for name, svc in services.items():
             setattr(app.state, name, svc)
+        app.state.outbox = OutboxWorker(app)
+        if s.outbox_enabled:
+            app.state.outbox.start()
         yield
+        await app.state.outbox.stop()
         await app.state.engine.dispose()
         if "redis" not in services:
             await app.state.redis.aclose()
@@ -84,6 +101,21 @@ def create_app(
         expose_headers=["X-Request-ID", "Location", "ETag"],
     )
     app.add_middleware(AuthSessionMiddleware)
+
+    class _LazyRedis:  # the Redis client is created in the lifespan, after middleware construction
+        def __getattr__(self, name: str) -> Any:
+            return getattr(app.state.redis, name)
+
+    app.add_middleware(
+        ContractMiddleware,
+        config=ContractConfig(
+            secrets={s.insurer_key_id: s.insurer_to_hospital_secret.encode()},
+            store=RedisStore(_LazyRedis(), "hosp"),
+            rate_limiter=RateLimiter("hosp", limit=100, redis=_LazyRedis()),
+            protect_prefixes=("/v1/insurer-callbacks/",),
+            route_match=lambda scope: starlette_route_matcher(app.router.routes)(scope),
+        ),
+    )
     app.add_middleware(RequestIdMiddleware)
     from app.routers import registry  # noqa: PLC0415  (later steps register their routers here)
 

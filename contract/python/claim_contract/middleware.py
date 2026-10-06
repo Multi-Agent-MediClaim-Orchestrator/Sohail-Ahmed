@@ -157,16 +157,16 @@ class ContractMiddleware:
         ver = hdr.get("x-contract-version", "")
         if ver.split(".")[0] != SUPPORTED_MAJOR:
             raise ContractError("unsupported_version", f"unsupported contract version {ver!r}")
+        key_id = hdr.get("x-key-id", "")
+        required = ("x-key-id", "x-timestamp", "x-signature")
+        if any(not hdr.get(h) for h in required):
+            raise ContractError("invalid_signature", "signature verification failed")
         if scope["method"] in MUTATING:
             idem_hdr = hdr.get("x-idempotency-key", "")
             try:
                 uuid.UUID(idem_hdr)
             except ValueError:
                 raise ContractError("bad_request", "X-Idempotency-Key (UUID) is required") from None
-        key_id = hdr.get("x-key-id", "")
-        required = ("x-key-id", "x-timestamp", "x-signature")
-        if any(not hdr.get(h) for h in required):
-            raise ContractError("invalid_signature", "signature verification failed")
         if not self.cfg.verify_signatures:  # presence-only mode for schema tests (values unchecked)
             return key_id
         method = scope["method"]

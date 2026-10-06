@@ -488,7 +488,7 @@ def test_seed_idempotent_and_users_match_realm(migrated: str) -> None:
         after = [c.execute(text(f"SELECT count(*) FROM {t}")).scalar() for t in tables]
         subs = {r[0] for r in c.execute(text("SELECT keycloak_sub FROM app_user"))}
     assert before == after  # idempotent; other tests may have added rows
-    assert before[2] >= 20 and before[5] >= 6 and before[8] == 32
+    assert before[2] >= 20 and before[5] >= 6 and before[8] >= 32
     realm = (
         pathlib.Path(__file__).resolve().parents[3] / "infra/keycloak/rendered/realm-hospital.json"
     )

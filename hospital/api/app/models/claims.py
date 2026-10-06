@@ -9,9 +9,11 @@ from claim_contract.enums import (
     DocType,
 )
 from sqlalchemy import (
+    ARRAY,
     CHAR,
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     Enum,
     ForeignKeyConstraint,
@@ -108,7 +110,8 @@ class ClaimDraft(Base):
     __tablename__ = "claim_draft"
     __table_args__ = (
         CheckConstraint(
-            "source = ANY (ARRAY['agent'::text, 'human_edit'::text])", name="ck_claim_draft_source"
+            "source = ANY (ARRAY['agent'::text, 'human_edit'::text, 'repair'::text])",
+            name="ck_claim_draft_source",
         ),
         ForeignKeyConstraint(["case_id"], ["claim_case.id"], name="claim_draft_case_id_fkey"),
         PrimaryKeyConstraint("id", name="claim_draft_pkey"),
@@ -119,12 +122,20 @@ class ClaimDraft(Base):
     case_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     payload: Mapped[Any] = mapped_column(JSONB, nullable=False)
+    validation: Mapped[Any] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
     source: Mapped[str] = mapped_column(Text, nullable=False)
     created_by: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
-    validation: Mapped[Any | None] = mapped_column(JSONB)
+    provenance: Mapped[Any] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    has_errors: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    model_info: Mapped[Any | None] = mapped_column(JSONB)
+    edit_summary: Mapped[Any | None] = mapped_column(JSONB)
 
 
 class BillLine(Base):
@@ -172,6 +183,12 @@ class Signoff(Base):
         ForeignKeyConstraint(["officer_id"], ["app_user.id"], name="signoff_officer_id_fkey"),
         PrimaryKeyConstraint("id", name="signoff_pkey"),
         UniqueConstraint("draft_id", "officer_id", name="uq_signoff_officer_draft"),
+        Index(
+            "ux_signoff_active",
+            "draft_id",
+            postgresql_where="((decision = 'approved'::text) AND (invalidated_at IS NULL))",
+            unique=True,
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
@@ -182,6 +199,36 @@ class Signoff(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
+    acknowledged_warnings: Mapped[list[str]] = mapped_column(
+        ARRAY(Text()), nullable=False, server_default=text("'{}'::text[]")
+    )
     comment: Mapped[str | None] = mapped_column(Text)
     invalidated_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
     invalidated_reason: Mapped[str | None] = mapped_column(Text)
+
+
+class Settlement(Base):
+    __tablename__ = "settlement"
+    __table_args__ = (
+        CheckConstraint("amount >= 0::numeric AND tds >= 0::numeric", name="ck_settlement_amount"),
+        ForeignKeyConstraint(["case_id"], ["claim_case.id"], name="settlement_case_id_fkey"),
+        PrimaryKeyConstraint("id", name="settlement_pkey"),
+        UniqueConstraint("case_id", "utr", name="uq_settlement_case_utr"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, primary_key=True, server_default=text("uuid_generate_v7()")
+    )
+    case_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    settlement_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    utr: Mapped[str] = mapped_column(Text, nullable=False)
+    amount: Mapped[decimal.Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    tds: Mapped[decimal.Decimal] = mapped_column(
+        Numeric(14, 2), nullable=False, server_default=text("0")
+    )
+    mode: Mapped[str] = mapped_column(Text, nullable=False)
+    paid_on: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    raw: Mapped[Any] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(True), nullable=False, server_default=text("now()")
+    )

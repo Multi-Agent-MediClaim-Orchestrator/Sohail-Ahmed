@@ -32,7 +32,7 @@ class Outbox(Base):
             "method = ANY (ARRAY['POST'::text, 'PUT'::text, 'GET'::text])", name="ck_outbox_method"
         ),
         CheckConstraint(
-            "status = ANY (ARRAY['pending'::text, 'sent'::text, 'failed'::text, 'dead'::text])",
+            "status = ANY (ARRAY['pending'::text, 'sending'::text, 'sent'::text, 'failed'::text, 'dead'::text])",
             name="ck_outbox_status",
         ),
         ForeignKeyConstraint(["case_id"], ["claim_case.id"], name="outbox_case_id_fkey"),
@@ -43,7 +43,7 @@ class Outbox(Base):
         Index(
             "ix_outbox_due",
             "next_attempt_at",
-            postgresql_where="(status = ANY (ARRAY['pending'::text, 'failed'::text]))",
+            postgresql_where="(status = ANY (ARRAY['pending'::text, 'sending'::text]))",
         ),
     )
 
@@ -63,6 +63,7 @@ class Outbox(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
+    body_sha256: Mapped[str] = mapped_column(CHAR(64), nullable=False)
     case_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     sequence: Mapped[int | None] = mapped_column(BigInteger)
     last_error: Mapped[str | None] = mapped_column(Text)
@@ -94,7 +95,11 @@ class InboundCallback(Base):
     received_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
+    response_status: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("204")
+    )
     process_error: Mapped[str | None] = mapped_column(Text)
+    response_body: Mapped[Any | None] = mapped_column(JSONB)
 
 
 class RouteHistory(Base):

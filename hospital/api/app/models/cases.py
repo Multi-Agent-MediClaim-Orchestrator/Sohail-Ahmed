@@ -171,6 +171,8 @@ class ClaimCase(Base):
     admission_source: Mapped[str | None] = mapped_column(Text)
     converted_from: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     converted_to: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+    insurer_status: Mapped[str | None] = mapped_column(Text)
+    acknowledged_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(True))
 
 
 class CaseStatusHistory(Base):

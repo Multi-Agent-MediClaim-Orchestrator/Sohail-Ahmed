@@ -40,6 +40,11 @@ class Settings(BaseModel):
     upload_rate_per_min: int = 30
     name_match_min: int = 90
     completeness_debounce_s: float = 5.0
+    outbox_enabled: bool = True
+    outbox_poll_ms: int = 1000
+    presign_submit_ttl_s: int = 86400
+    crew_url: str = "http://localhost:8010"
+    claim_build_timeout_s: int = 300
     # integrations
     n8n_webhook_base: str = "http://localhost:5678/webhook"
     insurer_base_url: str = "http://localhost:8100"

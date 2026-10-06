@@ -274,3 +274,42 @@ import logging  # noqa: E402
 
 for _name in ("httpx", "app.access", "httpcore"):  # keep test output readable
     logging.getLogger(_name).setLevel(logging.WARNING)
+
+
+# --- claims flow: hospital app wired to insurer-sim, recording crew, worker driven manually ---------
+@pytest_asyncio.fixture(scope="session")
+async def capp(settings: Settings):  # type: ignore[no-untyped-def]
+    from app.events import InMemoryHub
+    from app.services.crew import RecordingCrew
+    from app.services.n8n import RecordingN8n
+    from claim_contract.testing.insurer_sim import InsurerSim
+
+    st = settings.model_copy(update={"completeness_debounce_s": 0, "outbox_enabled": False})
+    sim = InsurerSim(
+        hosp_secrets={st.hospital_key_id: st.hospital_to_insurer_secret.encode()},
+        callback_secret=st.insurer_to_hospital_secret.encode(),
+        callback_key_id=st.insurer_key_id,
+    )
+    insurer_client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=sim.app), base_url="http://insurer"
+    )
+    application = create_checked_app(
+        st,
+        hub=InMemoryHub(),
+        n8n=RecordingN8n(),
+        crew=RecordingCrew(),
+        insurer_client=insurer_client,
+    )
+    application.state.sim = sim
+    async with application.router.lifespan_context(application):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=application), base_url="http://hospital"
+        ) as hc:
+            sim.hospital = hc
+            application.state.hospital_client = hc
+            yield application
+
+
+@pytest_asyncio.fixture(scope="session")
+async def cclient(capp: Any) -> httpx.AsyncClient:
+    return capp.state.hospital_client  # type: ignore[no-any-return]

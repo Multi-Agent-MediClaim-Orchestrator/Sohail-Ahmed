@@ -212,12 +212,24 @@ async def run(
         )
     ).first()
     if prev and prev.result_hash == h and trigger != "manual" and not force:
-        await uow.rollback()
+        # same checklist: no new history row, but the case status may still be out of step with it (for example a
+        # case pushed back to docs_pending by a failed claim build while its documents are still complete)
+        has_docs = bool(ctx.docs_by_type or ctx.unclassified_ids)
+        new_status = decide_status(case.status_t, result, has_docs=has_docs)
+        if new_status and new_status != case.status_t:
+            await transitions.transition(
+                uow, case.id, new_status, None, reason="completeness", hub=hub
+            )
+            if case.status_t == "ready_for_review":
+                await invalidate_signoffs(uow, case.id, "completeness found blockers")
+            await uow.commit()
+        else:
+            await uow.rollback()
         return {
             "run_no": prev.run_no,
             "complete": prev.complete,
             "changed": False,
-            "status": case.status_t,
+            "status": new_status or case.status_t,
         }
     run_no = (prev.run_no + 1) if prev else 1
     body = result.model_dump(mode="json")
