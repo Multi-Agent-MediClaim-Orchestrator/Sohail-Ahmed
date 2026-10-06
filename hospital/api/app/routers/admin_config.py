@@ -138,9 +138,8 @@ async def publish(
         from app.router_engine import service as router_svc  # noqa: PLC0415
 
         st = request.app.state
-        out["cases_recomputed"] = await router_svc.recompute_open_cases(
-            uow, st.hub, st.completeness, version
-        )
+        out["cases_queued"] = await router_svc.count_open_cases(uow)
+        st.scheduler.spawn(router_svc.recompute_open_cases_job(request.app, version))
     return out
 
 

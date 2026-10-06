@@ -677,6 +677,12 @@ class CompletenessScheduler:
             except Exception:  # noqa: BLE001
                 log.exception("completeness run failed")
 
+    def spawn(self, coro: Any) -> None:
+        """Run a long job in the background (tracked so tests and shutdown can await it)."""
+        t = asyncio.create_task(coro)
+        self.tasks.add(t)
+        t.add_done_callback(self.tasks.discard)
+
     async def drain(self) -> None:
         if self.tasks:
             await asyncio.gather(*list(self.tasks), return_exceptions=True)

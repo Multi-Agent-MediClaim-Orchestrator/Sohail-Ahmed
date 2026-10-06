@@ -757,24 +757,53 @@ async def convert(
     }
 
 
-async def recompute_open_cases(uow: UoW, hub: Any, completeness: Any, new_version: int) -> int:
-    """After router_rules is republished: in-flight draft/docs_pending cases move to the new version (doc 05 §5.5)."""
-    ids = [
-        r.id
-        for r in (
+async def count_open_cases(uow: UoW) -> int:
+    return int(
+        (
             await uow.session.execute(
-                text("SELECT id FROM claim_case WHERE status IN ('draft','docs_pending')")
+                text("SELECT count(*) FROM claim_case WHERE status IN ('draft','docs_pending')")
             )
-        ).all()
-    ]
+        ).scalar()
+        or 0
+    )
+
+
+async def recompute_open_cases_job(app: Any, new_version: int) -> int:
+    """Background job after router_rules is republished: in-flight draft/docs_pending cases move to the new
+    version and are recomputed, newest first, one short transaction each (doc 05 §5.5). Submitted cases are
+    never touched."""
+    st = app.state
+    async with st.sessionmaker() as s:
+        ids = [
+            r.id
+            for r in (
+                await s.execute(
+                    text(
+                        "SELECT id FROM claim_case WHERE status IN ('draft','docs_pending') "
+                        "ORDER BY updated_at DESC"
+                    )
+                )
+            ).all()
+        ]
+    done = 0
     for cid in ids:
-        await uow.session.execute(
-            text(
-                "UPDATE claim_case SET config_versions = jsonb_set(COALESCE(config_versions, '{}'::jsonb), '{router_rules}', "
-                "to_jsonb(CAST(:v AS int))) WHERE id=:i"
-            ),
-            {"v": new_version, "i": cid},
-        )
-        await uow.commit()
-        await recompute(uow, cid, "config_republish", "system", hub=hub, completeness=completeness)
-    return len(ids)
+        try:
+            async with st.sessionmaker() as s:
+                uow = UoW(s)
+                await s.execute(
+                    text(
+                        "UPDATE claim_case SET config_versions = jsonb_set(COALESCE(config_versions, '{}'::jsonb), "
+                        "'{router_rules}', to_jsonb(CAST(:v AS int))) WHERE id=:i AND status IN ('draft','docs_pending')"
+                    ),
+                    {"v": new_version, "i": cid},
+                )
+                await s.commit()
+                await recompute(
+                    uow, cid, "config_republish", "system", hub=st.hub, completeness=st.completeness
+                )
+            done += 1
+        except Exception:  # noqa: BLE001  one bad case must not stop the rest
+            import logging
+
+            logging.getLogger("app.router").exception("recompute failed for %s", cid)
+    return done

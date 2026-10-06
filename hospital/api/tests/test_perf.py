@@ -92,4 +92,6 @@ def test_case_list_keyset_uses_index_and_p95_under_150ms(migrated: str) -> None:
             c.execute(text(q)).all()
             times.append((time.perf_counter() - t) * 1000)
     assert statistics.quantiles(times, n=20)[18] < 150  # p95
+    with eng.begin() as c:  # leave the shared test database as we found it
+        c.execute(text("DELETE FROM claim_case WHERE claim_ref LIKE 'PERF-%'"))
     assert hashlib.sha256(b"x")  # keep import used

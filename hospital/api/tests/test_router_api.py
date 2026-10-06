@@ -1,5 +1,6 @@
 """Router endpoints and persistence (doc 05 §4, §9)."""
 
+import asyncio
 import uuid
 from copy import deepcopy
 from typing import Any
@@ -456,9 +457,13 @@ async def test_convert_cashless_to_reimbursement(
     ).status_code == 204
     for r in od.values():
         assert await rapp.state.store.exists(r[1])
-    ev = lambda case: [
-        x[0] for x in sql(settings, "SELECT event_type FROM audit_event WHERE case_id=:c", c=case)
-    ]  # noqa: E731
+
+    def ev(case: str) -> list[str]:
+        return [
+            x[0]
+            for x in sql(settings, "SELECT event_type FROM audit_event WHERE case_id=:c", c=case)
+        ]
+
     assert "router.converted" in ev(cid) and "router.converted" in ev(new_id)
     r = await rclient.post(
         f"/v1/cases/{cid}/convert", json={"to": "reimbursement", "reason": reason}, headers=h
@@ -547,15 +552,18 @@ async def test_router_rules_republish_recomputes_in_flight_cases(
         await rclient.post(f"/v1/admin/config/router_rules/{ver}/publish", headers=a)
     ).status_code == 409
     r = await rclient.post(f"/v1/admin/config/router_rules/{ver}/publish", headers=b)
-    assert r.status_code == 200 and r.json()["cases_recomputed"] >= 1
-    cfg = lambda cid: sql(
-        settings,
-        "SELECT (config_versions->>'router_rules')::int FROM claim_case WHERE id=:i",
-        i=cid,
-    )[0][0]  # noqa: E731
-    assert (
-        cfg(draft_case["id"]) == ver and cfg(locked_case["id"]) < ver
-    )  # submitted cases are untouched
+    assert r.status_code == 200 and r.json()["cases_queued"] >= 1
+
+    def cfg(cid: str) -> int:
+        q = "SELECT (config_versions->>'router_rules')::int FROM claim_case WHERE id=:i"
+        return sql(settings, q, i=cid)[0][0]  # type: ignore[no-any-return]
+
+    for _ in range(150):  # the job runs in the background, newest cases first
+        if cfg(draft_case["id"]) == ver:
+            break
+        await asyncio.sleep(0.1)
+    assert cfg(draft_case["id"]) == ver
+    assert cfg(locked_case["id"]) < ver  # submitted cases are untouched
     assert (await route(rclient, tok, draft_case["id"]))["decision"]["config_versions"][
         "router_rules"
     ] == ver
