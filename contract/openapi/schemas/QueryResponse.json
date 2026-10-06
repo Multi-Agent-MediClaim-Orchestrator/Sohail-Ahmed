@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "answer_text": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Answer Text",
+      "type": "string"
+    },
+    "attached_doc_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Attached Doc Ids",
+      "type": "array"
+    },
+    "query_id": {
+      "format": "uuid",
+      "title": "Query Id",
+      "type": "string"
+    },
+    "responded_at": {
+      "format": "date-time",
+      "title": "Responded At",
+      "type": "string"
+    },
+    "responded_by": {
+      "title": "Responded By",
+      "type": "string"
+    }
+  },
+  "required": [
+    "query_id",
+    "responded_by",
+    "responded_at"
+  ],
+  "title": "QueryResponse",
+  "type": "object"
+}

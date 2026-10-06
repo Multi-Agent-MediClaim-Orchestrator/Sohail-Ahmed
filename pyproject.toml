@@ -12,6 +12,7 @@ line-length = 100
 target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "ASYNC"]
+ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may run long
 [tool.ruff.lint.per-file-ignores]
 "infra/tests/**" = ["S101", "S603", "S607"]
 "hospital/api/alembic/versions/*" = ["E501"]   # raw DDL copied from the spec
@@ -29,4 +30,6 @@ pythonpath = ["contract/python"]
 dev = [
     "httpx>=0.28.1",
     "minio>=7.2.20",
+    "schemathesis>=4.29.4",
+    "uvicorn>=0.54.0",
 ]

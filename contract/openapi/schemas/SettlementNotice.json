@@ -1,0 +1,40 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "amount": {
+      "$ref": "#/components/schemas/Money"
+    },
+    "mode": {
+      "$ref": "#/components/schemas/SettlementMode"
+    },
+    "paid_on": {
+      "format": "date",
+      "title": "Paid On",
+      "type": "string"
+    },
+    "settlement_id": {
+      "format": "uuid",
+      "title": "Settlement Id",
+      "type": "string"
+    },
+    "tds": {
+      "$ref": "#/components/schemas/Money"
+    },
+    "utr": {
+      "maxLength": 40,
+      "minLength": 6,
+      "title": "Utr",
+      "type": "string"
+    }
+  },
+  "required": [
+    "settlement_id",
+    "amount",
+    "utr",
+    "paid_on",
+    "mode",
+    "tds"
+  ],
+  "title": "SettlementNotice",
+  "type": "object"
+}

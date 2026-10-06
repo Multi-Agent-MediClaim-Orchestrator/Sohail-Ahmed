@@ -1,0 +1,11 @@
+{
+  "enum": [
+    "open",
+    "draft_ready",
+    "answered",
+    "closed",
+    "escalated"
+  ],
+  "title": "QueryStatus",
+  "type": "string"
+}

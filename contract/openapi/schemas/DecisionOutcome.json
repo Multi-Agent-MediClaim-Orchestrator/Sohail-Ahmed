@@ -1,0 +1,10 @@
+{
+  "enum": [
+    "approve",
+    "partial",
+    "reject",
+    "needs_info"
+  ],
+  "title": "DecisionOutcome",
+  "type": "string"
+}

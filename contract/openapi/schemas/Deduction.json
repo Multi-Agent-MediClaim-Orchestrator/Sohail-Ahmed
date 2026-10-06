@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "amount": {
+      "$ref": "#/components/schemas/Money"
+    },
+    "explanation": {
+      "maxLength": 500,
+      "title": "Explanation",
+      "type": "string"
+    },
+    "line_ref": {
+      "title": "Line Ref",
+      "type": "string"
+    },
+    "rule_id": {
+      "title": "Rule Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "line_ref",
+    "rule_id",
+    "amount",
+    "explanation"
+  ],
+  "title": "Deduction",
+  "type": "object"
+}

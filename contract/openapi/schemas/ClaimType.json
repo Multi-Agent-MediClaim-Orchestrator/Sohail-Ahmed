@@ -1,0 +1,8 @@
+{
+  "enum": [
+    "cashless",
+    "reimbursement"
+  ],
+  "title": "ClaimType",
+  "type": "string"
+}

@@ -1,0 +1,67 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "contact_masked": {
+      "anyOf": [
+        {
+          "maxLength": 20,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contact Masked"
+    },
+    "dob": {
+      "format": "date",
+      "title": "Dob",
+      "type": "string"
+    },
+    "full_name": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Full Name",
+      "type": "string"
+    },
+    "gender": {
+      "$ref": "#/components/schemas/Gender"
+    },
+    "id_proof_hash": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Id Proof Hash"
+    },
+    "member_id": {
+      "maxLength": 32,
+      "minLength": 4,
+      "pattern": "^[A-Z0-9\\-]+$",
+      "title": "Member Id",
+      "type": "string"
+    },
+    "policy_number": {
+      "maxLength": 40,
+      "minLength": 4,
+      "title": "Policy Number",
+      "type": "string"
+    }
+  },
+  "required": [
+    "full_name",
+    "dob",
+    "gender",
+    "member_id",
+    "policy_number"
+  ],
+  "title": "Patient",
+  "type": "object"
+}

@@ -1,0 +1,10 @@
+{
+  "enum": [
+    "NEFT",
+    "RTGS",
+    "IMPS",
+    "CHEQUE"
+  ],
+  "title": "SettlementMode",
+  "type": "string"
+}

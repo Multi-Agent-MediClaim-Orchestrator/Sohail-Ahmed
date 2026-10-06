@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Protocol
+from typing import Any, Protocol
 
 from claim_contract.errors import ContractError
 
@@ -58,7 +60,7 @@ async def run_idempotent(
     execute: Callable[[], Awaitable[StoredResponse]],
 ) -> tuple[StoredResponse, bool]:
     """Return (response, replayed). Stores 2xx and 4xx results, never 5xx."""
-    k = f"idem:{key_id}:{idem_key}"
+    k = f"{key_id}:{idem_key}"
     rec = await store.get(k)
     if rec is not None:
         if rec.request_hash != req_hash:
@@ -74,3 +76,64 @@ async def run_idempotent(
         return resp, False
     finally:
         await store.release_lock(k)
+
+
+class DurableStore(Protocol):
+    """Database-backed record (unique (key_id, idempotency_key)) so a Redis flush cannot cause a
+    double execution. Implemented by each service against its own inbound_request/claim tables."""
+
+    async def get(self, key: str) -> StoredResponse | None: ...
+    async def put(self, key: str, rec: StoredResponse) -> None: ...
+
+
+class RedisStore:
+    """Hot path in Redis. Keys follow the ACL namespaces: idem:{ns}:{key_id}:{idem_key} and
+    lock:{ns}:idem:{key_id}:{idem_key} (ns = 'hosp' | 'ins'). Optional durable fallback."""
+
+    def __init__(
+        self,
+        redis: Any,
+        namespace: str,
+        ttl_s: int = 24 * 3600,
+        lock_ttl_s: int = 60,
+        durable: DurableStore | None = None,
+    ) -> None:
+        self.r, self.ns, self.ttl, self.lock_ttl, self.durable = (
+            redis,
+            namespace,
+            ttl_s,
+            lock_ttl_s,
+            durable,
+        )
+
+    def _k(self, key: str) -> str:
+        return f"idem:{self.ns}:{key}"
+
+    def _l(self, key: str) -> str:
+        return f"lock:{self.ns}:idem:{key}"
+
+    async def get(self, key: str) -> StoredResponse | None:
+        raw = await self.r.get(self._k(key))
+        if raw is not None:
+            d = json.loads(raw)
+            return StoredResponse(d["h"], d["s"], base64.b64decode(d["b"]), d["hd"])
+        if self.durable is not None:
+            return await self.durable.get(key)
+        return None
+
+    async def put(self, key: str, rec: StoredResponse) -> None:
+        payload = {
+            "h": rec.request_hash,
+            "s": rec.status,
+            "hd": rec.headers,
+            "b": base64.b64encode(rec.body).decode(),
+        }
+        await self.r.set(self._k(key), json.dumps(payload), ex=self.ttl)
+        if self.durable is not None:
+            await self.durable.put(key, rec)
+
+    async def acquire_lock(self, key: str) -> bool:
+        return bool(await self.r.set(self._l(key), "1", nx=True, ex=self.lock_ttl))
+
+    async def release_lock(self, key: str) -> None:
+        await self.r.delete(self._l(key))

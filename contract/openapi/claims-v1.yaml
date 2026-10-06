@@ -1,0 +1,1457 @@
+openapi: 3.1.0
+info:
+  title: Hospital <-> Insurer claims contract
+  version: 1.1.0
+  description: Joint contract (both developers approve changes). Generated from claim_contract.
+paths:
+  /v1/hospital-api/claims:
+    post:
+      tags:
+      - hospital->insurer
+      operationId: submitClaim
+      summary: Submit claim
+      parameters:
+      - &id001
+        $ref: '#/components/parameters/ContractVersion'
+      - &id002
+        $ref: '#/components/parameters/KeyId'
+      - &id003
+        $ref: '#/components/parameters/Timestamp'
+      - &id004
+        $ref: '#/components/parameters/Signature'
+      - &id005
+        $ref: '#/components/parameters/RequestId'
+      - &id006
+        $ref: '#/components/parameters/JourneyId'
+      - &id007
+        $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaimSubmission'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Acknowledgement'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '424':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/hospital-api/claims/{claim_ref}:
+    get:
+      tags:
+      - hospital->insurer
+      operationId: getClaimStatus
+      summary: Current status
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - &id008
+        name: claim_ref
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: include
+        in: query
+        schema:
+          type: string
+          enum:
+          - queries
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusUpdate'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/hospital-api/claims/{claim_ref}/documents:
+    post:
+      tags:
+      - hospital->insurer
+      operationId: supplementDocuments
+      summary: Supplement documents
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocSupplement'
+      responses:
+        '202':
+          description: Accepted
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/hospital-api/claims/{claim_ref}/queries:
+    get:
+      tags:
+      - hospital->insurer
+      operationId: listQueries
+      summary: List queries
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id008
+      responses:
+        '200':
+          description: Paginated queries
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/hospital-api/queries/{query_id}/responses:
+    post:
+      tags:
+      - hospital->insurer
+      operationId: respondToQuery
+      summary: Answer a query
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      - name: query_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryResponse'
+      responses:
+        '202':
+          description: Accepted
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/hospital-api/claims/{claim_ref}/withdraw:
+    post:
+      tags:
+      - hospital->insurer
+      operationId: withdrawClaim
+      summary: Withdraw claim
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+      responses:
+        '200':
+          description: Withdrawn
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/insurer-callbacks/status:
+    post:
+      tags:
+      - insurer->hospital
+      operationId: callbackStatus
+      summary: Status push
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdate'
+      responses:
+        '204':
+          description: Received
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/insurer-callbacks/queries:
+    post:
+      tags:
+      - insurer->hospital
+      operationId: callbackQuery
+      summary: New query
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Query'
+      responses:
+        '204':
+          description: Received
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/insurer-callbacks/decisions:
+    post:
+      tags:
+      - insurer->hospital
+      operationId: callbackDecision
+      summary: Decision
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Decision'
+      responses:
+        '204':
+          description: Received
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/insurer-callbacks/settlements:
+    post:
+      tags:
+      - insurer->hospital
+      operationId: callbackSettlement
+      summary: Settlement
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettlementNotice'
+      responses:
+        '204':
+          description: Received
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /v1/insurer-callbacks/documents/{doc_id}/refresh-url:
+    post:
+      tags:
+      - insurer->hospital
+      operationId: refreshDocumentUrl
+      summary: Re-presign (v1.1)
+      parameters:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      - name: doc_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocRefreshRequest'
+      responses:
+        '200':
+          description: New URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocRefreshResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '413':
+          $ref: '#/components/responses/Problem'
+  /v1/health:
+    get:
+      tags:
+      - utility
+      operationId: health
+      summary: Health (unsigned)
+      responses:
+        '200':
+          description: ok
+        '503':
+          $ref: '#/components/responses/Problem'
+  /v1/contract:
+    get:
+      tags:
+      - utility
+      operationId: contractInfo
+      summary: Supported versions (unsigned)
+      responses:
+        '200':
+          description: versions
+components:
+  schemas:
+    Acknowledgement:
+      additionalProperties: false
+      properties:
+        claim_ref:
+          title: Claim Ref
+          type: string
+        insurer_claim_no:
+          pattern: ^IC-\d{4}-\d{6}$
+          title: Insurer Claim No
+          type: string
+        status:
+          $ref: '#/components/schemas/InsurerCaseStatus'
+        received_at:
+          format: date-time
+          title: Received At
+          type: string
+        sequence:
+          minimum: 0
+          title: Sequence
+          type: integer
+        document_ingest:
+          additionalProperties:
+            type: integer
+          title: Document Ingest
+          type: object
+      required:
+      - claim_ref
+      - insurer_claim_no
+      - status
+      - received_at
+      - sequence
+      - document_ingest
+      title: Acknowledgement
+      type: object
+    Admission:
+      additionalProperties: false
+      properties:
+        admission_type:
+          $ref: '#/components/schemas/AdmissionType'
+        admitted_on:
+          format: date
+          title: Admitted On
+          type: string
+        discharged_on:
+          format: date
+          title: Discharged On
+          type: string
+        diagnosis_codes:
+          items:
+            type: string
+          maxItems: 10
+          minItems: 1
+          title: Diagnosis Codes
+          type: array
+        procedure_codes:
+          items:
+            type: string
+          maxItems: 10
+          title: Procedure Codes
+          type: array
+        treating_doctor:
+          maxLength: 120
+          minLength: 2
+          title: Treating Doctor
+          type: string
+        hospital_id:
+          pattern: ^HOSP-\d{4}$
+          title: Hospital Id
+          type: string
+        preauth_ref:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Preauth Ref
+        length_of_stay_days:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          title: Length Of Stay Days
+      required:
+      - admission_type
+      - admitted_on
+      - discharged_on
+      - diagnosis_codes
+      - treating_doctor
+      - hospital_id
+      title: Admission
+      type: object
+    AdmissionType:
+      enum:
+      - planned
+      - emergency
+      title: AdmissionType
+      type: string
+    BillCategory:
+      enum:
+      - room
+      - icu
+      - surgery
+      - anaesthesia
+      - medicine
+      - consumable
+      - implant
+      - investigation
+      - consultation
+      - other
+      title: BillCategory
+      type: string
+    BillLine:
+      additionalProperties: false
+      properties:
+        line_id:
+          maxLength: 16
+          minLength: 1
+          title: Line Id
+          type: string
+        code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Code
+        description:
+          maxLength: 200
+          minLength: 2
+          title: Description
+          type: string
+        category:
+          $ref: '#/components/schemas/BillCategory'
+        qty:
+          decimal_places: 3
+          title: Qty
+          type: string
+        unit_price:
+          $ref: '#/components/schemas/Money'
+        amount:
+          $ref: '#/components/schemas/Money'
+        service_date:
+          anyOf:
+          - format: date
+            type: string
+          - type: 'null'
+          default: null
+          title: Service Date
+        source_doc_id:
+          format: uuid
+          title: Source Doc Id
+          type: string
+        source_page:
+          anyOf:
+          - minimum: 1
+            type: integer
+          - type: 'null'
+          default: null
+          title: Source Page
+      required:
+      - line_id
+      - description
+      - category
+      - qty
+      - unit_price
+      - amount
+      - source_doc_id
+      title: BillLine
+      type: object
+    Citation:
+      additionalProperties: false
+      properties:
+        source_id:
+          title: Source Id
+          type: string
+        clause:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Clause
+        page:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          title: Page
+        snippet:
+          maxLength: 300
+          title: Snippet
+          type: string
+      required:
+      - source_id
+      - snippet
+      title: Citation
+      type: object
+    ClaimSubmission:
+      additionalProperties: false
+      properties:
+        contract_version:
+          pattern: ^\d+\.\d+$
+          title: Contract Version
+          type: string
+        claim_ref:
+          pattern: ^HC-\d{4}-\d{6}$
+          title: Claim Ref
+          type: string
+        claim_type:
+          $ref: '#/components/schemas/ClaimType'
+        patient:
+          $ref: '#/components/schemas/Patient'
+        admission:
+          $ref: '#/components/schemas/Admission'
+        bill_lines:
+          items:
+            $ref: '#/components/schemas/BillLine'
+          maxItems: 2000
+          minItems: 1
+          title: Bill Lines
+          type: array
+        totals:
+          $ref: '#/components/schemas/ClaimTotals'
+        documents:
+          items:
+            $ref: '#/components/schemas/DocumentRef'
+          maxItems: 100
+          minItems: 1
+          title: Documents
+          type: array
+        config_versions:
+          $ref: '#/components/schemas/ConfigVersions'
+        journey_id:
+          anyOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+          default: null
+          title: Journey Id
+        submitted_at:
+          format: date-time
+          title: Submitted At
+          type: string
+        hospital_notes:
+          anyOf:
+          - maxLength: 2000
+            type: string
+          - type: 'null'
+          default: null
+          title: Hospital Notes
+      required:
+      - contract_version
+      - claim_ref
+      - claim_type
+      - patient
+      - admission
+      - bill_lines
+      - totals
+      - documents
+      - config_versions
+      - submitted_at
+      title: ClaimSubmission
+      type: object
+    ClaimTotals:
+      additionalProperties: false
+      properties:
+        gross:
+          $ref: '#/components/schemas/Money'
+        discounts:
+          $ref: '#/components/schemas/Money'
+        claimed:
+          $ref: '#/components/schemas/Money'
+        patient_paid_advance:
+          anyOf:
+          - $ref: '#/components/schemas/Money'
+          - type: 'null'
+          default: null
+      required:
+      - gross
+      - discounts
+      - claimed
+      title: ClaimTotals
+      type: object
+    ClaimType:
+      enum:
+      - cashless
+      - reimbursement
+      title: ClaimType
+      type: string
+    ConfigVersions:
+      additionalProperties: false
+      properties:
+        doc_requirements:
+          minimum: 1
+          title: Doc Requirements
+          type: integer
+        deadlines:
+          minimum: 1
+          title: Deadlines
+          type: integer
+        router_rules:
+          minimum: 1
+          title: Router Rules
+          type: integer
+        confidence_gates:
+          minimum: 1
+          title: Confidence Gates
+          type: integer
+      required:
+      - doc_requirements
+      - deadlines
+      - router_rules
+      - confidence_gates
+      title: ConfigVersions
+      type: object
+    Decision:
+      additionalProperties: false
+      properties:
+        outcome:
+          $ref: '#/components/schemas/DecisionOutcome'
+        approved_amount:
+          $ref: '#/components/schemas/Money'
+        deductions:
+          items:
+            $ref: '#/components/schemas/Deduction'
+          title: Deductions
+          type: array
+        reason_codes:
+          items:
+            type: string
+          title: Reason Codes
+          type: array
+        reviewer_ids:
+          items:
+            type: string
+          maxItems: 2
+          minItems: 1
+          title: Reviewer Ids
+          type: array
+        calc_trace_id:
+          format: uuid
+          title: Calc Trace Id
+          type: string
+        policy_version:
+          minimum: 1
+          title: Policy Version
+          type: integer
+        decided_at:
+          format: date-time
+          title: Decided At
+          type: string
+        supersedes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          default: null
+          title: Supersedes
+      required:
+      - outcome
+      - approved_amount
+      - reviewer_ids
+      - calc_trace_id
+      - policy_version
+      - decided_at
+      title: Decision
+      type: object
+    DecisionOutcome:
+      enum:
+      - approve
+      - partial
+      - reject
+      - needs_info
+      title: DecisionOutcome
+      type: string
+    Deduction:
+      additionalProperties: false
+      properties:
+        line_ref:
+          title: Line Ref
+          type: string
+        rule_id:
+          title: Rule Id
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+        explanation:
+          maxLength: 500
+          title: Explanation
+          type: string
+      required:
+      - line_ref
+      - rule_id
+      - amount
+      - explanation
+      title: Deduction
+      type: object
+    DocRefreshRequest:
+      additionalProperties: false
+      properties:
+        claim_ref:
+          title: Claim Ref
+          type: string
+        reason:
+          const: url_expired
+          default: url_expired
+          title: Reason
+          type: string
+      required:
+      - claim_ref
+      title: DocRefreshRequest
+      type: object
+    DocRefreshResponse:
+      additionalProperties: false
+      properties:
+        doc_id:
+          format: uuid
+          title: Doc Id
+          type: string
+        download_url:
+          format: uri
+          maxLength: 2083
+          minLength: 1
+          title: Download Url
+          type: string
+        expires_at:
+          format: date-time
+          title: Expires At
+          type: string
+        sha256:
+          pattern: ^[0-9a-f]{64}$
+          title: Sha256
+          type: string
+        size_bytes:
+          minimum: 1
+          title: Size Bytes
+          type: integer
+      required:
+      - doc_id
+      - download_url
+      - expires_at
+      - sha256
+      - size_bytes
+      title: DocRefreshResponse
+      type: object
+    DocSupplement:
+      additionalProperties: false
+      properties:
+        reason:
+          $ref: '#/components/schemas/DocSupplementReason'
+        query_id:
+          anyOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+          default: null
+          title: Query Id
+        documents:
+          items:
+            $ref: '#/components/schemas/DocumentRef'
+          maxItems: 100
+          minItems: 1
+          title: Documents
+          type: array
+      required:
+      - reason
+      - documents
+      title: DocSupplement
+      type: object
+    DocSupplementReason:
+      enum:
+      - query_response
+      - voluntary
+      - correction
+      title: DocSupplementReason
+      type: string
+    DocType:
+      enum:
+      - prescription
+      - procedure_bill
+      - discharge_summary
+      - final_bill
+      - itemised_bill
+      - pharmacy_bill
+      - lab_report
+      - radiology_report
+      - investigation_report
+      - admission_note
+      - preauth_approval
+      - claim_form
+      - id_proof
+      - policy_card
+      - cancelled_cheque
+      - implant_sticker
+      - payment_receipt
+      - fir_mlc
+      - other
+      title: DocType
+      type: string
+    DocumentRef:
+      additionalProperties: false
+      properties:
+        doc_id:
+          format: uuid
+          title: Doc Id
+          type: string
+        doc_type:
+          $ref: '#/components/schemas/DocType'
+        filename:
+          maxLength: 200
+          minLength: 1
+          pattern: ^[^/\\]+$
+          title: Filename
+          type: string
+        sha256:
+          pattern: ^[0-9a-f]{64}$
+          title: Sha256
+          type: string
+        size_bytes:
+          maximum: 25000000
+          minimum: 1
+          title: Size Bytes
+          type: integer
+        mime_type:
+          enum:
+          - application/pdf
+          - image/jpeg
+          - image/png
+          - image/tiff
+          title: Mime Type
+          type: string
+        download_url:
+          format: uri
+          maxLength: 2083
+          minLength: 1
+          title: Download Url
+          type: string
+        url_expires_at:
+          format: date-time
+          title: Url Expires At
+          type: string
+        parse_confidence:
+          anyOf:
+          - maximum: 1
+            minimum: 0
+            type: number
+          - type: 'null'
+          default: null
+          title: Parse Confidence
+        pages:
+          maximum: 300
+          minimum: 1
+          title: Pages
+          type: integer
+        received_via:
+          default: upload
+          enum:
+          - upload
+          - scan
+          - email
+          - supplement
+          title: Received Via
+          type: string
+      required:
+      - doc_id
+      - doc_type
+      - filename
+      - sha256
+      - size_bytes
+      - mime_type
+      - download_url
+      - url_expires_at
+      - pages
+      title: DocumentRef
+      type: object
+    FieldError:
+      properties:
+        field:
+          title: Field
+          type: string
+        message:
+          title: Message
+          type: string
+      required:
+      - field
+      - message
+      title: FieldError
+      type: object
+    Gender:
+      enum:
+      - M
+      - F
+      - O
+      title: Gender
+      type: string
+    HospitalCaseStatus:
+      enum:
+      - draft
+      - docs_pending
+      - docs_complete
+      - building_claim
+      - ready_for_review
+      - submitted
+      - acknowledged
+      - under_query
+      - approved
+      - partially_approved
+      - rejected
+      - settled
+      - closed
+      title: HospitalCaseStatus
+      type: string
+    InsurerCaseStatus:
+      enum:
+      - received
+      - verifying
+      - needs_info
+      - ready_for_decision
+      - awaiting_approval
+      - approved
+      - partially_approved
+      - rejected
+      - escalated
+      - settled
+      - closed
+      title: InsurerCaseStatus
+      type: string
+    Money:
+      additionalProperties: false
+      properties:
+        amount:
+          max_digits: 14
+          title: Amount
+          type: string
+        currency:
+          const: INR
+          default: INR
+          title: Currency
+          type: string
+      required:
+      - amount
+      title: Money
+      type: object
+    Patient:
+      additionalProperties: false
+      properties:
+        full_name:
+          maxLength: 120
+          minLength: 2
+          title: Full Name
+          type: string
+        dob:
+          format: date
+          title: Dob
+          type: string
+        gender:
+          $ref: '#/components/schemas/Gender'
+        member_id:
+          maxLength: 32
+          minLength: 4
+          pattern: ^[A-Z0-9\-]+$
+          title: Member Id
+          type: string
+        policy_number:
+          maxLength: 40
+          minLength: 4
+          title: Policy Number
+          type: string
+        id_proof_hash:
+          anyOf:
+          - pattern: ^[0-9a-f]{64}$
+            type: string
+          - type: 'null'
+          default: null
+          title: Id Proof Hash
+        contact_masked:
+          anyOf:
+          - maxLength: 20
+            type: string
+          - type: 'null'
+          default: null
+          title: Contact Masked
+      required:
+      - full_name
+      - dob
+      - gender
+      - member_id
+      - policy_number
+      title: Patient
+      type: object
+    ProblemDetail:
+      properties:
+        type:
+          title: Type
+          type: string
+        title:
+          title: Title
+          type: string
+        status:
+          title: Status
+          type: integer
+        detail:
+          title: Detail
+          type: string
+        code:
+          title: Code
+          type: string
+        errors:
+          default: []
+          items:
+            $ref: '#/components/schemas/FieldError'
+          title: Errors
+          type: array
+        trace_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Trace Id
+        retryable:
+          default: false
+          title: Retryable
+          type: boolean
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - code
+      title: ProblemDetail
+      type: object
+    Query:
+      additionalProperties: false
+      properties:
+        query_id:
+          format: uuid
+          title: Query Id
+          type: string
+        round:
+          maximum: 3
+          minimum: 1
+          title: Round
+          type: integer
+        category:
+          $ref: '#/components/schemas/QueryCategory'
+        text:
+          maxLength: 4000
+          minLength: 10
+          title: Text
+          type: string
+        requested_doc_types:
+          items:
+            $ref: '#/components/schemas/DocType'
+          title: Requested Doc Types
+          type: array
+        due_by:
+          format: date-time
+          title: Due By
+          type: string
+        status:
+          $ref: '#/components/schemas/QueryStatus'
+        raised_by:
+          title: Raised By
+          type: string
+        grounding:
+          items:
+            $ref: '#/components/schemas/Citation'
+          title: Grounding
+          type: array
+      required:
+      - query_id
+      - round
+      - category
+      - text
+      - due_by
+      - status
+      - raised_by
+      title: Query
+      type: object
+    QueryCategory:
+      enum:
+      - missing_document
+      - illegible_document
+      - identity_mismatch
+      - medical_clarification
+      - billing_discrepancy
+      - policy_exclusion
+      - other
+      title: QueryCategory
+      type: string
+    QueryResponse:
+      additionalProperties: false
+      properties:
+        query_id:
+          format: uuid
+          title: Query Id
+          type: string
+        answer_text:
+          default: ''
+          maxLength: 8000
+          title: Answer Text
+          type: string
+        attached_doc_ids:
+          items:
+            format: uuid
+            type: string
+          maxItems: 20
+          title: Attached Doc Ids
+          type: array
+        responded_by:
+          title: Responded By
+          type: string
+        responded_at:
+          format: date-time
+          title: Responded At
+          type: string
+      required:
+      - query_id
+      - responded_by
+      - responded_at
+      title: QueryResponse
+      type: object
+    QueryStatus:
+      enum:
+      - open
+      - draft_ready
+      - answered
+      - closed
+      - escalated
+      title: QueryStatus
+      type: string
+    SettlementMode:
+      enum:
+      - NEFT
+      - RTGS
+      - IMPS
+      - CHEQUE
+      title: SettlementMode
+      type: string
+    SettlementNotice:
+      additionalProperties: false
+      properties:
+        settlement_id:
+          format: uuid
+          title: Settlement Id
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+        utr:
+          maxLength: 40
+          minLength: 6
+          title: Utr
+          type: string
+        paid_on:
+          format: date
+          title: Paid On
+          type: string
+        mode:
+          $ref: '#/components/schemas/SettlementMode'
+        tds:
+          $ref: '#/components/schemas/Money'
+      required:
+      - settlement_id
+      - amount
+      - utr
+      - paid_on
+      - mode
+      - tds
+      title: SettlementNotice
+      type: object
+    StatusUpdate:
+      additionalProperties: false
+      properties:
+        claim_ref:
+          title: Claim Ref
+          type: string
+        insurer_claim_no:
+          title: Insurer Claim No
+          type: string
+        status:
+          $ref: '#/components/schemas/InsurerCaseStatus'
+        hospital_visible_status:
+          $ref: '#/components/schemas/HospitalCaseStatus'
+        sequence:
+          minimum: 0
+          title: Sequence
+          type: integer
+        occurred_at:
+          format: date-time
+          title: Occurred At
+          type: string
+        note:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Note
+        open_query_ids:
+          items:
+            format: uuid
+            type: string
+          title: Open Query Ids
+          type: array
+        decision:
+          anyOf:
+          - $ref: '#/components/schemas/Decision'
+          - type: 'null'
+          default: null
+      required:
+      - claim_ref
+      - insurer_claim_no
+      - status
+      - hospital_visible_status
+      - sequence
+      - occurred_at
+      title: StatusUpdate
+      type: object
+    WithdrawReason:
+      enum:
+      - patient_requested
+      - duplicate
+      - hospital_error
+      - other
+      title: WithdrawReason
+      type: string
+    WithdrawRequest:
+      additionalProperties: false
+      properties:
+        reason:
+          $ref: '#/components/schemas/WithdrawReason'
+        note:
+          anyOf:
+          - maxLength: 1000
+            type: string
+          - type: 'null'
+          default: null
+          title: Note
+      required:
+      - reason
+      title: WithdrawRequest
+      type: object
+  parameters:
+    ContractVersion:
+      name: X-Contract-Version
+      in: header
+      required: true
+      description: MAJOR.MINOR, e.g. 1.1
+      schema:
+        type: string
+        pattern: ^1\.\d+$
+    KeyId:
+      name: X-Key-Id
+      in: header
+      required: true
+      description: HMAC key id, e.g. hosp-001
+      schema:
+        type: string
+    Timestamp:
+      name: X-Timestamp
+      in: header
+      required: true
+      description: RFC 3339 UTC seconds, skew limit 300 s
+      schema:
+        type: string
+    Signature:
+      name: X-Signature
+      in: header
+      required: true
+      description: "base64 HMAC-SHA256 of the canonical string (see 01-01 \xA74)"
+      schema:
+        type: string
+    IdempotencyKey:
+      name: X-Idempotency-Key
+      in: header
+      required: true
+      description: UUID; required on mutating calls
+      schema:
+        type: string
+        format: uuid
+    RequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: optional trace id, 1-64 chars of A-Za-z0-9._-
+      schema:
+        type: string
+        pattern: ^[A-Za-z0-9._-]{1,64}$
+    JourneyId:
+      name: X-Journey-Id
+      in: header
+      required: false
+      description: 'v1.1: UUID following a claim across both systems'
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Problem:
+      description: RFC 7807 problem (code in bad_request, doc_unavailable, duplicate_claim, forbidden,
+        hospital_blacklisted, hospital_mismatch, idempotency_conflict, idempotency_in_progress, internal_error,
+        invalid_signature, invalid_transition, not_your_claim, payload_too_large, rate_limited, service_unavailable,
+        stale_request, totals_mismatch, unknown_claim, unknown_document, unknown_query, unsupported_version,
+        validation_error)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'

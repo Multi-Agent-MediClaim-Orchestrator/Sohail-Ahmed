@@ -1,0 +1,62 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "category": {
+      "$ref": "#/components/schemas/QueryCategory"
+    },
+    "due_by": {
+      "format": "date-time",
+      "title": "Due By",
+      "type": "string"
+    },
+    "grounding": {
+      "items": {
+        "$ref": "#/components/schemas/Citation"
+      },
+      "title": "Grounding",
+      "type": "array"
+    },
+    "query_id": {
+      "format": "uuid",
+      "title": "Query Id",
+      "type": "string"
+    },
+    "raised_by": {
+      "title": "Raised By",
+      "type": "string"
+    },
+    "requested_doc_types": {
+      "items": {
+        "$ref": "#/components/schemas/DocType"
+      },
+      "title": "Requested Doc Types",
+      "type": "array"
+    },
+    "round": {
+      "maximum": 3,
+      "minimum": 1,
+      "title": "Round",
+      "type": "integer"
+    },
+    "status": {
+      "$ref": "#/components/schemas/QueryStatus"
+    },
+    "text": {
+      "maxLength": 4000,
+      "minLength": 10,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "query_id",
+    "round",
+    "category",
+    "text",
+    "due_by",
+    "status",
+    "raised_by"
+  ],
+  "title": "Query",
+  "type": "object"
+}

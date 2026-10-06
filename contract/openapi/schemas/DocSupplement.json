@@ -1,0 +1,36 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "documents": {
+      "items": {
+        "$ref": "#/components/schemas/DocumentRef"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Documents",
+      "type": "array"
+    },
+    "query_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Query Id"
+    },
+    "reason": {
+      "$ref": "#/components/schemas/DocSupplementReason"
+    }
+  },
+  "required": [
+    "reason",
+    "documents"
+  ],
+  "title": "DocSupplement",
+  "type": "object"
+}

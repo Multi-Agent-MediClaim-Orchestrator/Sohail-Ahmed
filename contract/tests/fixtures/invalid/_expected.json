@@ -1,0 +1,17 @@
+{
+  "bad_claim_ref": "validation_error",
+  "cashless_no_preauth": "validation_error",
+  "claimed_not_gross_minus_discounts": "totals_mismatch",
+  "discharge_before_admit": "validation_error",
+  "extra_field": "validation_error",
+  "float_money": "validation_error",
+  "line_amount_mismatch": "totals_mismatch",
+  "malformed_icd": "validation_error",
+  "negative_amount": "validation_error",
+  "no_documents": "validation_error",
+  "raw_aadhaar_in_notes": "validation_error",
+  "service_date_outside": "validation_error",
+  "too_many_lines": "validation_error",
+  "totals_off_by_paisa": "totals_mismatch",
+  "unknown_source_doc": "validation_error"
+}

@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "doc_id": {
+      "format": "uuid",
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "download_url": {
+      "format": "uri",
+      "maxLength": 2083,
+      "minLength": 1,
+      "title": "Download Url",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Sha256",
+      "type": "string"
+    },
+    "size_bytes": {
+      "minimum": 1,
+      "title": "Size Bytes",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "doc_id",
+    "download_url",
+    "expires_at",
+    "sha256",
+    "size_bytes"
+  ],
+  "title": "DocRefreshResponse",
+  "type": "object"
+}

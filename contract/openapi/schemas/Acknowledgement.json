@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "claim_ref": {
+      "title": "Claim Ref",
+      "type": "string"
+    },
+    "document_ingest": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Document Ingest",
+      "type": "object"
+    },
+    "insurer_claim_no": {
+      "pattern": "^IC-\\d{4}-\\d{6}$",
+      "title": "Insurer Claim No",
+      "type": "string"
+    },
+    "received_at": {
+      "format": "date-time",
+      "title": "Received At",
+      "type": "string"
+    },
+    "sequence": {
+      "minimum": 0,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "status": {
+      "$ref": "#/components/schemas/InsurerCaseStatus"
+    }
+  },
+  "required": [
+    "claim_ref",
+    "insurer_claim_no",
+    "status",
+    "received_at",
+    "sequence",
+    "document_ingest"
+  ],
+  "title": "Acknowledgement",
+  "type": "object"
+}

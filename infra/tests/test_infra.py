@@ -135,3 +135,70 @@ def test_keycloak_discovery_and_jwks_differ() -> None:
             httpx.get(f"{KC}/realms/{realm}/protocol/openid-connect/certs").json()["keys"][0]["kid"]
         )
     assert keys[0] != keys[1]
+
+
+# ---- gaps closed in phase 1: pub/sub channel ACLs, contract RedisStore on real ACLs, lifecycle ----
+async def test_redis_pubsub_channel_restrictions() -> None:
+    import redis.asyncio as aioredis
+
+    hosp = aioredis.Redis(
+        port=int(ENV["SHARED_REDIS_PORT"]),
+        username="hosp_app",
+        password=ENV["HOSP_REDIS_PW"],
+        decode_responses=True,
+    )
+    ins = aioredis.Redis(
+        port=int(ENV["SHARED_REDIS_PORT"]),
+        username="ins_app",
+        password=ENV["INS_REDIS_PW"],
+        decode_responses=True,
+    )
+    try:
+        ps = hosp.pubsub()
+        await ps.subscribe("sse:hospital:case1", "cfg:changed", "audit:appended")  # allowed
+        await ps.unsubscribe()
+        assert await hosp.publish("sse:hospital:case1", "x") >= 0
+        for forbidden in ("sse:insurer:case1", "other:chan"):
+            with pytest.raises(aioredis.ResponseError, match="No permissions"):
+                await hosp.publish(forbidden, "x")
+        with pytest.raises(aioredis.ResponseError, match="No permissions"):
+            await ins.publish("sse:hospital:case1", "x")
+        assert await ins.publish("sse:insurer:case1", "x") >= 0
+    finally:
+        await hosp.aclose()
+        await ins.aclose()
+
+
+async def test_contract_redis_store_works_under_acl() -> None:
+    import redis.asyncio as aioredis
+    from claim_contract.idempotency import RedisStore, StoredResponse
+
+    r = aioredis.Redis(
+        port=int(ENV["SHARED_REDIS_PORT"]), username="hosp_app", password=ENV["HOSP_REDIS_PW"]
+    )
+    try:
+        s = RedisStore(r, "hosp")
+        key = "hosp-001:" + os.urandom(4).hex()
+        assert await s.get(key) is None
+        assert await s.acquire_lock(key) and not await s.acquire_lock(key)
+        await s.put(
+            key, StoredResponse("h", 202, b'{"ok":1}', {"content-type": "application/json"})
+        )
+        got = await s.get(key)
+        assert got and got.status == 202 and got.body == b'{"ok":1}'
+        await s.release_lock(key)
+        assert await s.acquire_lock(key)
+        await s.release_lock(key)
+    finally:
+        await r.aclose()
+
+
+def test_minio_lifecycle_rule_present() -> None:
+    admin = Minio(
+        MINIO, ENV["SHARED_MINIO_ROOT_USER"], ENV["SHARED_MINIO_ROOT_PASSWORD"], secure=False
+    )
+    for bucket in ("hospital-docs", "insurer-docs"):
+        rules = admin.get_bucket_lifecycle(bucket).rules
+        assert any(r.noncurrent_version_expiration.noncurrent_days == 30 for r in rules)
+    assert admin.get_bucket_versioning("hospital-docs").status == "Enabled"
+    assert admin.get_object_lock_config("audit-anchors").mode == "COMPLIANCE"

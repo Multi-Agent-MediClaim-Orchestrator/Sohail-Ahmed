@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "confidence_gates": {
+      "minimum": 1,
+      "title": "Confidence Gates",
+      "type": "integer"
+    },
+    "deadlines": {
+      "minimum": 1,
+      "title": "Deadlines",
+      "type": "integer"
+    },
+    "doc_requirements": {
+      "minimum": 1,
+      "title": "Doc Requirements",
+      "type": "integer"
+    },
+    "router_rules": {
+      "minimum": 1,
+      "title": "Router Rules",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "doc_requirements",
+    "deadlines",
+    "router_rules",
+    "confidence_gates"
+  ],
+  "title": "ConfigVersions",
+  "type": "object"
+}

@@ -1,0 +1,80 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "admission_type": {
+      "$ref": "#/components/schemas/AdmissionType"
+    },
+    "admitted_on": {
+      "format": "date",
+      "title": "Admitted On",
+      "type": "string"
+    },
+    "diagnosis_codes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 1,
+      "title": "Diagnosis Codes",
+      "type": "array"
+    },
+    "discharged_on": {
+      "format": "date",
+      "title": "Discharged On",
+      "type": "string"
+    },
+    "hospital_id": {
+      "pattern": "^HOSP-\\d{4}$",
+      "title": "Hospital Id",
+      "type": "string"
+    },
+    "length_of_stay_days": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Length Of Stay Days"
+    },
+    "preauth_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Preauth Ref"
+    },
+    "procedure_codes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10,
+      "title": "Procedure Codes",
+      "type": "array"
+    },
+    "treating_doctor": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Treating Doctor",
+      "type": "string"
+    }
+  },
+  "required": [
+    "admission_type",
+    "admitted_on",
+    "discharged_on",
+    "diagnosis_codes",
+    "treating_doctor",
+    "hospital_id"
+  ],
+  "title": "Admission",
+  "type": "object"
+}

@@ -46,7 +46,7 @@ Token format: `<PERSON_1>`, `<PHONE_2>` stable within a document (same surface f
 ### 4.3 Routing policy: what may go where
 Policy engine in doc-pipeline (`PrivacyRouter`) decides per call:
 - Task needs C3 content verbatim (e.g. ID card OCR, cheque details): **local only** (Ollama or deterministic code). Never external.
-- Task is cleanup/mapping of masked text: external Gemini via llm-gateway allowed, if `masking.verified=true`.
+- Task is cleanup/mapping of masked text: the cloud-hosted Ollama model (`gemma4:31b-cloud`) allowed, if `masking.verified=true`.
 - Masking confidence below threshold (e.g. unresolved candidate spans) → fall back to local model or route to human.
 - Final guard: regex sweep on the outgoing prompt for any C3 patterns; if hit, block the call, raise `privacy_block` audit event, and fall back to local.
 Additionally the llm-gateway runs a **callback guardrail** (LiteLLM pre-call hook, Dev B) with the same regex sweep as a second line of defence. A mismatch between the two (guardrail triggers while pipeline did not) is a P1 bug.
@@ -60,8 +60,8 @@ Masking recall measured by eval suite 4.1 of `02-evaluation-harness.md`: ≥ 98%
 ### 4.1 Decision record (user decisions)
 - **Deployment:** localhost demo/student project, not sold or hosted; no commercial-licence concerns.
 - **Pipeline:** MinerU (multi-page layout and table extraction, Indian-billing language flags on) → Presidio (Aadhaar/PAN and other PII masking) → local LLM cleanup. Presidio masks text before ANY external LLM call.
-- **External LLM:** Gemini free tier through LiteLLM using the user's own API key (held only by llm-gateway). Because free tiers may use submitted data for improvement, only masked text is ever sent.
-- **Raw ID data:** pages containing raw IDs (ID cards, cheques) are processed only by local models (Ollama, PaddleOCR, deterministic code), never by Gemini.
+- **External LLM:** Ollama cloud model `gemma4:31b-cloud` (no Gemini key; revised 2026-10-07). Cloud inference leaves the machine, so only Presidio-masked text is sent. Because free tiers may use submitted data for improvement, only masked text is ever sent.
+- **Raw ID data:** pages containing raw IDs (ID cards, cheques) are processed only by local models (Ollama, PaddleOCR, deterministic code), never by the cloud model (local `gemma4:latest` only).
 - **Hardware:** very weak GPU. Ollama default is Llama 3.1 8B quantised (e.g. Q4); if it does not fit or is too slow, fall back to Llama 3.2 3B. All local-model use is CPU-friendly by design.
 
 ## 5. Authentication and authorisation

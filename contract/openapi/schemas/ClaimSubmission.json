@@ -1,0 +1,93 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "admission": {
+      "$ref": "#/components/schemas/Admission"
+    },
+    "bill_lines": {
+      "items": {
+        "$ref": "#/components/schemas/BillLine"
+      },
+      "maxItems": 2000,
+      "minItems": 1,
+      "title": "Bill Lines",
+      "type": "array"
+    },
+    "claim_ref": {
+      "pattern": "^HC-\\d{4}-\\d{6}$",
+      "title": "Claim Ref",
+      "type": "string"
+    },
+    "claim_type": {
+      "$ref": "#/components/schemas/ClaimType"
+    },
+    "config_versions": {
+      "$ref": "#/components/schemas/ConfigVersions"
+    },
+    "contract_version": {
+      "pattern": "^\\d+\\.\\d+$",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "documents": {
+      "items": {
+        "$ref": "#/components/schemas/DocumentRef"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Documents",
+      "type": "array"
+    },
+    "hospital_notes": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hospital Notes"
+    },
+    "journey_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Journey Id"
+    },
+    "patient": {
+      "$ref": "#/components/schemas/Patient"
+    },
+    "submitted_at": {
+      "format": "date-time",
+      "title": "Submitted At",
+      "type": "string"
+    },
+    "totals": {
+      "$ref": "#/components/schemas/ClaimTotals"
+    }
+  },
+  "required": [
+    "contract_version",
+    "claim_ref",
+    "claim_type",
+    "patient",
+    "admission",
+    "bill_lines",
+    "totals",
+    "documents",
+    "config_versions",
+    "submitted_at"
+  ],
+  "title": "ClaimSubmission",
+  "type": "object"
+}

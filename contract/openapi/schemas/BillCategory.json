@@ -1,0 +1,16 @@
+{
+  "enum": [
+    "room",
+    "icu",
+    "surgery",
+    "anaesthesia",
+    "medicine",
+    "consumable",
+    "implant",
+    "investigation",
+    "consultation",
+    "other"
+  ],
+  "title": "BillCategory",
+  "type": "string"
+}

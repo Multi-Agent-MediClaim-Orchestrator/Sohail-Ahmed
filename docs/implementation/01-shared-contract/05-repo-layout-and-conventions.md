@@ -93,7 +93,7 @@ Every service: `healthcheck`, `restart: unless-stopped`, `mem_limit`, named netw
 ## 6. Environment and secrets
 - `.env.example` is committed; `.env` is never.
 - Prefixes: `HOSP_*`, `INS_*`, `SHARED_*`, `KC_*`, `LLM_*`.
-- Only `llm-gateway` receives provider keys (`GEMINI_API_KEY`, optional others). CI check:
+- No provider API keys are used (Ollama cloud models are reached through the local Ollama server, which holds its own sign-in). If one is ever added, only `llm-gateway` may receive it. CI check:
 ```
 ! git grep -nE '(GEMINI|OPENAI|ANTHROPIC)_API_KEY' -- ':!services/llm-gateway' ':!infra/compose' ':!.env.example' ':!docs'
 ```

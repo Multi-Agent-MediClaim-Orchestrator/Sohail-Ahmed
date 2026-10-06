@@ -1,0 +1,17 @@
+{
+  "enum": [
+    "received",
+    "verifying",
+    "needs_info",
+    "ready_for_decision",
+    "awaiting_approval",
+    "approved",
+    "partially_approved",
+    "rejected",
+    "escalated",
+    "settled",
+    "closed"
+  ],
+  "title": "InsurerCaseStatus",
+  "type": "string"
+}

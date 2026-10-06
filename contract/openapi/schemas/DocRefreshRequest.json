@@ -1,0 +1,20 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "claim_ref": {
+      "title": "Claim Ref",
+      "type": "string"
+    },
+    "reason": {
+      "const": "url_expired",
+      "default": "url_expired",
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "claim_ref"
+  ],
+  "title": "DocRefreshRequest",
+  "type": "object"
+}

@@ -1,0 +1,10 @@
+{
+  "enum": [
+    "patient_requested",
+    "duplicate",
+    "hospital_error",
+    "other"
+  ],
+  "title": "WithdrawReason",
+  "type": "string"
+}

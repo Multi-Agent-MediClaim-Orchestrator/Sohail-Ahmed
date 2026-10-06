@@ -1,0 +1,13 @@
+{
+  "enum": [
+    "missing_document",
+    "illegible_document",
+    "identity_mismatch",
+    "medical_clarification",
+    "billing_discrepancy",
+    "policy_exclusion",
+    "other"
+  ],
+  "title": "QueryCategory",
+  "type": "string"
+}

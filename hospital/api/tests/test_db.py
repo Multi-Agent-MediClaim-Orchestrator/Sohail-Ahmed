@@ -475,3 +475,14 @@ def test_seed_idempotent_and_users_match_realm(migrated: str) -> None:
     if realm.exists():
         ids = {u["id"] for u in json.loads(realm.read_text())["users"] if "id" in u}
         assert ids <= subs
+
+
+def test_claim_ref_year_rollover(migrated: str) -> None:
+    eng = create_engine(app_sync_url(migrated))
+    with eng.begin() as c:
+        a = [c.execute(text("SELECT next_claim_ref(2031)")).scalar() for _ in range(3)]
+        b = c.execute(text("SELECT next_claim_ref(2032)")).scalar()
+        again = c.execute(text("SELECT next_claim_ref(2031)")).scalar()
+    assert a == ["HC-2031-000001", "HC-2031-000002", "HC-2031-000003"]
+    assert b == "HC-2032-000001"  # new year restarts at 000001
+    assert again == "HC-2031-000004"

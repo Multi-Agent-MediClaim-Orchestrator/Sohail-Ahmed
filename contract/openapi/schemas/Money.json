@@ -1,0 +1,21 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "amount": {
+      "max_digits": 14,
+      "title": "Amount",
+      "type": "string"
+    },
+    "currency": {
+      "const": "INR",
+      "default": "INR",
+      "title": "Currency",
+      "type": "string"
+    }
+  },
+  "required": [
+    "amount"
+  ],
+  "title": "Money",
+  "type": "object"
+}

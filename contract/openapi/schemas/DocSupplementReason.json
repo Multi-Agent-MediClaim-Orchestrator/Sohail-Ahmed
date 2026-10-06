@@ -1,0 +1,9 @@
+{
+  "enum": [
+    "query_response",
+    "voluntary",
+    "correction"
+  ],
+  "title": "DocSupplementReason",
+  "type": "string"
+}

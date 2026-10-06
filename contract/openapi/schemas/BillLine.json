@@ -1,0 +1,85 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "amount": {
+      "$ref": "#/components/schemas/Money"
+    },
+    "category": {
+      "$ref": "#/components/schemas/BillCategory"
+    },
+    "code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code"
+    },
+    "description": {
+      "maxLength": 200,
+      "minLength": 2,
+      "title": "Description",
+      "type": "string"
+    },
+    "line_id": {
+      "maxLength": 16,
+      "minLength": 1,
+      "title": "Line Id",
+      "type": "string"
+    },
+    "qty": {
+      "decimal_places": 3,
+      "title": "Qty",
+      "type": "string"
+    },
+    "service_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Service Date"
+    },
+    "source_doc_id": {
+      "format": "uuid",
+      "title": "Source Doc Id",
+      "type": "string"
+    },
+    "source_page": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Page"
+    },
+    "unit_price": {
+      "$ref": "#/components/schemas/Money"
+    }
+  },
+  "required": [
+    "line_id",
+    "description",
+    "category",
+    "qty",
+    "unit_price",
+    "amount",
+    "source_doc_id"
+  ],
+  "title": "BillLine",
+  "type": "object"
+}

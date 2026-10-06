@@ -1,0 +1,9 @@
+{
+  "enum": [
+    "M",
+    "F",
+    "O"
+  ],
+  "title": "Gender",
+  "type": "string"
+}

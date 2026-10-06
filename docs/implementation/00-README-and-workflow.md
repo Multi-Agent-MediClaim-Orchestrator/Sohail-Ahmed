@@ -104,7 +104,7 @@ Tips: keep one Claude Code session per leaf doc; start a fresh session when swit
 | D2 | Auto-approve when all hard gates pass and payable ≤ `T_auto`; humans decide above (one approver ≤ `T_four`, two above) and whenever any gate/flag fails | yes (user decision, replaces earlier "human always confirms") | both |
 | D3 | HMAC (not mTLS) between systems | HMAC + TLS | both |
 | D4 | Contract v1.1 adds `X-Journey-Id` and doc refresh endpoint | accept | both |
-| D5 | Default LLM aliases (Gemini Flash / Flash-Lite, local Llama 3.2 3B) | as stated | B |
+| D5 | Default LLM aliases: Ollama `gemma4:31b-cloud` (general), local `gemma4:latest` (private/raw-ID pages); Hugging Face models where a task needs them (superseded 2026-10-07, see docs/DECISIONS.md) | as stated | B |
 | D6 | uv + ruff + mypy toolchain | accept | both |
 | D7 | Round count 3, escalate on round 3 | per architecture | B |
 | D8 | Two-person rule for thresholds/policy publishing | yes | B |
@@ -112,7 +112,7 @@ Tips: keep one Claude Code session per leaf doc; start a fresh session when swit
 | D10 | Localhost demo/student project, not sold or hosted; no commercial-licence concerns | yes (user) | both |
 | D11 | SLA escalation reminders at 50%/80% removed. Kept: `due_by`, overdue marking at 100%, escalation on round 3 | yes (user) | both |
 | D12 | Default required documents = prescriptions and bills only (medicine prescriptions with matching medicine bills, procedure bills, hospital-charge bills), chronological, bills carry a hospital stamp; conditional-rule mechanism kept, config-driven | yes (user) | A |
-| D13 | LLM strategy: Gemini free tier via LiteLLM with the user's own API key; Presidio masks text before any external call; raw ID pages are processed only by local models (Ollama). Weak GPU: Ollama default Llama 3.1 8B quantised, fall back to Llama 3.2 3B | yes (user) | B |
+| D13 | LLM strategy (revised 2026-10-07): NO Gemini key. Ollama at `localhost:11434` with `gemma4:31b-cloud` (cloud-hosted, vision/tools) as the general model and local `gemma4:latest` for private pages; Hugging Face for specialised vision models; Presidio masks text before any external call; raw ID pages are processed only by local models (Ollama). Weak GPU: Ollama default Llama 3.1 8B quantised, fall back to Llama 3.2 3B | yes (user) | B |
 | D14 | Pipeline: MinerU (multi-page layout/table extraction, Indian-billing language flags) → Presidio (Aadhaar/PAN masking) → local LLM cleanup | yes (user) | A |
 | D15 | No fixed test-case counts; Claude Code generates tests itself | yes (user) | both |
 | D16 | Identity verification is database matching only (no live ID-verification API); all data synthetic | yes | B |

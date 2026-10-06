@@ -1,0 +1,8 @@
+{
+  "enum": [
+    "planned",
+    "emergency"
+  ],
+  "title": "AdmissionType",
+  "type": "string"
+}

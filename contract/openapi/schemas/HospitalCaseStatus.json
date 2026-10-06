@@ -1,0 +1,19 @@
+{
+  "enum": [
+    "draft",
+    "docs_pending",
+    "docs_complete",
+    "building_claim",
+    "ready_for_review",
+    "submitted",
+    "acknowledged",
+    "under_query",
+    "approved",
+    "partially_approved",
+    "rejected",
+    "settled",
+    "closed"
+  ],
+  "title": "HospitalCaseStatus",
+  "type": "string"
+}

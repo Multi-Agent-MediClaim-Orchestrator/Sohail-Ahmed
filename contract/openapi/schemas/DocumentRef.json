@@ -1,0 +1,97 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "doc_id": {
+      "format": "uuid",
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "doc_type": {
+      "$ref": "#/components/schemas/DocType"
+    },
+    "download_url": {
+      "format": "uri",
+      "maxLength": 2083,
+      "minLength": 1,
+      "title": "Download Url",
+      "type": "string"
+    },
+    "filename": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "^[^/\\\\]+$",
+      "title": "Filename",
+      "type": "string"
+    },
+    "mime_type": {
+      "enum": [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/tiff"
+      ],
+      "title": "Mime Type",
+      "type": "string"
+    },
+    "pages": {
+      "maximum": 300,
+      "minimum": 1,
+      "title": "Pages",
+      "type": "integer"
+    },
+    "parse_confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parse Confidence"
+    },
+    "received_via": {
+      "default": "upload",
+      "enum": [
+        "upload",
+        "scan",
+        "email",
+        "supplement"
+      ],
+      "title": "Received Via",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Sha256",
+      "type": "string"
+    },
+    "size_bytes": {
+      "maximum": 25000000,
+      "minimum": 1,
+      "title": "Size Bytes",
+      "type": "integer"
+    },
+    "url_expires_at": {
+      "format": "date-time",
+      "title": "Url Expires At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "doc_id",
+    "doc_type",
+    "filename",
+    "sha256",
+    "size_bytes",
+    "mime_type",
+    "download_url",
+    "url_expires_at",
+    "pages"
+  ],
+  "title": "DocumentRef",
+  "type": "object"
+}

@@ -36,7 +36,7 @@ async def test_idempotency_replay_conflict_and_5xx() -> None:
 
 async def test_in_progress() -> None:
     s = MemoryStore()
-    await s.acquire_lock("idem:k:i")
+    await s.acquire_lock("k:i")
 
     async def never() -> StoredResponse:
         raise AssertionError

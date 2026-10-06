@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "note": {
+      "anyOf": [
+        {
+          "maxLength": 1000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Note"
+    },
+    "reason": {
+      "$ref": "#/components/schemas/WithdrawReason"
+    }
+  },
+  "required": [
+    "reason"
+  ],
+  "title": "WithdrawRequest",
+  "type": "object"
+}

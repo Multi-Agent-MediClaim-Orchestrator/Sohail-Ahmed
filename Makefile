@@ -1,5 +1,5 @@
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml
-.PHONY: migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -43,6 +43,12 @@ fmt:
 	uv run ruff format .
 typecheck:
 	uv run mypy contract/python/claim_contract
+
+fixtures:
+	uv run python scripts/gen_fixtures.py
+
+schemas:
+	uv run python scripts/export_schemas.py
 
 migrate:
 	cd hospital/api && uv run alembic upgrade head

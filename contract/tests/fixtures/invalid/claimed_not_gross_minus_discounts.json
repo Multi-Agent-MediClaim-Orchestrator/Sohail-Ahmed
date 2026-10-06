@@ -1,0 +1,77 @@
+{
+  "admission": {
+    "admission_type": "planned",
+    "admitted_on": "2026-09-28",
+    "diagnosis_codes": [
+      "K80.2"
+    ],
+    "discharged_on": "2026-10-01",
+    "hospital_id": "HOSP-0007",
+    "preauth_ref": "PA-2026-33121",
+    "procedure_codes": [
+      "0FT44ZZ"
+    ],
+    "treating_doctor": "Dr. R. Menon"
+  },
+  "bill_lines": [
+    {
+      "amount": {
+        "amount": "12000.00"
+      },
+      "category": "room",
+      "code": "RM-GEN",
+      "description": "Room rent (semi-private) x3",
+      "line_id": "L001",
+      "qty": "3",
+      "service_date": "2026-09-29",
+      "source_doc_id": "0199a1b2-1111-7000-8000-00000000000a",
+      "source_page": 2,
+      "unit_price": {
+        "amount": "4000.00"
+      }
+    }
+  ],
+  "claim_ref": "HC-2026-000001",
+  "claim_type": "cashless",
+  "config_versions": {
+    "confidence_gates": 1,
+    "deadlines": 2,
+    "doc_requirements": 4,
+    "router_rules": 3
+  },
+  "contract_version": "1.0",
+  "documents": [
+    {
+      "doc_id": "0199a1b2-1111-7000-8000-00000000000a",
+      "doc_type": "final_bill",
+      "download_url": "https://minio.local:9000/hospital-docs/x?X-Amz-Expires=86400",
+      "filename": "final_bill.pdf",
+      "mime_type": "application/pdf",
+      "pages": 3,
+      "parse_confidence": 0.93,
+      "sha256": "abababababababababababababababababababababababababababababababab",
+      "size_bytes": 184233,
+      "url_expires_at": "2026-10-02T16:42:10Z"
+    }
+  ],
+  "patient": {
+    "dob": "1984-03-12",
+    "full_name": "Asha Verma",
+    "gender": "F",
+    "id_proof_hash": "9f2c0e6c0a8e3b1d5f4a7c2e9b6d1a0f3c5e7b9d2f4a6c8e0b1d3f5a7c9e2b4d",
+    "member_id": "MEM-77120345",
+    "policy_number": "POL-NIV-2025-004411"
+  },
+  "submitted_at": "2026-10-01T16:42:10Z",
+  "totals": {
+    "claimed": {
+      "amount": "11000.00"
+    },
+    "discounts": {
+      "amount": "0.00"
+    },
+    "gross": {
+      "amount": "12000.00"
+    }
+  }
+}

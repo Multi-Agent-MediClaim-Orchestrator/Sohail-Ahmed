@@ -1,0 +1,70 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "claim_ref": {
+      "title": "Claim Ref",
+      "type": "string"
+    },
+    "decision": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/Decision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "hospital_visible_status": {
+      "$ref": "#/components/schemas/HospitalCaseStatus"
+    },
+    "insurer_claim_no": {
+      "title": "Insurer Claim No",
+      "type": "string"
+    },
+    "note": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Note"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "open_query_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Open Query Ids",
+      "type": "array"
+    },
+    "sequence": {
+      "minimum": 0,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "status": {
+      "$ref": "#/components/schemas/InsurerCaseStatus"
+    }
+  },
+  "required": [
+    "claim_ref",
+    "insurer_claim_no",
+    "status",
+    "hospital_visible_status",
+    "sequence",
+    "occurred_at"
+  ],
+  "title": "StatusUpdate",
+  "type": "object"
+}

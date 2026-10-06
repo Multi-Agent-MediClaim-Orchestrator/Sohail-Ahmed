@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "clause": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Clause"
+    },
+    "page": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Page"
+    },
+    "snippet": {
+      "maxLength": 300,
+      "title": "Snippet",
+      "type": "string"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_id",
+    "snippet"
+  ],
+  "title": "Citation",
+  "type": "object"
+}

@@ -1,0 +1,32 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "claimed": {
+      "$ref": "#/components/schemas/Money"
+    },
+    "discounts": {
+      "$ref": "#/components/schemas/Money"
+    },
+    "gross": {
+      "$ref": "#/components/schemas/Money"
+    },
+    "patient_paid_advance": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/Money"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "gross",
+    "discounts",
+    "claimed"
+  ],
+  "title": "ClaimTotals",
+  "type": "object"
+}
