@@ -98,18 +98,30 @@ def make_doc(c: Connection, case: str, **kw: object) -> str:
 
 
 # --- migrations -------------------------------------------------------------------------------
-def test_migration_up_down_up(dbname: str, migrated: str) -> None:
-    cfg = alembic_cfg(owner_url(dbname))
-    command.downgrade(cfg, "base")
-    with create_engine(owner_url(dbname)).connect() as c:
-        left = c.execute(
-            text(
-                "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' "
-                "AND table_name <> 'alembic_version'"
-            )
-        ).scalar()
-        assert left == 0
-    command.upgrade(cfg, "head")
+def test_migration_up_down_up() -> None:
+    """Round trip on its own throw-away database (the shared one holds data other tests rely on)."""
+    from app.db.urls import superuser_url
+
+    name = f"hosp_rt_{uuid.uuid4().hex[:8]}"
+    su = create_engine(superuser_url(), isolation_level="AUTOCOMMIT")
+    with su.connect() as c:
+        c.execute(text(f"CREATE DATABASE {name} OWNER hosp_owner"))
+    try:
+        cfg = alembic_cfg(owner_url(name))
+        command.upgrade(cfg, "head")
+        command.downgrade(cfg, "base")
+        with create_engine(owner_url(name)).connect() as c:
+            left = c.execute(
+                text(
+                    "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' "
+                    "AND table_name <> 'alembic_version'"
+                )
+            ).scalar()
+            assert left == 0
+        command.upgrade(cfg, "head")
+    finally:
+        with su.connect() as c:
+            c.execute(text(f"DROP DATABASE IF EXISTS {name} WITH (FORCE)"))
 
 
 def test_alembic_check_no_drift(dbname: str, migrated: str) -> None:

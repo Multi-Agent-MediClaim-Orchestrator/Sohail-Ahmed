@@ -71,7 +71,6 @@ class Document(Base):
         ),
         ForeignKeyConstraint(["uploaded_by"], ["app_user.id"], name="document_uploaded_by_fkey"),
         PrimaryKeyConstraint("id", name="document_pkey"),
-        UniqueConstraint("case_id", "sha256", name="uq_document_case_sha"),
         Index("ix_doc_case", "case_id", postgresql_where="(lifecycle = 'active'::text)"),
         Index("ix_doc_case_all", "case_id"),
         Index("ix_doc_parent", "parent_id", postgresql_where="(parent_id IS NOT NULL)"),
@@ -89,7 +88,7 @@ class Document(Base):
     mime_type: Mapped[str] = mapped_column(Text, nullable=False)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     sha256: Mapped[str] = mapped_column(CHAR(64), nullable=False)
-    storage_key: Mapped[str] = mapped_column(Text, nullable=False)
+    storage_key: Mapped[str | None] = mapped_column(Text)
     scan_status: Mapped[str] = mapped_column(
         Text, nullable=False, server_default=text("'pending'::text")
     )

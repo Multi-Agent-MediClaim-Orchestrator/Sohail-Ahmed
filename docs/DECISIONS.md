@@ -7,6 +7,12 @@ Format: decision, reason, date. Newest first. Spec fixes are proven by a test.
 - Dev B follow-up: `llm-gateway`/LiteLLM docs still mention Gemini; point the aliases at Ollama (`ollama_chat/gemma4:31b-cloud`). Dev A talks to Ollama's OpenAI-compatible `/v1` through `HOSP_LLM_BASE_URL` so either the gateway or Ollama directly works.
 - The shared Ollama server belongs to the machine, not this repo: do not stop, reconfigure or pull models into it without asking.
 
+## 2026-10-07 — Upload pipeline: virus scan runs before the file-type check (spec fix)
+- Doc 03's pipeline sniffed the type first, but its own test expects an EICAR upload to be rejected as `infected`; plain EICAR text fails the sniff, so it would have been reported as `unsupported_media_type` and never quarantined. Scanning first is also safer (infected files with fake extensions are quarantined). Cost: unsupported types are scanned too. Test: `test_eicar_quarantined_and_unreachable`.
+- Duplicate guard `(case_id, sha256)` is now a partial unique index excluding deleted documents (migration 0016) so a deleted document can be re-uploaded.
+- `alembic_version` needed an explicit read grant for the app role (migration 0015) or `/v1/ready` fails.
+- asyncpg cannot infer the type of a bare NULL parameter in `:x IS NULL`; filters use `CAST(:x AS type)`.
+
 ## 2026-10-07 — Contract middleware strictness found by schemathesis (spec fixes)
 - `X-Idempotency-Key` is required (UUID) on mutating calls; missing/non-UUID -> 400 `bad_request`. Reason: 01-01 §3.1 says required but nothing enforced it.
 - `X-Request-Id` (`^[A-Za-z0-9._-]{1,64}$`) and `X-Journey-Id` (UUID) are validated when present; present-but-empty is malformed.

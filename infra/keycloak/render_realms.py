@@ -101,6 +101,18 @@ def realm(system: str, ui_port: int, roles: list[dict], users: list[dict], secre
         },
         {"clientId": f"{system}-api", "bearerOnly": True},
     ]
+    if (
+        ENV.get("KC_DEV_CLIENTS", "1") == "1"
+    ):  # dev/test only: password grant for scripts/get_token.sh and tests
+        clients.append(
+            {
+                "clientId": f"{system}-dev",
+                "publicClient": True,
+                "standardFlowEnabled": False,
+                "directAccessGrantsEnabled": True,
+                "protocolMappers": mappers(system, hosp_attr),
+            }
+        )
     sa_users = []
     for name, role in (("n8n", "svc-n8n"), ("crew", "svc-crew"), ("internal", "svc-internal")):
         clients.append(service_client(system, name, secrets[name]))

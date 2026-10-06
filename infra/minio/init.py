@@ -10,7 +10,7 @@ from minio import Minio
 from minio.commonconfig import ENABLED, Filter
 from minio.credentials.providers import StaticProvider
 from minio.error import MinioAdminException
-from minio.lifecycleconfig import LifecycleConfig, NoncurrentVersionExpiration, Rule
+from minio.lifecycleconfig import Expiration, LifecycleConfig, NoncurrentVersionExpiration, Rule
 from minio.minioadmin import MinioAdmin
 from minio.objectlockconfig import COMPLIANCE, DAYS, ObjectLockConfig
 from minio.sseconfig import Rule as SseRule
@@ -30,21 +30,25 @@ for b in ("hospital-docs", "insurer-docs", "kb-sources"):
     client.set_bucket_versioning(b, VersioningConfig(ENABLED))
     client.set_bucket_encryption(b, SSEConfig(SseRule.new_sse_s3_rule()))
     if b != "kb-sources":
-        client.set_bucket_lifecycle(
-            b,
-            LifecycleConfig(
-                [
-                    Rule(
-                        ENABLED,
-                        rule_filter=Filter(prefix=""),
-                        rule_id="noncurrent-30d",
-                        noncurrent_version_expiration=NoncurrentVersionExpiration(
-                            noncurrent_days=30
-                        ),
-                    )
-                ]
-            ),
-        )
+        rules = [
+            Rule(
+                ENABLED,
+                rule_filter=Filter(prefix=""),
+                rule_id="noncurrent-30d",
+                noncurrent_version_expiration=NoncurrentVersionExpiration(noncurrent_days=30),
+            )
+        ]
+        if b == "hospital-docs":  # quarantined and tombstoned uploads expire after 30 days (doc 03)
+            rules += [
+                Rule(
+                    ENABLED,
+                    rule_filter=Filter(prefix=pfx),
+                    rule_id=f"{pfx.strip('/')}-30d",
+                    expiration=Expiration(days=30),
+                )
+                for pfx in ("quarantine/", "tombstone/")
+            ]
+        client.set_bucket_lifecycle(b, LifecycleConfig(rules))
 
 if not client.bucket_exists("audit-anchors"):
     client.make_bucket("audit-anchors", object_lock=True)
