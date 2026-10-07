@@ -36,7 +36,9 @@ INSURER_TRANSITIONS: dict[I, set[I]] = {
     I.VERIFYING: {I.NEEDS_INFO, I.READY_FOR_DECISION, I.ESCALATED, I.CLOSED},
     I.NEEDS_INFO: {I.VERIFYING, I.ESCALATED, I.CLOSED},
     # system auto-approves when all gates pass and payable <= T_auto (decision.auto_approved)
+    # NEEDS_INFO: a reviewer who is about to decide can still ask the hospital a question (reviewer-authored query)
     I.READY_FOR_DECISION: {
+        I.NEEDS_INFO,
         I.AWAITING_APPROVAL,
         I.APPROVED,
         I.PARTIALLY_APPROVED,
@@ -44,7 +46,7 @@ INSURER_TRANSITIONS: dict[I, set[I]] = {
         I.VERIFYING,
         I.CLOSED,
     },
-    I.AWAITING_APPROVAL: {I.APPROVED, I.PARTIALLY_APPROVED, I.REJECTED, I.READY_FOR_DECISION},
+    I.AWAITING_APPROVAL: {I.APPROVED, I.PARTIALLY_APPROVED, I.REJECTED, I.READY_FOR_DECISION, I.NEEDS_INFO},
     I.ESCALATED: {
         I.APPROVED,
         I.PARTIALLY_APPROVED,

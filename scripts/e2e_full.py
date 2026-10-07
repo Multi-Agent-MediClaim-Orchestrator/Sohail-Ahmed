@@ -51,6 +51,7 @@ def ins_env() -> dict[str, str]:
         "INS_ALLOWED_DOC_HOSTS": f"localhost:{E.get('SHARED_MINIO_PORT', '9000')}",
         "INS_TPA_SIM_URL": TPA,
         "INS_SETTLEMENT_MODE": "sim",
+        "INS_SETTLEMENT_RETRY_BASE_MINUTES": "0",  # retry a failed payout on the next dispatcher pass instead of after 5 minutes
         "INS_ORCHESTRATOR": ORCH,
         "INS_N8N_URL": f"http://localhost:{E.get('INS_N8N_PORT', '5689')}",
         "INS_N8N_WEBHOOK_SECRET": E["INS_N8N_WEBHOOK_SECRET"],
@@ -138,13 +139,43 @@ class Scn:
 SCENARIOS = {
     s.name: s
     for s in (
-        Scn("auto", "viral_fever", 1.0, "auto", "clean small claim: all gates pass and payable <= T_auto, approved without a human"),
+        Scn(
+            "auto",
+            "viral_fever",
+            1.0,
+            "auto",
+            "clean small claim: all gates pass and payable <= T_auto, approved without a human",
+        ),
         Scn("reviewer", "pneumonia", 2.0, "approve", "above T_auto: one human approves"),
         Scn("dual", "pneumonia", 36.0, "dual", "above T_four: two approvers, one of them senior"),
-        Scn("reject", "pneumonia", 2.0, "reject", "reviewer rejects with a reason code; nothing is settled"),
-        Scn("queries", "pneumonia", 2.0, "queries", "two answered rounds, an unanswered round 3 escalates, a senior decides"),
-        Scn("callbacks", "viral_fever", 1.0, "callbacks", "duplicate and out-of-order insurer callbacks must not change a settled claim"),
-        Scn("bank_retry", "viral_fever", 1.0, "bank_retry", "bank fails the first payout (tpa-sim), the insurer retries and the hospital still ends settled"),
+        Scn(
+            "reject",
+            "pneumonia",
+            2.0,
+            "reject",
+            "reviewer rejects with a reason code; nothing is settled",
+        ),
+        Scn(
+            "queries",
+            "pneumonia",
+            2.0,
+            "queries",
+            "two answered rounds, an unanswered round 3 escalates, a senior decides",
+        ),
+        Scn(
+            "callbacks",
+            "viral_fever",
+            1.0,
+            "callbacks",
+            "duplicate and out-of-order insurer callbacks must not change a settled claim",
+        ),
+        Scn(
+            "bank_retry",
+            "viral_fever",
+            1.0,
+            "bank_retry",
+            "bank fails the first payout (tpa-sim), the insurer retries and the hospital still ends settled",
+        ),
     )
 }
 IDEM = lambda: {"Idempotency-Key": str(uuid.uuid4())}  # noqa: E731
@@ -395,9 +426,14 @@ def scenario_body(run: Run) -> None:  # noqa: C901
     scn, s = run.scn, run.s
     if scn.kind == "auto":
         with H.step("insurer approves by itself (no human); hospital sees the decision"):
-            assert s["ins"]["status"] == "approved", (
+            assert s["ins"]["status"] in ("approved", "settled"), (
                 f"expected auto-approval, insurer is {s['ins']['status']}"
             )
+            humans = q(
+                "SELECT count(*) FROM core.approval a JOIN core.decision d ON d.id = a.decision_id WHERE d.case_id = %s",
+                s["ins"]["id"],
+            )[0][0]
+            assert humans == 0, f"auto-approved claims need no human vote, found {humans}"
             H.wait(
                 lambda: run.status() in ("approved", "partially_approved", "settled"),
                 90,
@@ -452,42 +488,32 @@ def queries_scenario(run: Run) -> None:
         assert s["ins"]["status"] in ("ready_for_decision", "awaiting_approval"), s["ins"]
         q1 = run.raise_query("Please explain the room rent charge on the final bill.")
         run.hospital_answers(1)
-        H.wait(
-            lambda: any(x["id"] == q1 and x["status"] == "answered" for x in run.insurer_queries()),
-            60,
-            "round 1 answered at the insurer",
-        )
+        # the insurer answers, triages (rules) and closes a fully answered round by itself; the claim returns to ready_for_decision
         H.wait(
             lambda: (
-                next((x for x in run.insurer_queries() if x["id"] == q1), {})
+                next((x for x in run.insurer_queries() if x["id"] == q1), {}).get("status")
+                in ("answered", "closed")
+                and next((x for x in run.insurer_queries() if x["id"] == q1), {})
                 .get("response", {})
                 .get("triage")
             ),
             60,
-            "round 1 triaged",
-        )
-        run.ic.post(
-            f"/v1/queries/{q1}/close", headers=ins_token("reviewer"), json={"reason": "answered"}
+            "round 1 answered and triaged at the insurer",
         )
     with H.step("round 2: second question, answered"):
         q2 = run.raise_query("Please confirm the surgeon fee matches the procedure estimate.")
         run.hospital_answers(2)
-        H.wait(
-            lambda: any(x["id"] == q2 and x["status"] == "answered" for x in run.insurer_queries()),
-            60,
-            "round 2 answered at the insurer",
-        )
+        # the insurer answers, triages (rules) and closes a fully answered round by itself; the claim returns to ready_for_decision
         H.wait(
             lambda: (
-                next((x for x in run.insurer_queries() if x["id"] == q2), {})
+                next((x for x in run.insurer_queries() if x["id"] == q2), {}).get("status")
+                in ("answered", "closed")
+                and next((x for x in run.insurer_queries() if x["id"] == q2), {})
                 .get("response", {})
                 .get("triage")
             ),
             60,
-            "round 2 triaged",
-        )
-        run.ic.post(
-            f"/v1/queries/{q2}/close", headers=ins_token("reviewer"), json={"reason": "answered"}
+            "round 2 answered and triaged at the insurer",
         )
     with H.step("round 3 is not answered in time: the claim escalates to a senior reviewer"):
         q3 = run.raise_query("Please provide the anaesthesia chart for the procedure.")
