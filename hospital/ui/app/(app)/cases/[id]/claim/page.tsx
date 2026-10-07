@@ -10,6 +10,7 @@ import { inr, isAmount, minus, sumAmounts } from "@/lib/money";
 import { Badge, Button, Card, ConfirmDialog, Dialog, Empty, ErrorCard, Skeleton, Toast, inputCls } from "@/components/ui";
 import { useAct, useRole, useToast } from "@/components/hooks";
 import { DocViewer, ViewerDoc } from "@/components/DocViewer";
+import { EstimateCard } from "@/components/EstimateCard";
 
 export default function Claim() {
   const { id } = useParams<{ id: string }>();
@@ -73,6 +74,7 @@ export default function Claim() {
               {[["Patient", c.payload.patient.full_name], ["Policy", c.payload.patient.policy_number], ["Member", c.payload.patient.member_id], ["Admitted", c.payload.admission.admitted_on], ["Discharged", c.payload.admission.discharged_on], ["Doctor", c.payload.admission.treating_doctor || "—"], ["Diagnosis", c.payload.admission.diagnosis_codes.join(", ") || "—"], ["Procedures", c.payload.admission.procedure_codes.join(", ") || "—"]].map(([k, v]) => <div key={k}><dt className="text-xs text-slate-600">{k}</dt><dd>{v}</dd></div>)}
             </dl>
           </Card>
+          <EstimateCard e={c.estimate} version={c.version} />
           <Card title="Bill lines">
             <div className="overflow-x-auto"><table className="w-full text-left text-sm">
               <thead className="text-xs uppercase text-slate-700"><tr>{["#", "Description", "Category", "Qty", "Unit price", "Amount", "Source"].map((h) => <th key={h} scope="col" className="px-1 py-1">{h}</th>)}</tr></thead>

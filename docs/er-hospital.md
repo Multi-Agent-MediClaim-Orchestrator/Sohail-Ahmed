@@ -2,13 +2,15 @@
 
 ```mermaid
 erDiagram
-  document ||--o{ bill_line : "source_document_id"
   claim_draft ||--o{ bill_line : "draft_id"
+  document ||--o{ bill_line : "source_document_id"
   claim_case ||--o{ case_status_history : "case_id"
   app_user ||--o{ claim_case : "created_by"
-  patient ||--o{ claim_case : "patient_id"
   hospital ||--o{ claim_case : "hospital_id"
+  patient ||--o{ claim_case : "patient_id"
   app_user ||--o{ claim_case : "assigned_to"
+  claim_case ||--o{ claim_case : "converted_from"
+  claim_case ||--o{ claim_case : "converted_to"
   insurance_policy_ref ||--o{ claim_case : "policy_ref_id"
   claim_case ||--o{ claim_draft : "case_id"
   claim_case ||--o{ completeness_check : "case_id"
@@ -16,22 +18,29 @@ erDiagram
   claim_case ||--o{ doc_request : "case_id"
   app_user ||--o{ doc_request : "waived_by"
   document ||--o{ doc_request : "fulfilled_by_doc"
-  app_user ||--o{ document : "uploaded_by"
-  claim_case ||--o{ document : "case_id"
   document ||--o{ document : "supersedes_id"
   document ||--o{ document : "parent_id"
   app_user ||--o{ document : "deleted_by"
+  app_user ||--o{ document : "uploaded_by"
+  claim_case ||--o{ document : "case_id"
   document ||--o{ document_parse : "document_id"
   patient ||--o{ insurance_policy_ref : "patient_id"
   claim_case ||--o{ insurer_query : "case_id"
+  app_user ||--o{ insurer_query : "assigned_to"
+  app_user ||--o{ network_insurer : "updated_by"
   claim_case ||--o{ outbox : "case_id"
+  app_user ||--o{ query_response : "second_approver"
   app_user ||--o{ query_response : "approved_by"
   insurer_query ||--o{ query_response : "query_id"
-  app_user ||--o{ query_response : "second_approver"
   claim_case ||--o{ reminder : "case_id"
+  app_user ||--o{ requirement_waiver : "revoked_by"
+  app_user ||--o{ requirement_waiver : "waived_by"
+  claim_case ||--o{ requirement_waiver : "case_id"
+  claim_case ||--o{ route_history : "case_id"
+  claim_case ||--o{ settlement : "case_id"
   claim_draft ||--o{ signoff : "draft_id"
-  app_user ||--o{ signoff : "officer_id"
   claim_case ||--o{ signoff : "case_id"
+  app_user ||--o{ signoff : "officer_id"
   allowed_transition {
     VARCHAR from_status PK
     VARCHAR to_status PK
@@ -134,16 +143,27 @@ erDiagram
     NUMERIC short_pay_amount
     NUMERIC settled_amount
     DATETIME settled_at
+    DATETIME discharged_at
+    TEXT admission_source
+    CHAR converted_from FK
+    CHAR converted_to FK
+    TEXT insurer_status
+    DATETIME acknowledged_at
   }
   claim_draft {
     CHAR id PK
     CHAR case_id FK
     INTEGER version
     JSONB payload
+    JSONB validation
     TEXT source
     TEXT created_by
     DATETIME created_at
-    JSONB validation
+    JSONB provenance
+    BOOLEAN has_errors
+    JSONB model_info
+    JSONB edit_summary
+    JSONB estimate
   }
   completeness_check {
     CHAR id PK
@@ -152,8 +172,12 @@ erDiagram
     INTEGER run_no
     BOOLEAN complete
     JSONB result
-    DATETIME created_at
     TEXT trigger
+    DATETIME created_at
+    BOOLEAN provisional
+    INTEGER blocker_count
+    INTEGER warning_count
+    CHAR result_hash
   }
   config_set {
     CHAR id PK
@@ -184,16 +208,20 @@ erDiagram
     CHAR id PK
     CHAR case_id FK
     VARCHAR doc_type
+    TEXT rule_id
     TEXT reason
     TEXT status
     INTEGER reminders_sent
     DATETIME created_at
     DATETIME updated_at
-    TEXT rule_id
+    TEXT reason_code
     DATETIME due_by
     CHAR fulfilled_by_doc FK
     CHAR waived_by FK
     TEXT waive_reason
+    INTEGER opened_by_run
+    INTEGER last_seen_run
+    DATETIME closed_at
   }
   document {
     CHAR id PK
@@ -202,7 +230,6 @@ erDiagram
     TEXT mime_type
     BIGINT size_bytes
     CHAR sha256
-    TEXT storage_key
     TEXT scan_status
     TEXT lifecycle
     TEXT parse_status
@@ -210,6 +237,8 @@ erDiagram
     ARRAY quality_flags
     DATETIME created_at
     DATETIME updated_at
+    BOOLEAN supplementary
+    TEXT storage_key
     INTEGER pages
     VARCHAR doc_type
     TEXT doc_type_source
@@ -226,6 +255,7 @@ erDiagram
     CHAR deleted_by FK
     DATETIME purge_after
     CHAR uploaded_by FK
+    DATETIME sent_at
   }
   document_parse {
     CHAR id PK
@@ -263,7 +293,9 @@ erDiagram
     JSONB body
     BOOLEAN processed
     DATETIME received_at
+    INTEGER response_status
     TEXT process_error
+    JSONB response_body
   }
   insurance_policy_ref {
     CHAR id PK
@@ -286,15 +318,22 @@ erDiagram
     VARCHAR status
     DATETIME created_at
     DATETIME updated_at
+    BOOLEAN escalation_risk
+    INTEGER revision
     DATETIME due_by
     JSONB triage
     DATETIME overdue_notified_at
     DATETIME responded_at
+    TEXT triage_source
+    CHAR assigned_to FK
+    TEXT closed_reason
   }
   network_insurer {
     TEXT insurer_name PK
     BOOLEAN cashless_supported
+    DATETIME updated_at
     TEXT notes
+    CHAR updated_by FK
   }
   outbox {
     CHAR id PK
@@ -307,6 +346,7 @@ erDiagram
     INTEGER attempts
     DATETIME next_attempt_at
     DATETIME created_at
+    CHAR body_sha256
     CHAR case_id FK
     BIGINT sequence
     TEXT last_error
@@ -336,11 +376,16 @@ erDiagram
     TEXT source
     TEXT status
     DATETIME created_at
+    TEXT created_by
     JSONB citations
     JSONB unsupported_claims
     CHAR approved_by FK
     CHAR second_approver FK
     DATETIME sent_at
+    JSONB grounding
+    TEXT override_note
+    JSONB model_info
+    DATETIME approved_at
   }
   reminder {
     CHAR id PK
@@ -356,6 +401,39 @@ erDiagram
     TEXT last_error
     JSONB payload
   }
+  requirement_waiver {
+    CHAR id PK
+    CHAR case_id FK
+    TEXT rule_id
+    VARCHAR doc_type
+    TEXT reason
+    CHAR waived_by FK
+    DATETIME created_at
+    DATETIME revoked_at
+    CHAR revoked_by FK
+  }
+  route_history {
+    CHAR id PK
+    CHAR case_id FK
+    INTEGER seq
+    JSONB decision
+    CHAR decision_hash
+    TEXT trigger
+    TEXT actor
+    DATETIME created_at
+  }
+  settlement {
+    CHAR id PK
+    CHAR case_id FK
+    CHAR settlement_id
+    TEXT utr
+    NUMERIC amount
+    NUMERIC tds
+    TEXT mode
+    DATE paid_on
+    JSONB raw
+    DATETIME created_at
+  }
   signoff {
     CHAR id PK
     CHAR case_id FK
@@ -363,7 +441,10 @@ erDiagram
     CHAR officer_id FK
     TEXT decision
     DATETIME created_at
+    ARRAY acknowledged_warnings
     TEXT comment
+    DATETIME invalidated_at
+    TEXT invalidated_reason
   }
   simulated_preauth {
     TEXT ref PK

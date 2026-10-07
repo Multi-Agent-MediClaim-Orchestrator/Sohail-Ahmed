@@ -82,8 +82,8 @@ def q(sql: str, *args: Any) -> list[tuple[Any, ...]]:
 def pick_member() -> dict[str, Any]:
     """An active, long-standing member whose policy has the most cover left (waiting periods are not the story of this test)."""
     rows = q(
-        "SELECT m.member_id, m.full_name, m.dob, m.gender, p.policy_number FROM core.policy_member m "
-        "JOIN core.policy p ON p.id = m.policy_id WHERE p.start_date <= DATE '2026-01-15' AND p.end_date >= DATE '2026-12-31' AND p.status = 'active' "
+        "SELECT m.member_id, m.full_name, m.dob, m.gender, p.policy_number, pr.code, p.sum_insured, p.start_date, p.end_date FROM core.policy_member m "
+        "JOIN core.policy p ON p.id = m.policy_id JOIN core.insurance_product pr ON pr.id = p.product_id WHERE p.start_date <= DATE '2026-01-15' AND p.end_date >= DATE '2026-12-31' AND p.status = 'active' "
         "AND coalesce(p.premium_paid_until, p.end_date) >= DATE '2026-12-31' AND cardinality(m.pre_existing) = 0 "
         "AND m.cover_start <= DATE '2026-01-15' AND m.relationship = 'self' "
         # most remaining sum insured first (earlier runs consume it, and a claim near the limit correctly needs a human), then fewest claims
@@ -92,7 +92,7 @@ def pick_member() -> dict[str, Any]:
     )
     if not rows:
         raise SystemExit("no suitable member in the insurer seed; run `make seed-insurer`")
-    mid, name, dob, gender, pol = rows[0]
+    mid, name, dob, gender, pol, product, si, start, end = rows[0]
     used = q(
         "SELECT count(*) FROM core.claim_case c JOIN core.policy_member m ON m.id = c.member_id WHERE m.member_id = %s",
         mid,
@@ -103,6 +103,12 @@ def pick_member() -> dict[str, Any]:
         "dob": dob.isoformat(),
         "gender": gender,
         "policy_number": pol,
+        # the member's real policy terms go on the synthetic policy card, so the hospital's estimate can be compared with
+        # the insurer's calculation
+        "product_code": product,
+        "sum_insured": str(si),
+        "valid_from": start.isoformat(),
+        "valid_to": end.isoformat(),
         "_used": int(used),
     }
 

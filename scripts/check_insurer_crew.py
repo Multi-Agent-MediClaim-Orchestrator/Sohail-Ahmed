@@ -227,6 +227,26 @@ def supervisor(c: httpx.Client) -> str:
     return f"next action {out['recommended_next_action']}"
 
 
+def verification_flow(c: httpx.Client) -> str:
+    """The CrewAI VerificationFlow end to end: a different person must not reach the decision gate unreviewed."""
+    patient = {"full_name": "Suresh Verma", "dob": "1979-03-02", "gender": "M", "policy_number": MEMBER["policy_number"]}
+    contexts = {
+        "identity": {"member": MEMBER, "patient": patient, "deterministic_facts": {"name_score": 0.12, "dob_match": False, "policy_match": True, "member_found": True},
+                     "docs": [{**DOC, "extract_masked": {"patient_name": "Suresh Verma", "dob": "1979-03-02"}}]},
+        "calc_mapper": {"lines": [{"line_ref": "L1", "category": "room", "description": "Room rent general ward", "qty": "1", "unit_price": "1000.00", "amount": "1000.00"}],
+                        "product_code": "HF-GOLD"},
+    }
+    r = c.post("/v1/flows/verification", json={"request_id": str(uuid.uuid4()), "case_id": str(uuid.uuid4()), "contexts": contexts}, timeout=600)
+    assert r.status_code == 200, f"HTTP {r.status_code}: {r.text[:300]}"
+    j = r.json()
+    assert j["steps"] == ["identity", "calc_mapper", "supervisor"], j["steps"]
+    for name in j["steps"]:
+        assert "failure" not in j["outputs"][name], f"{name} failed: {j['outputs'][name]}"
+        clean(j["outputs"][name])
+    assert j["outcome"] == "review", f"identity conflict yet outcome {j['outcome']} ({j['recommended_next_action']})"
+    return f"{' -> '.join(j['steps'])} -> {j['outcome']}"
+
+
 def rag_token() -> str | None:
     """A crew service token for the local RAG service, or None when RAG is not running (the no-KB check runs instead)."""
     try:
@@ -276,6 +296,7 @@ def main() -> int:
             ("coverage: with the knowledge base -> cited clauses", coverage_with_kb) if token else ("coverage: no knowledge base -> no invented clauses", coverage_without_kb), ("query draft: polite, specific, no promises", query_draft),
             ("triage: supplied document resolves the finding", triage_resolved), ("triage: a stalling reply stays unresolved", triage_unresolved),
             ("supervisor: identity conflict is not waved through", supervisor),
+            ("CrewAI VerificationFlow: mismatch goes to human review", verification_flow),
         ]:
             if only and only not in name:
                 continue

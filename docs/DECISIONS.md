@@ -184,3 +184,49 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
   A smaller model was not faster end to end here, so `gemma4:latest` stays the default. Decide with the checks, not by size.
 - RAG bookkeeping (`collection_meta`, `retrieval_log`) now lives in one file, `.e2e-logs/rag.db`, for both seeding and the service; the
   service probes the embedding model at start-up so the first search is not refused as a model mismatch.
+
+## 2026-10-07 — hospital crew moved to CrewAI (supersedes "no CrewAI package" for the hospital side)
+
+- `crewai[litellm]==1.15.23` is pinned in both crew packages. It caps pydantic below 2.13, so the workspace runs pydantic
+  2.12.5; contract, hospital-api (457 tests), insurer-api and the offline suites give the same results before and after.
+- Hospital jobs run as CrewAI Flows (`ClaimFlow`, `QueryFlow`) with CrewAI agents (category mapper, triage, reply writer).
+  The `/v1/jobs/*` HTTP surface is unchanged, so hospital-api, n8n and the UI are untouched.
+- Agents reach the model through `BridgeLLM`, a CrewAI `BaseLLM` over the existing clients: PII guard before every call,
+  the Ollama breaker, JSON repair and `CREW_LLM=rules` all still apply. The agents have no tools: deterministic code runs
+  in the flow steps and as task guardrails (grounding G01-G08 with one retry), never as model tool calls, because the
+  local models are unreliable at multi-step tool use.
+- CrewAI memory and knowledge stay off (they default to OpenAI embeddings); telemetry is opted out in the Makefile,
+  `.env.example` and the Dockerfiles.
+
+## 2026-10-07 — insurer crew moved to CrewAI
+
+- The seven agents are CrewAI agents: `Runner.ask` (the one place every agent called the model) now runs a CrewAI agent
+  (role/goal from `config/agents.yaml`, backstory = the versioned system prompt, so `prompt_version` is unchanged) on one
+  task in a sequential crew. The JSON-schema repair loop is the task's guardrail (same retry count, same repair message,
+  same `agent_invalid_output` at the end). `GatewayBridge` sends every call through the existing `GatewayLLM`, so token
+  usage, degraded/fallback flags, Langfuse spans and the "gateway key only" rule are unchanged; CrewAI's extra message
+  keys are stripped before the gateway.
+- The seven HTTP endpoints are unchanged, so insurer-api and the n8n flows keep calling them per step. New:
+  `POST /v1/flows/verification` (VerificationFlow: identity → authenticity → coverage → calc mapper → supervisor →
+  proceed | review) and `POST /v1/flows/query` (QueryFlow: draft | triage). Each flow step goes through the same
+  `execute` as the endpoints (validation, PII scan, idempotency, gate, output checks). A failed step becomes
+  `{"failure": code}`, which the supervisor's code treats as a blocker, so the flow routes to human review.
+- insurer-api does not call the flow endpoints yet: its inline/n8n orchestrators already sequence the steps and own the
+  decision gate. The flows are for `crewai run`, the evaluation and a future `INS_ORCHESTRATOR=crew`.
+- CrewAI is imported when the service starts (about 2.5 s) so the first request does not pay it inside its timeout.
+
+## 2026-10-07 — hospital admissible-amount estimate (Policy Estimate step)
+
+- ClaimFlow gains `estimate_admissible` after build/repair: policy card (product, sum insured) → policy wording from
+  rag-service `hosp_insurer_rules` → CrewAI policy estimator agent (quoted terms, guardrail) → `calc_engine.run`.
+  The insurer's calculation engine is reused as a library so both sides compute money the same way.
+- The product wordings are now also ingested into `hosp_insurer_rules` (a policyholder's wording is a document the
+  hospital may hold). The insurer's collections stay closed to hospital tokens (tested).
+- doc-pipeline reads `product_name` and `sum_insured` from policy cards; the synthetic corpus now renders a policy card
+  for every case (its own seeded generator, so all other generated documents are unchanged). The policy card's
+  existing fields (policy number, member id, validity) gained rules-mode patterns.
+- Advice only: waiting periods and exclusions are assumed to pass (they need the insurer's member history), network
+  hospital assumed. Missing card, knowledge base or terms → `status: "unavailable"` with the reason; never blocks a build.
+- hospital-api: `claim_draft.estimate jsonb` (migration 0023), `DraftResult.estimate`, the claim view returns the newest
+  estimate with its draft version, the build context carries `claim_type`, the audit `claim.built` event records the
+  estimate status and payable. The officer UI shows the estimate with the quoted terms.

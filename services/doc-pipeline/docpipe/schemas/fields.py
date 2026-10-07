@@ -80,6 +80,8 @@ FIELDS: dict[str, dict[str, tuple[str, bool]]] = {
         "insurer_name": ("text", False),
         "valid_from": ("date", True),
         "valid_to": ("date", True),
+        "product_name": ("text", False),  # policy terms for the hospital's admissible-amount estimate
+        "sum_insured": ("money", False),
     },
     "id_proof": {"id_type": ("text", False), "name": ("text", False), "dob": ("date", True)},
     "cancelled_cheque": {

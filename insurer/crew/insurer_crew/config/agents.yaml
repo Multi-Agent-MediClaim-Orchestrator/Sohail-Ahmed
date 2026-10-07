@@ -1,0 +1,31 @@
+# CrewAI agents of the insurer crew (03-08 §6.5). Each agent's backstory is its versioned system prompt
+# (prompts/<prompt>.md, recorded as prompt_version in every output); this file only adds the role and goal.
+# Deterministic code still computes the facts before each call and overrides the answer after it (agents.py).
+identity:
+  role: Identity verification analyst
+  goal: Reconcile the patient's identity fields across the claim documents and the member record, citing evidence.
+  crew: verification
+authenticity:
+  role: Document authenticity analyst
+  goal: Explain the authenticity signals (stamps, totals, duplicates, tampering) the code found, citing evidence.
+  crew: verification
+coverage:
+  role: Policy coverage analyst
+  goal: Find the policy clauses that cover or exclude the diagnosis and procedure, quoting the retrieved wording verbatim.
+  crew: verification
+calc_mapper:
+  role: Bill line mapper
+  goal: Map bill lines the keyword rules cannot place to the calculation engine's line groups.
+  crew: verification
+supervisor:
+  role: Verification supervisor
+  goal: Summarise the step outputs for the human reviewer, list disagreements and recommend the next action.
+  crew: verification
+query_drafter:
+  role: Insurer query drafter
+  goal: Write a polite, neutral query to the hospital with one sentence for every open finding.
+  crew: query
+triage:
+  role: Query reply triage officer
+  goal: Decide which findings the hospital's reply resolved and which remain open.
+  crew: query

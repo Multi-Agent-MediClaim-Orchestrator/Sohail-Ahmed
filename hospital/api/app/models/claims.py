@@ -136,6 +136,7 @@ class ClaimDraft(Base):
     has_errors: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
     model_info: Mapped[Any | None] = mapped_column(JSONB)
     edit_summary: Mapped[Any | None] = mapped_column(JSONB)
+    estimate: Mapped[Any | None] = mapped_column(JSONB)
 
 
 class BillLine(Base):

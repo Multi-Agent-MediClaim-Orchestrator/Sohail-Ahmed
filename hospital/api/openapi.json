@@ -877,6 +877,18 @@
     "additionalProperties": false,
     "description": "Body of POST /v1/internal/cases/{id}/claim/draft.",
     "properties": {
+     "estimate": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Estimate"
+     },
      "job_id": {
       "maxLength": 64,
       "minLength": 1,
