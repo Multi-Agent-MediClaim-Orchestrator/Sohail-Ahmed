@@ -36,7 +36,7 @@ export function DocViewer({ doc, page = 1, onClose }: { doc: ViewerDoc | null; p
               <Button variant="secondary" onClick={() => setZoom(Math.min(3, zoom + 0.25))} aria-label="Zoom in">+</Button>
               <Button variant="secondary" onClick={() => setRot((rot + 90) % 360)} aria-label="Rotate">⟳</Button>
             </div>
-            <div className="max-h-[65vh] overflow-auto rounded border bg-slate-100 p-2">
+            <div tabIndex={0} role="region" aria-label={`Page ${n} image (scrollable)`} className="max-h-[65vh] overflow-auto rounded border bg-slate-100 p-2">
               {failed ? <p className="p-6 text-sm text-slate-700">No preview for this page.</p> : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img key={`${doc.id}-${n}`} src={`/api/hosp/v1/documents/${doc.id}/pages/${n}`} alt={`${doc.filename}, page ${n}`} onError={() => setFailed(true)}

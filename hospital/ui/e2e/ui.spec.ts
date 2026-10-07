@@ -170,12 +170,12 @@ test.describe.serial("hospital UI against the real stack", () => {
     const { page, ctx, errors } = await login(browser, "officer1");
     await page.goto(state.caseUrl! + "/audit");
     await expect(page.getByRole("heading", { name: "Audit trail" })).toBeVisible();
-    await expect(page.getByText("case.created").first()).toBeVisible();
-    await expect(page.getByText("claim.submitted").first()).toBeVisible();
+    await expect(page.getByRole("cell", { name: "case.created", exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("cell", { name: "claim.submitted", exact: true }).first()).toBeVisible();
     await page.getByRole("button", { name: "Verify chain" }).click();
     await expect(page.getByRole("status")).toContainText(/Verified: \d+ events, chain intact/);
     await page.getByLabel("Event type").selectOption("doc.uploaded");
-    await expect(page.getByText("doc.uploaded").first()).toBeVisible();
+    await expect(page.getByRole("cell", { name: "doc.uploaded", exact: true }).first()).toBeVisible();
     await a11y(page, "audit");
     await shot(page, "11-audit");
     const desk = await login(browser, "desk1"); // desk staff do not get the tab
