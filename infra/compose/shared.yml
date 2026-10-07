@@ -66,7 +66,9 @@ services:
       retries: 20
 
   minio:
-    image: minio/minio:latest
+    # built from source: MinIO no longer publishes images (infra/minio/Dockerfile)
+    image: claims-minio:RELEASE.2025-04-22T22-12-26Z
+    build: {context: ../minio}
     profiles: [infra]
     restart: unless-stopped
     mem_limit: 512m
@@ -79,13 +81,13 @@ services:
     volumes: ["minio_data:/data"]
     networks: [hospital_net, insurer_net, shared_net]
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9000/minio/health/live >/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
 
   clamav:
-    image: clamav/clamav:stable
+    image: clamav/clamav-debian:stable  # multi-arch (amd64 + arm64); clamav/clamav is amd64-only (emulated on Apple Silicon)
     profiles: [infra]
     restart: unless-stopped
     mem_limit: 1536m

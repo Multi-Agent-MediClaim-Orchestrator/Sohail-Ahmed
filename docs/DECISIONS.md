@@ -252,3 +252,13 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
 - Found by the first real runs of the estimate: the HEALTH-PLUS-GOLD wording in force before 2026-06-01 (rag-service
   corpus v1) says 20% co-pay, but the insurer's rules for that product say 0%, so hospital estimates are 80% of what the
   insurer pays for early-2026 stays. Synthetic data inconsistency, left as is; step 6 measures estimate accuracy.
+
+## 2026-10-07 — container images that broke `make up-infra` on a Mac
+
+- `minio/minio` no longer exists on Docker Hub and `quay.io/minio/minio` needs a login, so `make up-infra` failed for
+  everyone. MinIO is now built from source at the pinned community release (`infra/minio/Dockerfile`, static Go build,
+  native on arm64 and amd64); the health check uses MinIO's `/minio/health/live` with wget (no `mc` in the image).
+- ClamAV: `clamav/clamav` is amd64-only (emulated, slow on Apple Silicon); `clamav/clamav-debian` is the same project's
+  multi-arch image with the same config directory and `clamdcheck.sh`.
+- The n8n containers use host networking; Docker Desktop needs it switched on. `make demo` checks n8n is reachable from
+  the host right after starting it and says how to switch it on.

@@ -331,6 +331,23 @@ def mk(*targets: str, done: str = "done") -> Callable[[], str]:
     return run
 
 
+def up_n8n() -> str:
+    """The n8n containers use host networking. Docker Desktop (Mac, Windows) runs containers in a VM, so unless host
+    networking is switched on there, n8n is healthy inside but unreachable from this machine; catch that here."""
+    sh("up-n8n", ["make", "-s", "up-n8n"])
+    url = f"http://localhost:{env_file().get('HOSP_N8N_PORT', '5688')}/healthz"
+    for _ in range(30):
+        try:
+            if httpx.get(url, timeout=2).status_code == 200:
+                return "up"
+        except httpx.HTTPError:
+            pass
+        time.sleep(2)
+    hint = (" On Docker Desktop: Settings -> Resources -> Network -> tick 'Enable host networking', Apply & restart, then run"
+            " the demo again." if platform.system() in ("Darwin", "Windows") else "")
+    raise StepFailed(f"hospital n8n is running but not reachable at {url}.{hint}")
+
+
 def init() -> str:
     sh("init-secrets", ["make", "-s", "init-secrets"])
     sh("uv-sync", ["uv", "sync", "--all-packages"])
@@ -346,7 +363,7 @@ def plan(offline: bool, containers: bool = True) -> list[tuple[str, Callable[[],
         steps += [
             ("Infrastructure containers (Postgres, Redis, MinIO, ClamAV, Keycloak)", mk("up-infra", done="up")),
             ("Insurer database container", mk("up-insurer", done="up")),
-            ("Hospital n8n (13 flows)", mk("up-n8n", done="up")),
+            ("Hospital n8n (13 flows)", up_n8n),
         ]
     if orch == "n8n" and containers:
         steps.append(("Insurer n8n (19 flows)", mk("up-insurer-n8n", done="up")))
