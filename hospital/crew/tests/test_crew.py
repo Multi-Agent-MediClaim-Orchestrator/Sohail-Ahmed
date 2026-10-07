@@ -553,3 +553,25 @@ async def test_diagnosis_codes_come_from_the_discharge_summary_when_the_case_has
     assert asm.assemble(c)["payload"]["admission"]["diagnosis_codes"] == ["K35.80"]
     c["case"]["admission"]["diagnosis_codes"] = ["M17.1"]
     assert asm.assemble(c)["payload"]["admission"]["diagnosis_codes"] == ["M17.1"]  # case facts win
+
+
+async def test_api_errors_carry_the_response_body_into_the_job():
+    import httpx
+    from crew.api_client import ApiCallFailed, HttpApi
+
+    def handler(req):
+        if "token" in req.url.path:
+            return httpx.Response(200, json={"access_token": "t", "expires_in": 60})
+        return httpx.Response(
+            422, json={"code": "validation_error", "detail": "draft_text too long"}
+        )
+
+    api = HttpApi(
+        "http://api",
+        "http://kc/token",
+        "c",
+        "s",
+        httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+    )
+    with pytest.raises(ApiCallFailed, match="422.*draft_text too long"):
+        await api.post("/v1/internal/queries/q/draft-result", {})

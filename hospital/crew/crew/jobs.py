@@ -84,7 +84,7 @@ class Runner:
             except TimeoutError:
                 self._fail(job, "timeout", "job timed out", True)
             except Exception as e:  # noqa: BLE001
-                self._fail(job, "internal_error", type(e).__name__, True)
+                self._fail(job, "internal_error", f"{type(e).__name__}: {e}"[:500], True)
             finally:
                 self.running -= 1
                 job.finished_at = time.time()

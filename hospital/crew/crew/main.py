@@ -89,6 +89,16 @@ def create_app(
             raise HTTPException(422, f"{need} is required")
         return {"job_id": runner.submit(kind, data).id}
 
+    @app.get("/v1/jobs")
+    async def list_jobs() -> dict[str, Any]:
+        """Latest jobs with their errors, for diagnostics (no payloads)."""
+        rows = sorted(runner.jobs.values(), key=lambda j: j.created_at)[-20:]
+        return {
+            "items": [
+                {"job_id": j.id, "type": j.type, "state": j.state, "error": j.error} for j in rows
+            ]
+        }
+
     @app.get("/v1/jobs/{job_id}")
     async def get_job(job_id: str) -> dict[str, Any]:
         j = runner.jobs.get(job_id)

@@ -9,6 +9,17 @@ from typing import Any, Protocol
 import httpx
 
 
+class ApiCallFailed(Exception):
+    """The hospital API refused a call; keep its answer so the job's error says why (a bare 422 hid a real cause)."""
+
+
+def _check(r: httpx.Response) -> None:
+    if r.status_code >= 400:
+        raise ApiCallFailed(
+            f"{r.request.method} {r.request.url.path} -> {r.status_code} {r.text[:300]}"
+        )
+
+
 class ApiClient(Protocol):
     async def get(self, path: str) -> dict[str, Any]: ...
     async def post(self, path: str, body: dict[str, Any]) -> dict[str, Any]: ...
@@ -53,10 +64,10 @@ class HttpApi:
 
     async def get(self, path: str) -> dict[str, Any]:
         r = await self.client.get(self.base + path, headers=await self._h())
-        r.raise_for_status()
+        _check(r)
         return r.json()  # type: ignore[no-any-return]
 
     async def post(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
         r = await self.client.post(self.base + path, json=body, headers=await self._h())
-        r.raise_for_status()
+        _check(r)
         return r.json() if r.content else {}  # type: ignore[no-any-return]
