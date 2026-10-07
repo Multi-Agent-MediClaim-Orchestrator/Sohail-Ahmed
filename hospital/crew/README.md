@@ -8,8 +8,8 @@ posts results back to the API's internal endpoints, where the API re-validates e
 
 | Job (`POST /v1/jobs/<job>`) | CrewAI Flow (`crew/flows.py`) | CrewAI agent (`crew/config/agents.yaml`) | Guardrail / deterministic code |
 |---|---|---|---|
-| `claim-build` | `ClaimFlow`: load_context → route → build_claim → post_draft | Category mapper (local model), only for lines the keyword table cannot label | `tools/assemble.py` builds lines and totals; labels outside the allowed set are ignored |
-| `claim-repair` | `ClaimFlow`: load_context → route → repair_claim → post_draft | Category mapper | totals recomputed in code; repair whitelist `tools/repair_paths.yaml` |
+| `claim-build` | `ClaimFlow`: load_context → route → build_claim → estimate_admissible → post_draft | Category mapper (local model), only for lines the keyword table cannot label; Policy estimator (general model) | `tools/assemble.py` builds lines and totals; labels outside the allowed set are ignored; estimate: see below |
+| `claim-repair` | `ClaimFlow`: load_context → route → repair_claim → estimate_admissible → post_draft | Category mapper, Policy estimator | totals recomputed in code; repair whitelist `tools/repair_paths.yaml` |
 | `query-triage` | `QueryFlow`: load_query → route → triage_query | Query triage officer (general model) | rule-based risk flag can be raised, never lowered |
 | `query-draft` | `QueryFlow`: load_query → route → draft_reply | Claims desk reply writer (general model) | grounding rules G01-G08 are the task guardrail (one retry with the complaints), supervisor checklist last |
 
@@ -19,8 +19,9 @@ flowchart LR
     A[load_context] --> R{route}
     R -- build --> B[build_claim<br/>Category mapper agent]
     R -- repair --> C[repair_claim<br/>Category mapper agent]
-    B --> P[post_draft]
-    C --> P
+    B --> E[estimate_admissible<br/>Policy estimator agent<br/>+ calc engine]
+    C --> E
+    E --> P[post_draft]
   end
   subgraph QueryFlow
     Q[load_query] --> S{route}
@@ -36,6 +37,24 @@ flowchart LR
   default to OpenAI embeddings), telemetry off (`CREWAI_TELEMETRY_OPT_OUT=true`).
 - Model errors keep their own type through CrewAI (`max_retry_limit=0`), so job errors still read `pii_detected`,
   `llm_unavailable`, `schema_invalid`.
+
+## Admissible-amount estimate (Policy Estimate step, `crew/estimate.py`)
+
+Before the officer signs off, every built or repaired draft carries an estimate of what the insurer will pay:
+
+1. **Policy terms from the policy card**: product and sum insured (doc-pipeline fields `product_name`, `sum_insured`).
+2. **Policy wording from the hospital's knowledge base**: rag-service collection `hosp_insurer_rules`, filtered by
+   product and the admission date (`HOSP_RAG_URL`; the token is minted from `RAG_JWT_SECRET`). The hospital token cannot
+   read the insurer's collections.
+3. **Policy estimator agent (CrewAI)** reports room rent %, ICU %, co-pay % and the procedure sub-limit, each with a
+   verbatim quote. Guardrail: the quote must be copied from the wording and contain the number (one retry with the
+   problems). A code parser of the same wording overrides any number it can read (`term_overridden_by_code`).
+4. **The insurer's calculation engine** (`calc_engine`, as a library) computes claimed, eligible, estimated payable and
+   patient share, with non-medical items excluded and the room cap, sub-limit and co-pay applied.
+
+Waiting periods and exclusions need the insurer's member history, so the estimate assumes they pass and says so. It is
+advice, never a gate: anything missing gives `status: "unavailable"` with the reason, and the draft is posted anyway.
+hospital-api stores it (`claim_draft.estimate`) and the officer's claim page shows it with the quoted terms.
 
 ## Run
 

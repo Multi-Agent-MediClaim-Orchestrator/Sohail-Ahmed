@@ -4,7 +4,7 @@ their output with this model (extra="forbid") and persists it."""
 from __future__ import annotations
 
 from datetime import date
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 from claim_contract.enums import AdmissionType, BillCategory
@@ -76,3 +76,4 @@ class DraftResult(Strict):
     provenance: dict[str, Provenance] = Field(default_factory=dict)
     model_info: dict[str, str | int | float | None] = Field(default_factory=dict)
     repair_round: int = Field(default=0, ge=0, le=2)
+    estimate: dict[str, Any] | None = None  # hospital-side admissible-amount estimate (advice only, not validated as a claim field)

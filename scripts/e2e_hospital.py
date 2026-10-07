@@ -246,7 +246,10 @@ def main() -> int:
             ["uv", "run", "uvicorn", "crew.main:app_factory", "--factory", "--port", "8010"],
             ROOT / "hospital/crew",
             8010,
-            {"HOSP_LLM_MODEL": local, "CREW_LLM": "rules" if FAST else "ollama"},
+            # HOSP_RAG_URL: the Policy Estimate step reads the policy wording from rag-service (`make run-rag`);
+            # when it is not running the estimate is recorded as unavailable and the run continues
+            {"HOSP_LLM_MODEL": local, "CREW_LLM": "rules" if FAST else "ollama",
+             "HOSP_RAG_URL": E.get("HOSP_RAG_URL") or f"http://localhost:{E.get('RAG_PORT', '8400')}"},  # fmt: skip
             CREW + "/v1/health",
         )
         if "--serve" in sys.argv:  # keep the stack (and the UI) up for the browser tests

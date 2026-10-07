@@ -68,6 +68,9 @@ async def test_claim_build_by_the_real_crew_passes_the_api_validators(
     assert d["has_errors"] is False
     assert d["payload"]["totals"]["gross"] == d["payload"]["totals"]["claimed"]
     assert d["payload"]["patient"]["full_name"] == "Ravi Kumar"  # from the case, never from a model
+    # the Policy Estimate step ran and its result is stored with the draft (no policy card here: unavailable, with why)
+    est = d["estimate"]
+    assert est["status"] == "unavailable" and "policy card" in est["reason"] and est["draft_version"] == d["version"]
 
 
 async def test_triage_then_grounded_draft_is_accepted_without_flags(

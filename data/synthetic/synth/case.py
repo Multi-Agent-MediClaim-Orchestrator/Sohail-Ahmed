@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
+import random
 from decimal import Decimal
 from typing import Any
 
@@ -56,6 +57,8 @@ def build_case(
         discharged = discharged_on
     admitted = discharged - dt.timedelta(days=max(1, proc["los"] + rng.randrange(-1, 2)))
     member = make_member(rng, seed, idx)
+    identity = dict(identity or {})
+    policy_over = {k: identity.pop(k) for k in ("product_code", "sum_insured", "valid_from", "valid_to") if k in identity}
     if identity:
         for k, v in identity.items():
             setattr(member, k, dt.date.fromisoformat(v) if k == "dob" and isinstance(v, str) else v)
@@ -110,6 +113,8 @@ def build_case(
     present["discharge_summary"] = render.discharge_summary(case, stamp=True)
     if proc["implant"]:
         present["implant_sticker"] = render.implant_sticker(case)
+    case.policy = policy_terms(seed, admitted, policy_over)
+    present["policy_card"] = render.policy_card(case)
     for t in recipe.drop:
         present.pop(t, None)
 
@@ -195,6 +200,23 @@ def build_case(
         indent=1,
     ).encode()
     return {"case_id": case.case_id, "recipe": recipe.id, "files": files, "case": _s(case_json)}
+
+
+PRODUCTS = ("HEALTH-BASIC", "HEALTH-PLUS-GOLD", "SENIOR-SHIELD")  # the insurer's products (rag-service corpus, insurer seed)
+
+
+def policy_terms(seed: int, admitted: dt.date, over: dict[str, Any]) -> dict[str, Any]:
+    """Product and sum insured for the policy card, from their own generator so the rest of the case stays byte-identical."""
+    r = random.Random(seed ^ 0x9E3779B9)
+    start = admitted - dt.timedelta(days=r.randrange(400, 900))
+    pol = {"product_code": r.choice(PRODUCTS), "sum_insured": Decimal(r.choice([300000, 500000, 1000000])),
+           "valid_from": dt.date(admitted.year, 1, 1) if admitted.month > 1 else dt.date(admitted.year - 1, 2, 1), "valid_to": None}
+    pol["valid_from"] = max(pol["valid_from"], start)
+    for k, v in over.items():
+        pol[k] = Decimal(str(v)) if k == "sum_insured" else (dt.date.fromisoformat(v) if k.startswith("valid") and isinstance(v, str) else v)
+    if pol["valid_to"] is None:
+        pol["valid_to"] = pol["valid_from"].replace(year=pol["valid_from"].year + 1) - dt.timedelta(days=1)
+    return pol
 
 
 def pick_recipe(rng_seed: int, idx: int) -> Recipe:

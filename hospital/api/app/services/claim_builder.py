@@ -131,6 +131,7 @@ async def persist_draft(
     model_info: dict[str, Any] | None,
     result: ValidationResult,
     edit_summary: dict[str, Any] | None = None,
+    estimate: dict[str, Any] | None = None,
 ) -> tuple[uuid.UUID, int]:
     s = uow.session
     version = await next_version(uow, case.id)
@@ -139,8 +140,8 @@ async def persist_draft(
         await s.execute(
             text(
                 "INSERT INTO claim_draft (id, case_id, version, payload, validation, source, created_by, provenance, has_errors, "
-                "model_info, edit_summary) VALUES (uuid_generate_v7(), :c, :v, CAST(:p AS jsonb), CAST(:val AS jsonb), :src, :by, "
-                "CAST(:prov AS jsonb), :err, CAST(:mi AS jsonb), CAST(:es AS jsonb)) RETURNING id"
+                "model_info, edit_summary, estimate) VALUES (uuid_generate_v7(), :c, :v, CAST(:p AS jsonb), CAST(:val AS jsonb), :src, :by, "
+                "CAST(:prov AS jsonb), :err, CAST(:mi AS jsonb), CAST(:es AS jsonb), CAST(:est AS jsonb)) RETURNING id"
             ),
             {
                 "c": case.id,
@@ -153,6 +154,7 @@ async def persist_draft(
                 "err": result.has_errors,
                 "mi": json.dumps(model_info) if model_info else None,
                 "es": json.dumps(edit_summary) if edit_summary else None,
+                "est": json.dumps(estimate) if estimate else None,
             },
         )
     ).scalar_one()  # RETURNING id
@@ -314,6 +316,7 @@ async def accept_draft(
         "agent:claim-builder",
         mi,
         res,
+        estimate=result.estimate,
     )
     await invalidate_signoffs(uow, case.id, "new agent draft")
     repair = res.has_errors and result.repair_round < MAX_REPAIR_ROUNDS
@@ -363,7 +366,8 @@ async def accept_draft(
         s,
         case.id,
         "claim.built",
-        {"version": version, "errors": len(res.errors), "warnings": len(res.warnings)},
+        {"version": version, "errors": len(res.errors), "warnings": len(res.warnings),
+         "estimate": (result.estimate or {}).get("status"), "estimated_payable": (result.estimate or {}).get("estimated_payable")},  # fmt: skip
         actor_id="claim-builder",
         model_info=mi,
     )

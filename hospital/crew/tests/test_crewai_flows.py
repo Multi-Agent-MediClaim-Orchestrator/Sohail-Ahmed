@@ -17,8 +17,8 @@ async def test_claim_flow_build_runs_the_category_mapper_agent():
     llm = FakeLLM({"<lines>": {"items": [{"index": 1, "category": "consumable"}]}})
     flow = ClaimFlow.create(FlowDeps(llm, api, ST))
     out = await flow.kickoff_async(inputs={"case_id": "c1", "job_id": "j1"})
-    assert out == {"posted": True, "repair_round": 0}
-    assert flow.state.steps == ["load_context", "build_claim", "post_draft"]
+    assert out == {"posted": True, "repair_round": 0, "estimate": "unavailable"}  # no policy card in this context
+    assert flow.state.steps == ["load_context", "build_claim", "estimate_admissible", "post_draft"]
     model, prompt = llm.calls[0]
     assert (
         model == ST.model_local and AGENTS["category_mapper"]["role"] in prompt
@@ -41,6 +41,7 @@ async def test_claim_flow_routes_to_repair():
     assert out["repair_round"] == 2 and flow.state.steps == [
         "load_context",
         "repair_claim",
+        "estimate_admissible",
         "post_draft",
     ]
 

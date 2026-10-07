@@ -32,7 +32,7 @@ from app.sse.hub import RedisHub
 from app.storage.clamav import ClamAV
 from app.storage.minio import ObjectStore
 
-CODE_HEAD = "0022"
+CODE_HEAD = "0023"
 
 
 def create_app(

@@ -81,7 +81,18 @@ def draft_view(d: Any, signoff: Any, ready: dict[str, Any] | None = None) -> dic
 async def get_claim(uow: UoW, case: Any) -> dict[str, Any]:
     d = await latest_draft(uow, case.id)
     so = await active_signoff(uow, d.id)
-    return draft_view(d, so, await ready_to_submit(uow, case, d, so))
+    return draft_view(d, so, await ready_to_submit(uow, case, d, so)) | {"estimate": await latest_estimate(uow, case.id)}
+
+
+async def latest_estimate(uow: UoW, case_id: Any) -> dict[str, Any] | None:
+    """The newest agent estimate, with the draft version it was made for (a human edit keeps the previous estimate)."""
+    row = (
+        await uow.session.execute(
+            text("SELECT version, estimate FROM claim_draft WHERE case_id=:c AND estimate IS NOT NULL ORDER BY version DESC LIMIT 1"),
+            {"c": case_id},
+        )
+    ).first()
+    return None if row is None else {**row.estimate, "draft_version": row.version}
 
 
 async def versions(uow: UoW, case_id: Any) -> dict[str, Any]:

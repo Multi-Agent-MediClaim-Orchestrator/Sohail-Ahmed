@@ -16,6 +16,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
+from crew.estimate import HttpRag
 from crew.flows import ClaimFlow, FlowDeps, QueryFlow
 from crew.llm import LLM, OllamaLLM, RulesLLM
 from crew.settings import Settings
@@ -35,6 +36,8 @@ BUILD_CONTEXT = {
                              {"description": "Laparoscopic appendectomy", "amount": "45000"},
                              {"description": "Ward attendant service charge", "amount": "800"}]}},
         {"id": "22222222-2222-4222-8222-222222222222", "doc_type": "prescription", "pages": 1, "typed": {}},
+        {"id": "33333333-3333-4333-8333-333333333333", "doc_type": "policy_card", "pages": 1,
+         "typed": {"product_name": "HEALTH-BASIC", "sum_insured": "Rs. 3,00,000.00", "valid_from": "01/01/2026", "valid_to": "31/12/2026"}},
     ],
 }  # fmt: skip
 QUERY_ROW = {"id": QUERY, "category": "billing_discrepancy", "round": 1,
@@ -62,6 +65,38 @@ class MemoryApi:
         return {}
 
 
+class MemoryRag:
+    """In-memory copy of the synthetic policy wording (rag-service's corpus), used when HOSP_RAG_URL is not set so the
+    demo can show the estimate without Qdrant. With HOSP_RAG_URL the real knowledge base is used."""
+
+    async def search(
+        self, collection: str, query: str, filters: dict[str, Any], top_k: int = 6
+    ) -> list[dict[str, Any]]:
+        from rag_service.corpus import build_kb
+
+        out: list[dict[str, Any]] = []
+        for doc in build_kb():
+            m = doc.meta
+            if doc.collection != collection or m.get("policy_product") != filters.get(
+                "policy_product"
+            ):
+                continue
+            as_of = filters.get("as_of", "")
+            if m["effective_from"] <= as_of and (
+                m["effective_to"] is None or as_of < m["effective_to"]
+            ):
+                parts = doc.markdown.split("\n### ")[1:]
+                out += [
+                    {"citation_id": f"{m['doc_slug']}#{i}", "text": "### " + t}
+                    for i, t in enumerate(parts, 1)
+                ]
+        return out
+
+
+def _rag(st: Settings) -> Any:
+    return HttpRag(st.rag_url, st.rag_token) if st.rag_url else MemoryRag()
+
+
 def _llm(st: Settings) -> LLM:
     return RulesLLM() if st.llm_mode == "rules" else OllamaLLM(st.llm_base_url, st.llm_timeout_s)
 
@@ -71,7 +106,7 @@ async def _run() -> None:
     if "CREW_LLM" not in os.environ:
         st = replace(st, llm_mode="rules")
     print(f"hospital crew demo: CrewAI flows, model mode = {st.llm_mode}")
-    deps = FlowDeps(_llm(st), MemoryApi(), st)
+    deps = FlowDeps(_llm(st), MemoryApi(), st, rag=_rag(st))
     for title, flow, inputs in (
         (
             "ClaimFlow (claim-build)",
@@ -91,6 +126,12 @@ async def _run() -> None:
     ):
         print(f"\n===== {title} =====")
         result = await flow.kickoff_async(inputs=inputs)
+        est = getattr(flow.state, "estimate", None)
+        if est:
+            print(
+                f"estimate: {est.get('status')} - payable {est.get('estimated_payable')} of claimed {est.get('claimed_total')}, "
+                f"patient pays {est.get('patient_pays')} ({est.get('product_code')}; {est.get('reason') or 'terms: ' + ', '.join(f'{k}={v["value"]}' for k, v in est.get('terms', {}).items())})"
+            )
         print(
             f"steps: {' -> '.join(flow.state.steps)}\nresult: {json.dumps(result, default=str)[:600]}"
         )

@@ -214,3 +214,19 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
 - insurer-api does not call the flow endpoints yet: its inline/n8n orchestrators already sequence the steps and own the
   decision gate. The flows are for `crewai run`, the evaluation and a future `INS_ORCHESTRATOR=crew`.
 - CrewAI is imported when the service starts (about 2.5 s) so the first request does not pay it inside its timeout.
+
+## 2026-10-07 — hospital admissible-amount estimate (Policy Estimate step)
+
+- ClaimFlow gains `estimate_admissible` after build/repair: policy card (product, sum insured) → policy wording from
+  rag-service `hosp_insurer_rules` → CrewAI policy estimator agent (quoted terms, guardrail) → `calc_engine.run`.
+  The insurer's calculation engine is reused as a library so both sides compute money the same way.
+- The product wordings are now also ingested into `hosp_insurer_rules` (a policyholder's wording is a document the
+  hospital may hold). The insurer's collections stay closed to hospital tokens (tested).
+- doc-pipeline reads `product_name` and `sum_insured` from policy cards; the synthetic corpus now renders a policy card
+  for every case (its own seeded generator, so all other generated documents are unchanged). The policy card's
+  existing fields (policy number, member id, validity) gained rules-mode patterns.
+- Advice only: waiting periods and exclusions are assumed to pass (they need the insurer's member history), network
+  hospital assumed. Missing card, knowledge base or terms → `status: "unavailable"` with the reason; never blocks a build.
+- hospital-api: `claim_draft.estimate jsonb` (migration 0023), `DraftResult.estimate`, the claim view returns the newest
+  estimate with its draft version, the build context carries `claim_type`, the audit `claim.built` event records the
+  estimate status and payable. The officer UI shows the estimate with the quoted terms.

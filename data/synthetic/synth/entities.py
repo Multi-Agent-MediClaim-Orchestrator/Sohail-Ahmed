@@ -46,6 +46,7 @@ class Case:
     doctor: str
     bill_lines: list[dict[str, Any]] = field(default_factory=list)
     totals: dict[str, Decimal] = field(default_factory=dict)
+    policy: dict[str, Any] = field(default_factory=dict)  # product_code, sum_insured, valid_from, valid_to (policy card)
 
 
 def make_member(rng: random.Random, seed: int, n: int) -> Member:

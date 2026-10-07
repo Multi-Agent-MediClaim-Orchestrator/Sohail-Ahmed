@@ -303,6 +303,7 @@ async def build_context(
         )
     ).first()
     return {
+        "claim_type": str(c.claim_type.value if hasattr(c.claim_type, "value") else c.claim_type),
         "case": {
             "patient": {
                 "full_name": c.full_name,

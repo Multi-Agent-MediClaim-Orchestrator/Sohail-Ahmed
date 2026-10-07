@@ -136,6 +136,12 @@ def build_kb() -> list[KbDoc]:
             docs.append(KbDoc("ins_policy_wording", slug, wording(product, ver), {
                 "doc_slug": slug, "citation_prefix": slug, "source": f"{product} wording v{ver['v']}", "policy_product": product, "policy_version": str(ver["v"]), "version": ver["v"],
                 "effective_from": ver["from"], "effective_to": ver["to"], "doc_id": f"{spec['code']}-wording", "system": "insurer"}))
+            # The same public wording in the hospital's own collection: the hospital estimates the admissible amount before
+            # submitting (hospital-crew Policy Estimate agent) and may read only hosp_* collections.
+            hslug = f"hr-pw-{spec['code']}-v{ver['v']}"
+            docs.append(KbDoc("hosp_insurer_rules", hslug, wording(product, ver), {
+                "doc_slug": hslug, "citation_prefix": hslug, "source": f"{product} wording v{ver['v']}", "policy_product": product, "policy_version": str(ver["v"]), "version": ver["v"],
+                "effective_from": ver["from"], "effective_to": ver["to"], "doc_id": f"{spec['code']}-wording-hosp", "system": "hospital"}))
     docs.append(KbDoc("ins_medical_guidelines", "mg-guidelines-v1", guidelines(), {"doc_slug": "mg-guidelines-v1", "citation_prefix": "mg-v1", "source": "Treatment guidelines v1", "version": 1,
                                                                                     "effective_from": "2025-01-01", "effective_to": None, "system": "insurer"}))
     docs.append(KbDoc("hosp_insurer_rules", "hr-rules-v1", hospital_rules(), {"doc_slug": "hr-rules-v1", "citation_prefix": "hr-v1", "source": "Insurer documentation requirements", "version": 1,

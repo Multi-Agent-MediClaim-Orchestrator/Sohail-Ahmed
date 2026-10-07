@@ -24,6 +24,8 @@ class Settings:
     llm_timeout_s: float = 120.0
     prompt_dir: Path = field(default_factory=lambda: Path(__file__).parent / "prompts")
     prompt_pins: dict[str, str] = field(default_factory=dict)
+    rag_url: str = ""  # rag-service for the admissible-amount estimate (hosp_insurer_rules); empty = estimate unavailable
+    rag_token: str = ""
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -43,4 +45,27 @@ class Settings:
             concurrency=int(g("CREW_CONCURRENCY", "3")),
             llm_mode=g("CREW_LLM", "ollama"),
             prompt_pins=pins,
+            rag_url=g("HOSP_RAG_URL", ""),
+            rag_token=g("HOSP_RAG_TOKEN", "") or rag_token_from_secret(g("RAG_JWT_SECRET", "")),
         )
+
+
+def rag_token_from_secret(secret: str, ttl: int = 86400) -> str:
+    """A rag-service service token for `hospital-crew` (same claims as rag_service.security.issue_token), so a local run
+    needs only RAG_JWT_SECRET from .env. The token can read hosp_* collections only."""
+    if not secret:
+        return ""
+    import time
+
+    import jwt
+
+    t = int(time.time())
+    claims = {
+        "svc": "hospital-crew",
+        "system": "hospital",
+        "role": "service",
+        "iat": t,
+        "exp": t + ttl,
+        "case_scope": True,
+    }
+    return jwt.encode(claims, secret, algorithm="HS256")

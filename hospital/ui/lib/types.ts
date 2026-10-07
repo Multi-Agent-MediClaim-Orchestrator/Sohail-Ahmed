@@ -31,6 +31,13 @@ export interface ClaimView {
   version: number; source: string; has_errors: boolean; payload: ClaimPayload; etag: string;
   validation: { errors: Finding[]; warnings: Finding[] }; signoff: { decision: string; officer?: string } | null;
   ready_to_submit?: { ok: boolean; reasons: string[] };
+  estimate?: Estimate | null;
+}
+export interface EstimateTerm { value: string; quote: string; citation?: string; read_by: string }
+export interface Estimate {
+  status: "estimated" | "unavailable"; reason?: string; draft_version: number; product_code?: string; sum_insured?: string;
+  claimed_total?: string; eligible_total?: string; estimated_payable?: string; patient_pays?: string; procedure?: string | null;
+  terms?: Record<string, EstimateTerm>; flags?: string[]; assumptions?: string[]; warnings?: string[];
 }
 export interface Submission { status: string | null; attempts: number; last_error: string | null; next_attempt_at: string | null; insurer_claim_no: string | null; acknowledged_at: string | null; ready_to_submit: { ok: boolean; reasons: string[] } }
 export interface TimelineEvent { ts: string; kind: string; from: string | null; to: string | null; actor: string }  // `to` is null for events that are not status changes

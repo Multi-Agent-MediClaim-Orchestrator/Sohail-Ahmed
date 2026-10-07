@@ -260,3 +260,21 @@ def implant_sticker(case: Case) -> tuple[bytes, dict[str, Any]]:
     )
     doc.text(f"Procedure date: {fdate(case.admitted_on)}")
     return doc.done(), {"labels": doc.labels, "stamps": doc.stamps, "pages": doc.page}
+
+
+INSURER = {"name": "Niveshak Health Insurance (synthetic)", "city": "Mumbai", "reg_no": "IRDAI-SYN-000"}
+
+
+def policy_card(case: Case) -> tuple[bytes, dict[str, Any]]:
+    """The member's health card: what the desk copies at admission. Product and sum insured feed the hospital's estimate."""
+    pol = case.policy
+    doc = Doc("HEALTH POLICY CARD", INSURER)
+    doc.text(f"Name: {case.member.full_name}", "name", case.member.full_name)
+    doc.text(f"Member ID: {case.member.member_id}", "member_id", case.member.member_id)
+    doc.text(f"Policy No: {case.member.policy_number}", "policy_number", case.member.policy_number)
+    doc.text(f"Insurer: {INSURER['name']}", "insurer_name", INSURER["name"])
+    doc.text(f"Product: {pol['product_code']}", "product_name", pol["product_code"])
+    doc.text(f"Sum Insured: Rs. {money(pol['sum_insured'])}", "sum_insured", money(pol["sum_insured"]))
+    doc.text(f"Valid from: {fdate(pol['valid_from'])}", "valid_from", fdate(pol["valid_from"]))
+    doc.text(f"Valid upto: {fdate(pol['valid_to'])}", "valid_to", fdate(pol["valid_to"]))
+    return doc.done(), {"labels": doc.labels, "stamps": doc.stamps, "pages": doc.page}

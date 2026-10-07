@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from crew.api_client import ApiClient, HttpApi
+from crew.estimate import HttpRag
 from crew.flows import ClaimFlow, FlowDeps, QueryFlow
 from crew.jobs import Job, Runner
 from crew.llm import LLM, OllamaLLM, RulesLLM
@@ -27,24 +28,32 @@ class JobIn(BaseModel):
 
 
 def create_app(
-    settings: Settings | None = None, *, llm: LLM | None = None, api: ApiClient | None = None
+    settings: Settings | None = None,
+    *,
+    llm: LLM | None = None,
+    api: ApiClient | None = None,
+    rag: Any = None,
 ) -> FastAPI:
     st = settings or Settings.from_env()
     llm = llm or (
         RulesLLM() if st.llm_mode == "rules" else OllamaLLM(st.llm_base_url, st.llm_timeout_s)
     )
     api = api or HttpApi(st.api_url, st.token_url, st.client_id, st.client_secret)
+    if rag is None and st.rag_url:
+        rag = HttpRag(st.rag_url, st.rag_token)
 
     async def claim_build(job: Job) -> dict[str, Any]:
         i = job.input
-        flow = ClaimFlow.create(FlowDeps(llm, api, st, job.cancel))
+        flow = ClaimFlow.create(FlowDeps(llm, api, st, job.cancel, rag))
         return await flow.kickoff_async(inputs={"case_id": i["case_id"], "job_id": i.get("job_id") or job.id,
                                                 "callback": i.get("callback"), "repair": i.get("repair")})  # fmt: skip
 
     def query_job(kind: str):  # noqa: ANN202
         async def run(job: Job) -> dict[str, Any]:
-            flow = QueryFlow.create(FlowDeps(llm, api, st, job.cancel))
-            return await flow.kickoff_async(inputs={"query_id": job.input["query_id"], "kind": kind})
+            flow = QueryFlow.create(FlowDeps(llm, api, st, job.cancel, rag))
+            return await flow.kickoff_async(
+                inputs={"query_id": job.input["query_id"], "kind": kind}
+            )
 
         return run
 
@@ -94,6 +103,7 @@ def create_app(
             "status": "ok",
             "version": "0.1.0",
             "models": {"general": st.model_general, "local": st.model_local},
+            "knowledge_base": "configured" if rag is not None else "not configured",
         }
 
     @app.get("/v1/agents")

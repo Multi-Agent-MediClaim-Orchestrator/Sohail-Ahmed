@@ -1,9 +1,9 @@
 # CrewAI migration plan: gap analysis and mapping
 
-Status (2026-10-07): steps 1-3 of §6 are done: crewai pinned; the hospital crew's four jobs run on CrewAI Flows and
-agents (`hospital/crew/README.md`); the insurer's seven agents are CrewAI agents with `VerificationFlow` and `QueryFlow`
-(`docs/DECISIONS.md`). Still open from §3.1: the hospital Document, Validation and Policy Estimate crews (new
-functionality). Steps 4-7 are open.
+Status (2026-10-07): steps 1-4 of §6 are done: crewai pinned; hospital crew on CrewAI Flows and agents; insurer's
+seven agents as CrewAI agents with VerificationFlow and QueryFlow; hospital admissible-amount estimate (Policy Estimate
+step in ClaimFlow, `hospital/crew/README.md`). Still open from §3.1: separate Document and Validation crews (intake and
+completeness stay with doc-pipeline and hospital-api). Steps 5-7 are open.
 Scope source: the team's problem statement (multi-agent cashless and reimbursement claim processing with CrewAI) and the
 repository as of branch `claude/festive-ramanujan-kzdnxj`.
 

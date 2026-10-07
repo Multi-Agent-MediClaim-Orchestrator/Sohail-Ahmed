@@ -2,7 +2,7 @@
 the agents inside (crew/team.py) do the model work; deterministic code builds totals and gates the output. The
 hospital API stays the only writer: every flow ends by posting its result to an internal endpoint.
 
-    ClaimFlow:  load_context -> route (build | repair) -> build_claim | repair_claim -> post_draft
+    ClaimFlow:  load_context -> route (build | repair) -> build_claim | repair_claim -> estimate_admissible -> post_draft
     QueryFlow:  load_query  -> route (triage | draft)  -> triage_query | draft_reply  -> (posted inside the step)
 """
 
@@ -14,6 +14,7 @@ from typing import Any
 from crewai.flow.flow import Flow, listen, or_, router, start
 from pydantic import BaseModel, Field, PrivateAttr
 
+from crew import estimate
 from crew.agents import builder, responder
 from crew.api_client import ApiClient
 from crew.llm import LLM
@@ -28,9 +29,14 @@ class FlowDeps:
     """What a flow needs from the service; set after construction (Flow is a pydantic model)."""
 
     def __init__(
-        self, llm: LLM, api: ApiClient, st: Settings, cancel: asyncio.Event | None = None
+        self,
+        llm: LLM,
+        api: ApiClient,
+        st: Settings,
+        cancel: asyncio.Event | None = None,
+        rag: Any = None,
     ) -> None:
-        self.llm, self.api, self.st = llm, api, st
+        self.llm, self.api, self.st, self.rag = llm, api, st, rag
         self.cancel = cancel or asyncio.Event()
 
 
@@ -42,6 +48,7 @@ class ClaimState(BaseModel):
     repair: dict[str, Any] | None = None
     context: dict[str, Any] = Field(default_factory=dict)
     draft: dict[str, Any] = Field(default_factory=dict)
+    estimate: dict[str, Any] = Field(default_factory=dict)
     repair_round: int = 0
     steps: list[str] = Field(default_factory=list)
 
@@ -88,15 +95,37 @@ class ClaimFlow(Flow[ClaimState]):
         self.state.repair_round = int(rep.get("round", 1))
 
     @listen(or_(build_claim, repair_claim))
+    async def estimate_admissible(self) -> None:
+        """Policy Estimate crew: policy card + wording (RAG) + policy estimator agent + calc engine. Never fails the build."""
+        self.state.steps.append("estimate_admissible")
+        try:
+            self.state.estimate = await estimate.estimate(
+                self.state.context,
+                self.state.draft["payload"],
+                self._deps.llm,
+                self._deps.st,
+                self._deps.rag,
+            )
+        except Exception as e:  # noqa: BLE001 - advice only: the draft is posted without it
+            self.state.estimate = {
+                "status": "unavailable",
+                "reason": f"estimate failed: {type(e).__name__}",
+            }
+
+    @listen(estimate_admissible)
     async def post_draft(self) -> dict[str, Any]:
         if self._deps.cancel.is_set():
             return {"cancelled": True}
         self.state.steps.append("post_draft")
         out, s = self.state.draft, self.state
         body = {"job_id": s.job_id, "payload": out["payload"], "provenance": out["provenance"],
-                "model_info": flat(out["model_info"]), "repair_round": s.repair_round}  # fmt: skip
+                "model_info": flat(out["model_info"]), "repair_round": s.repair_round, "estimate": s.estimate or None}  # fmt: skip
         await self._deps.api.post(s.callback or f"/v1/internal/cases/{s.case_id}/claim/draft", body)
-        return {"posted": True, "repair_round": s.repair_round}
+        return {
+            "posted": True,
+            "repair_round": s.repair_round,
+            "estimate": s.estimate.get("status"),
+        }
 
 
 class QueryState(BaseModel):
