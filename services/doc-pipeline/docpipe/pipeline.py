@@ -134,22 +134,45 @@ async def run(
     # merge: agreement only on critical fields B produced
     issues = list(a.issues if a else []) + id_issues
     typed_a, typed_b = dict(a.values) if a else {}, dict(b.values) if b else {}
-    disagreements = []
+    if a is None:
+        typed_a = {}
+    if lines:
+        typed_a["lines"] = lines
+        typed_b = {**typed_b, "lines": lines} if b else typed_b
+        # Printed totals are read by code. A model may pick the net amount instead of the Total row (seen on gemma4), which
+        # makes the passes disagree and the lines not add up, so the code value wins in both passes.
+        for key, printed in (("total", printed_total), ("discounts", printed_discount)):
+            if printed is None:
+                continue
+            fixed = format(printed, "f")
+            for t in (typed_a, typed_b):
+                if t is typed_a or b:
+                    if t.get(key) is not None and parse_amount(t[key]) != printed:
+                        issues.append(
+                            {
+                                "code": "model_value_replaced",
+                                "field": key,
+                                "detail": "printed table value used",
+                            }
+                        )
+                    t[key] = fixed
+    if dt == "prescription" and not typed_a.get(
+        "medicines"
+    ):  # numbered "1. Tab X  1-0-1  5 days" lines are code's job
+        meds = tables.extract_medicines(raw_text)
+        if meds:
+            typed_a["medicines"] = meds
+            if b:
+                typed_b["medicines"] = meds
+    disagreements: list[
+        str
+    ] = []  # compared AFTER code-read values replaced the model's, so they cannot cause a disagreement
     if a and b:
         for k in crit:
             if not _same(FIELDS[dt][k][0], typed_a.get(k), typed_b.get(k)):
                 disagreements.append(k)
         if disagreements:
             reasons.append("critical_disagreement")
-    if a is None:
-        typed_a = {}
-    if lines:
-        typed_a["lines"] = lines
-        typed_b = {**typed_b, "lines": lines} if b else typed_b
-        if printed_total is not None and typed_a.get("total") is None:
-            typed_a["total"] = format(printed_total, "f")  # printed on the page, found by code
-        if printed_discount is not None and typed_a.get("discounts") is None:
-            typed_a["discounts"] = format(printed_discount, "f")
     v = validate.validate(dt, typed_a, lines, printed_total)
     issues += v
     if any(

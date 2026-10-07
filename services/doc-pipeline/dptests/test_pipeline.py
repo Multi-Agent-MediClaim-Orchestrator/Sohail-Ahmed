@@ -156,7 +156,7 @@ async def test_two_agreeing_passes_on_a_text_pdf(bill_pdf):
     assert [p["pass_no"] for p in r["passes"]] == [1, 2]
     p1 = r["passes"][0]["typed_json"]
     assert p1["patient_name"] == "Ravi Kumar"  # unmasked locally for the hospital API
-    assert p1["total"] == "16000" and len(p1["lines"]) == 3 and p1["discounts"] == "500"
+    assert p1["total"] == "16000.00" and len(p1["lines"]) == 3 and p1["discounts"] == "500.00"
     assert r["passes"][0]["confidence"] == 0.99  # parser confidence, never a model's
 
 
@@ -339,3 +339,48 @@ async def test_ollama_requests_turn_thinking_off():
         "http://x/v1", client=httpx.AsyncClient(transport=httpx.MockTransport(handler))
     ).json("m", "p")
     assert seen["reasoning_effort"] == "none" and seen["temperature"] == 0
+
+
+async def test_printed_total_beats_a_model_that_picked_the_net_amount(bill_pdf):
+    wrong = good(
+        {"total": {"value": "500", "quote": "500.00"}}
+    )  # present on the page (the discount) but not the total
+    llm = Fake({LOCAL: good(), CLOUD: wrong})
+    r = await run(
+        bill_pdf, Settings(parser="auto", pii_key_b64=S.pii_key_b64, allow_cloud=True), llm
+    )
+    assert (
+        r["passes"][0]["typed_json"]["total"] == r["passes"][1]["typed_json"]["total"] == "16000.00"
+    )
+    assert "critical_disagreement" not in r["review_reasons"]
+    assert any(i["code"] == "model_value_replaced" for i in r["issues"])
+
+
+async def test_medicines_are_filled_by_code_when_the_model_returns_none():
+    from dp_helpers import make_pdf
+
+    pdf = make_pdf(
+        [
+            "CITY CARE HOSPITAL",
+            "PRESCRIPTION",
+            "Date: 12/01/2026",
+            "Patient Name: Ravi Kumar",
+            "Rx",
+            "1. Tab Paracetamol 500mg   1-0-1   5 days",
+            "2. Inj Ceftriaxone   1-0-1   5 days",
+            "Dr. Anil Rao",
+        ]
+    )
+    llm = Fake(
+        {
+            LOCAL: {
+                "date": {"value": "12/01/2026", "quote": "12/01/2026"},
+                "medicines": {"value": None, "quote": ""},
+            }
+        }
+    )
+    r = await run(pdf, S, llm)
+    assert r["doc_type"] == "prescription" and r["passes"][0]["typed_json"]["medicines"] == [
+        "Tab Paracetamol 500mg",
+        "Inj Ceftriaxone",
+    ]

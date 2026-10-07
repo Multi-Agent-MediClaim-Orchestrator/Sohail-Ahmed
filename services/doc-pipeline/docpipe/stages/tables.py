@@ -54,3 +54,12 @@ def extract_lines(text: str) -> tuple[list[dict[str, str]], Decimal | None, Deci
             ln["date"] = parse_date(d.group(1)).isoformat()  # type: ignore[union-attr]
         lines.append(ln)
     return lines, total if total is not None else net, discount
+
+
+MED = re.compile(
+    r"(?m)^\s*\d+\.\s*(.+?)(?:\s+\d(?:-\d){1,2}\b|\s{2,}|\s*$)"
+)  # stop at the dose pattern 1-0-1 or a column gap
+
+
+def extract_medicines(text: str) -> list[str]:
+    return [m.strip() for m in MED.findall(text) if m.strip()]

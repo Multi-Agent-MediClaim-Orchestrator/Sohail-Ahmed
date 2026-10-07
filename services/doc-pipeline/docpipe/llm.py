@@ -123,7 +123,9 @@ class RulesLLM:
         out: dict[str, Any] = {}
         for n in names:
             if n == "medicines":
-                meds = [x.strip() for x in re.findall(r"(?m)^\s*\d+\.\s*(.+?)\s{2,}", text)]
+                from docpipe.stages.tables import extract_medicines
+
+                meds = extract_medicines(text)
                 out[n] = {"value": meds or None, "quote": "; ".join(meds)}
                 continue
             if n == "icd_codes":
