@@ -1,0 +1,59 @@
+# Dev A (hospital side) — handover
+
+Everything assigned to Dev A is built, tested and committed locally (never pushed). `docs/DECISIONS.md` is the
+authoritative log of every deviation from the specs; this file is the short version plus what is left.
+
+## What exists
+| Area | Where | Notes |
+|---|---|---|
+| Shared contract | `contract/` (joint) | models, enums, state machines, HMAC signing, idempotency, audit chain, middleware, OpenAPI, insurer/hospital simulators. Changes were additive; contract tests green. |
+| Infra | `infra/` | Postgres (hospital), Redis ACLs, MinIO (Python init, no `mc`), ClamAV, Keycloak (two realms), n8n compose. |
+| Hospital DB | `hospital/api/alembic` | migrations 0001-0022, models generated from the migrated schema. |
+| hospital-api | `hospital/api` | auth/RBAC, cases, documents, completeness, router, claim builder + submission outbox, callbacks, query inbox, SSE, dashboard, metrics, internal endpoints. `openapi.json` committed. |
+| n8n flows | `hospital/n8n` | 13 generated workflows, linted, tested against a real n8n container. |
+| crew | `hospital/crew` | claim build/repair, query triage and grounded drafts over Ollama. |
+| UI | `hospital/ui` | Next.js 14: desk, officer, admin screens. |
+| doc-pipeline | `services/doc-pipeline` | parse, classify, mask, two-pass extraction. |
+| vision-service | `services/vision-service` | page quality, stamps, registry match. |
+| Synthetic data + eval | `data/synthetic`, `data/eval` | hospital-side corpus generator and scoring harness. |
+| E2E | `scripts/e2e_hospital.py` | `make e2e-hospital`. |
+
+## Run it
+`make init && make up-infra && make migrate && make seed && make up-n8n`, then `make run-api`, `make run-crew`,
+`make run-docpipe`, `make run-vision`, `make run-ui` (ports 8100, 8010, 8200, 8300, 3100; other projects on this
+machine hold 8000, 3000, 5432, 6379, 9000). Demo users: desk1, officer1, officer2, hadmin (password `DEMO_PW`).
+`scripts/get_token.sh <user>` and `scripts/verify_auth.sh` help with auth checks.
+Tests: `make test` (contract, infra, hospital, crew, doc-pipeline, vision, synthetic, eval), `make n8n-test` (docker),
+`make test-llm` (live Ollama), `make eval-hospital` after `make seed-data`.
+
+## Decisions you made that are implemented
+Ollama only (`gemma4:31b-cloud` general, `gemma4:latest` local/private); no Gemini or provider keys; only
+Presidio-masked text may reach the cloud model and identity documents never do; stamps required on bills;
+default required documents prescription + pharmacy bill + final bill (+ procedure bill for surgery, implant sticker for
+implants); no 50%/80% SLA reminders (overdue at 100% only); round-3 query escalation kept; two approvers for round 3 /
+risky query categories; all data synthetic.
+
+## Deviations worth knowing (details in DECISIONS.md)
+- CrewAI package not used (plain agents, same HTTP surface); no LLM `classify-extract`/`supervise` jobs.
+- doc-pipeline: MinerU is an optional backend that is NOT installed here (path untested); text layer + tesseract by
+  default; values are unmasked locally before reaching hospital-api; no `/v1/unmask`; jobs in memory.
+- vision-service: classical detector only (no trained model), tesseract OCR, local-model escalation.
+- n8n: thin flows over what the API already does; one process on the host network; in-app reminders only (no SMTP).
+- UI: npm, cookie-session proxy with password grant against the dev Keycloak client (not PKCE); no audit explorer,
+  PDF viewer, saved views or version diff.
+- Test-harness fixes: no background outbox workers in tests (they raced the manual runs), small DB pools, crew PII
+  guard ignores UUIDs. Postgres `max_connections=60` is tight if several apps share it.
+
+## Known gaps / not verified
+- **UI never checked in a browser** (the Chrome extension was not connected): verified by typecheck, lint, unit tests,
+  production build and curl through the running server only.
+- Insurer-side synthetic data (calculator, tampering, KB, query scripts), loaders, and `T_auto` tuning (needs the
+  insurer's decision logic; start value 50,000 INR, target false-approve rate below 1%).
+- Dockerfiles exist for every service but only `hospital-api` was build-tested; the demo runs on the host.
+- Keycloak password-grant client and `.env` secrets are for localhost only.
+
+## For Dev B / for you
+- llm-gateway docs (04-shared-services/04) still describe Gemini; the insurer UI event names differ from doc 04.
+- Fill in: nothing is required. `HF_TOKEN` in `.env` is optional (only for a Hugging Face model). There is no Gemini key.
+- Local Ollama must have `gemma4:latest`; the `*-cloud` model needs Ollama's own sign-in and sends masked text off the
+  machine. `DOCPIPE_ALLOW_CLOUD=false` keeps everything local (the e2e run does this).
