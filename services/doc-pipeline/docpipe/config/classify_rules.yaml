@@ -1,0 +1,18 @@
+# keyword -> weight per doc type (case-insensitive). Score = sum of matched weights, capped at 1.
+final_bill: {"final bill": 0.6, "net amount": 0.2, "room rent": 0.15, "advance": 0.1, "patient payable": 0.2, "gross amount": 0.15, "bill no": 0.1, "hospital": 0.05}
+itemised_bill: {"itemised": 0.6, "itemized": 0.6, "item description": 0.25, "rate": 0.1, "qty": 0.1}
+pharmacy_bill: {"pharmacy": 0.5, "batch": 0.2, "expiry": 0.2, "tablet": 0.15, "gst": 0.1, "drug licence": 0.2, "medicine": 0.1}
+procedure_bill: {"ot charges": 0.4, "surgeon": 0.25, "operation theatre": 0.3, "procedure charges": 0.4, "anaesthesia": 0.2}
+prescription: {"rx": 0.4, "prescription": 0.5, "sig:": 0.15, "tab.": 0.15, "bd": 0.1, "od": 0.05, "dr.": 0.05}
+discharge_summary: {"discharge summary": 0.7, "diagnosis": 0.2, "condition at discharge": 0.3, "date of discharge": 0.2, "advice on discharge": 0.2}
+admission_note: {"admission note": 0.7, "presenting complaint": 0.3, "provisional diagnosis": 0.3}
+lab_report: {"laboratory": 0.3, "lab report": 0.5, "reference range": 0.3, "pathologist": 0.2, "specimen": 0.2, "hemoglobin": 0.1}
+radiology_report: {"radiology": 0.4, "impression": 0.25, "radiologist": 0.25, "x-ray": 0.15, "mri": 0.15, "ct scan": 0.15, "ultrasound": 0.15}
+preauth_approval: {"pre-auth": 0.4, "preauth": 0.4, "authorization": 0.2, "approved amount": 0.35, "valid till": 0.15}
+claim_form: {"claim form": 0.6, "policy no": 0.15, "member id": 0.15, "declaration": 0.2}
+id_proof: {"aadhaar": 0.5, "unique identification": 0.4, "income tax department": 0.4, "permanent account number": 0.5, "election commission": 0.4, "passport": 0.4, "government of india": 0.2}
+policy_card: {"health card": 0.5, "policy card": 0.5, "member id": 0.2, "valid upto": 0.2}
+cancelled_cheque: {"ifsc": 0.4, "cancelled": 0.4, "a/c no": 0.2, "pay": 0.05}
+implant_sticker: {"implant": 0.4, "serial no": 0.3, "mrp": 0.2, "manufacturer": 0.2, "lot no": 0.2}
+payment_receipt: {"receipt": 0.5, "received with thanks": 0.3, "mode of payment": 0.2}
+fir_mlc: {"medico legal": 0.6, "mlc": 0.4, "police station": 0.3, "fir": 0.2}
