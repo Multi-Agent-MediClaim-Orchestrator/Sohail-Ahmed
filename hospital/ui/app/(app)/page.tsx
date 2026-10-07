@@ -21,7 +21,7 @@ export default function Home() {
       <h1 className="text-xl font-semibold">Dashboard</h1>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {TILES.map(([k, label]) => (
-          <Link key={k} href={`/cases?status=${k}`} className="rounded-lg border bg-white p-4 shadow-sm hover:border-blue-600">
+          <Link key={k} prefetch={false} href={`/cases?status=${k}`} className="rounded-lg border bg-white p-4 shadow-sm hover:border-blue-600">
             <div className="text-2xl font-semibold">{d.cases_by_status[k] ?? 0}</div><div className="text-sm text-slate-700">{label}</div>
           </Link>
         ))}

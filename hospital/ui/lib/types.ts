@@ -33,7 +33,7 @@ export interface ClaimView {
   ready_to_submit?: { ok: boolean; reasons: string[] };
 }
 export interface Submission { status: string | null; attempts: number; last_error: string | null; next_attempt_at: string | null; insurer_claim_no: string | null; acknowledged_at: string | null; ready_to_submit: { ok: boolean; reasons: string[] } }
-export interface TimelineEvent { ts: string; kind: string; from: string | null; to: string; actor: string }
+export interface TimelineEvent { ts: string; kind: string; from: string | null; to: string | null; actor: string }  // `to` is null for events that are not status changes
 export interface QueryRow { id: string; case_id: string; claim_ref: string; round: number; category: string; status: string; due_by: string | null; escalation_risk: boolean; patient_initials: string; overdue: boolean }
 export interface QueryResp { version: number; status: string; source: string; draft_text: string; attached_doc_ids: string[]; citations: { source_id: string; quote: string }[] | null; unsupported_claims: { rule: string; detail: string }[] | null; approved_by: string | null; second_approver: string | null; override_note: string | null }
 export interface QueryDetail { id: string; case_id: string; claim_ref: string; round: number; category: string; text: string; status: string; due_by: string | null; requested_doc_types: string[]; triage: { action?: string; needs_docs?: boolean; note?: string } | null; triage_source: string | null; escalation_risk: boolean; approvals_needed: number; responses: QueryResp[] }

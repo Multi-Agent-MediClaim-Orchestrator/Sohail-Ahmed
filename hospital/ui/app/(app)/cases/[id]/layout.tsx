@@ -16,7 +16,12 @@ export default function CaseLayout({ children }: { children: React.ReactNode }) 
   const path = usePathname();
   const { is } = useRole();
   const conn = useEvents("case", id);
-  const q = useQuery({ queryKey: ["case", id], queryFn: () => get<CaseView>(`/v1/cases/${id}`), refetchInterval: conn === "live" ? false : 10000 });
+  const q = useQuery({ queryKey: ["case", id], queryFn: () => get<CaseView>(`/v1/cases/${id}`), refetchInterval: (query) => {
+      const st = (query.state.data as CaseView | undefined)?.status;
+      if (st === "building_claim" || st === "docs_pending") return 3000; // transitional: a missed event must not strand the screen
+      return conn === "live" ? false : 10000;
+    },
+  });
   const intim = useCountdown(q.data?.route?.decision?.intimation_deadline ?? null);
   if (q.isLoading) return <Skeleton rows={3} />;
   if (q.error || !q.data) return <ErrorCard error={q.error} retry={() => q.refetch()} />;

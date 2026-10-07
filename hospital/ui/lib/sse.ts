@@ -21,7 +21,12 @@ export function useEvents(scope: "inbox" | "case", caseId?: string): Conn {
   useEffect(() => {
     const url = `/api/stream?scope=${scope}${caseId ? `&case_id=${caseId}` : ""}`;
     const es = new EventSource(url);
-    es.onopen = () => setConn("live");
+    es.onopen = () => {
+      setConn("live");
+      // events that happened before this stream connected are not replayed: catch up by refetching what is on screen
+      if (caseId) qc.invalidateQueries({ queryKey: ["case", caseId] });
+      else qc.invalidateQueries();
+    };
     es.onerror = () => setConn("reconnecting");
     const handler = (m: MessageEvent) => {
       try {

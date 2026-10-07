@@ -46,7 +46,7 @@ export default function Checklist() {
             <ul className="divide-y">{items.map((i) => (
               <li key={i.rule_id + i.requirement} className="flex flex-wrap items-center gap-2 py-2 text-sm">
                 <span aria-hidden>{{ bad: "✕", warn: "!", good: "✓", neutral: "·" }[tn]}</span>
-                <div className="min-w-0 flex-1"><p className="font-medium">{i.requirement.replace(/_/g, " ")} <span className="font-normal text-slate-600">({i.status.replace(/_/g, " ")})</span></p><p className="text-slate-700">{i.message}</p></div>
+                <div className="min-w-0 flex-1"><p className="font-medium">{(i.doc_type ?? i.requirement).replace(/_/g, " ")} <span className="font-normal text-slate-600">({i.status.replace(/_/g, " ")})</span></p><p className="text-slate-700">{i.message}</p></div>
                 {["missing", "unusable"].includes(i.status) && <Link className="rounded border px-2 py-1 text-xs hover:bg-slate-100" href={`/cases/${id}/documents`}>Upload now</Link>}
                 {is("officer") && ["missing", "unusable", "needs_review"].includes(i.status) && i.doc_type && <Button variant="secondary" onClick={() => { setWaive(i); setReason(""); }}>Waive</Button>}
                 {i.status === "waived" && is("officer") && i.doc_type && <Button variant="ghost" onClick={() => act.mutate({ method: "DELETE", path: `/v1/cases/${id}/requirements/${i.doc_type}/waive` })}>Undo waiver</Button>}
@@ -57,7 +57,7 @@ export default function Checklist() {
         <Card title="Open requests"><ul className="divide-y text-sm">{c.open_doc_requests.map((r) => (
           <li key={r.id} className="flex items-center gap-2 py-2"><span className="flex-1">{r.message}<span className="ml-2 text-xs text-slate-600">due {new Date(r.due_by).toLocaleString()} · {r.reminders_sent} reminders</span></span>
             <Button variant="secondary" onClick={() => act.mutate({ method: "POST", path: `/v1/cases/${id}/doc-requests/${r.id}/remind`, body: {} }, { onSuccess: () => notify("Reminder scheduled") })}>Remind</Button></li>))}</ul></Card>)}
-      <Dialog open={!!waive} title={`Waive ${waive?.requirement.replace(/_/g, " ")}`} onClose={() => setWaive(null)}>
+      <Dialog open={!!waive} title={`Waive ${(waive?.doc_type ?? waive?.requirement ?? "").replace(/_/g, " ")}`} onClose={() => setWaive(null)}>
         <label className="block text-sm">Reason (at least 20 characters)<textarea className={inputCls + " mt-1"} rows={3} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
         <div className="mt-3 flex justify-end gap-2"><Button variant="secondary" onClick={() => setWaive(null)}>Cancel</Button>
           <Button disabled={reason.trim().length < 20 || act.isPending} onClick={() => waive?.doc_type && act.mutate({ method: "POST", path: `/v1/cases/${id}/requirements/${waive.doc_type}/waive`, body: { reason: reason.trim() } }, { onSuccess: () => setWaive(null) })}>Waive</Button></div>

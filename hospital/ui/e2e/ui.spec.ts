@@ -67,7 +67,7 @@ test.describe.serial("hospital UI against the real stack", () => {
     await page.goto(state.caseUrl! + "/documents");
     await page.locator('input[type="file"]').setInputFiles(docFiles());
     await expect(page.getByText("Uploaded").first()).toBeVisible();
-    await expect(page.getByText("Ready")).toHaveCount(4, { timeout: 90_000 });
+    await expect(page.getByText(/^✓?\s*Ready$/)).toHaveCount(4, { timeout: 90_000 });
     await expect(page.getByText(/live/i).first()).toBeVisible(); // SSE indicator
     await a11y(page, "documents");
     await shot(page, "04-documents");
@@ -85,7 +85,8 @@ test.describe.serial("hospital UI against the real stack", () => {
   test("checklist is complete; officer builds, edits, signs off and submits the claim", async ({ browser }) => {
     const { page, ctx, errors } = await login(browser, "officer1");
     await page.goto(state.caseUrl! + "/checklist");
-    await expect(page.getByText("Complete", { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/^✓?\s*Complete$/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("prescription").first()).toBeVisible(); // rows are named after the document, not "required"
     await a11y(page, "checklist");
     await shot(page, "05-checklist");
     await page.getByRole("button", { name: "Build claim" }).click();
@@ -94,7 +95,7 @@ test.describe.serial("hospital UI against the real stack", () => {
     await a11y(page, "claim");
     await shot(page, "06-claim");
     // edit a line description and save: a new version appears
-    const desc = page.getByLabel(/Description line 1/);
+    const desc = page.getByLabel("Description line 1", { exact: true });
     await desc.fill("Room rent general ward (edited)");
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByText(/Claim draft v2/)).toBeVisible();
