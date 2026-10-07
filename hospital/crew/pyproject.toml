@@ -2,7 +2,7 @@
 name = "hospital-crew"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["claim-contract", "fastapi>=0.110", "uvicorn[standard]>=0.29", "httpx>=0.27", "pydantic>=2.6", "pyyaml>=6"]
+dependencies = ["claim-contract", "fastapi>=0.110", "uvicorn[standard]>=0.29", "httpx>=0.27", "pydantic>=2.6", "pyyaml>=6", "crewai[litellm]==1.15.23"]
 [tool.uv.sources]
 claim-contract = { workspace = true }
 [dependency-groups]
