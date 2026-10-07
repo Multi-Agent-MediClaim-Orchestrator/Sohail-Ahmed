@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable
 
 from .app import create_app
@@ -57,7 +58,15 @@ def build():
         except Exception as exc:  # noqa: BLE001  (model server not up yet: the id is learned on the first real call)
             logging.getLogger("rag").warning("embedding probe failed at start-up: %s", exc)
     chat = GatewayChat(cfg.llm_gateway_url, cfg.llm_gateway_key, cfg.chat_alias, reasoning_effort=cfg.chat_reasoning_effort) if live else None
-    return create_app(cfg, store=store, meta=Meta(cfg.db_url), embedder=embedder, chat=chat, loader=_minio_loader(cfg), docpipe=_docpipe(cfg))
+    meta = Meta(cfg.db_url)
+    if cfg.store == "memory" and os.environ.get("RAG_SEED_ON_START") == "1":  # offline demo: no Qdrant, no embedding model
+        from . import corpus
+        from . import ingest as ing
+
+        for d in corpus.build_kb():
+            ing.ingest_markdown(store, meta, embedder, d.collection, d.markdown, d.meta, supersede=True)
+        logging.getLogger("rag").warning("seeded the synthetic knowledge base in memory (%s documents)", len(corpus.build_kb()))
+    return create_app(cfg, store=store, meta=meta, embedder=embedder, chat=chat, loader=_minio_loader(cfg), docpipe=_docpipe(cfg))
 
 
 app = build()

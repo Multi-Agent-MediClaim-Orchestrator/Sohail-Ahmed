@@ -73,6 +73,12 @@ class OfflineLLM:
                    "recommended_next_action": "manual_review" if issues else "proceed"}  # fmt: skip
         elif agent == "query_drafter":
             out = {"sentences": {k: "Please share the pharmacy bill with the hospital stamp for this admission." for k in keys}, "citations": []}
+        elif agent == "coverage":  # claims no clause itself: the agent's code then quotes the wording by keyword (or reports insufficient evidence)
+            out = {"applicable_clauses": [], "exclusions_hit": [], "insufficient_evidence": False}
+        elif agent == "calc_mapper":  # lines the keyword rules could not place stay "other", as in rules-only mode
+            m = re.search(r"LINES:\n(\[.*\])", user)  # one JSON line; CrewAI adds its own text after it
+            lines = json.loads(m.group(1)) if m else []
+            out = {"lines": [{"line_ref": ln["line_ref"], "mapped_group": "other", "source": "agent", "rationale": "offline stand-in"} for ln in lines]}
         elif agent == "triage":
             out = {"verdict": "resolved", "resolved_finding_keys": keys, "remaining_finding_keys": [], "notes": "The requested document was attached."}
         else:

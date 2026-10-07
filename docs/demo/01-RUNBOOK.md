@@ -10,10 +10,23 @@ This file is only about **running it**. How the code works is in `02-HOW-IT-WORK
 Project folder (every command below is run from here):
 
 ```bash
-cd "/home/ashok/Downloads/Multiagent healthcare claim processing"
+cd Sohail-Ahmed        # the folder you cloned the repository into
 ```
 
 ---
+
+## One command (start here)
+
+| Command | What it does | Time |
+|---|---|---|
+| `make demo-check` | Checks Docker, Ollama and its models, RAM and free ports; changes nothing. | seconds |
+| `make demo` | Everything on the real local model: `.env` secrets, packages (incl. CrewAI), missing Ollama models, all containers, databases, the knowledge base (Qdrant + `nomic-embed-text`), rag-service, then one claim end to end through both CrewAI crews (hospital `ClaimFlow` with the admissible-amount estimate, insurer CrewAI agents), decision and settlement, then the evaluation report. | about 10 min per claim on `gemma4:latest` |
+| `make demo-offline` | The same pipeline with no model: rules for the hospital agents, a deterministic stand-in for the insurer agents, an in-memory knowledge base. The backup for the viva. | about 2-3 min |
+| `make demo-down` | Stops the demo's background services and all containers (data volumes are kept; `make nuke` deletes them). | seconds |
+
+Options: `DEMO_SCENARIO=all make demo-offline` runs every claim scenario (default `auto`); `DEMO_ORCH=n8n make demo` lets the
+insurer's n8n flows sequence verification (default `inline`). Every step is idempotent, so a failed run can simply be started
+again; each step logs to `.e2e-logs/demo/<step>.log`. The sections below are the same steps by hand.
 
 ## 0. Before you start (check, don't install)
 
