@@ -1,5 +1,25 @@
 # Infra services owned by Dev A. Dev B adds insurer-db, qdrant under the same profile.
 services:
+  insurer-db:
+    image: postgres:16
+    profiles: [insurer]
+    restart: unless-stopped
+    mem_limit: 512m
+    shm_size: 128m
+    command: ["postgres", "-c", "shared_buffers=128MB", "-c", "max_connections=100", "-c", "idle_in_transaction_session_timeout=30000"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${INS_PG_SUPERUSER_PASSWORD}
+      POSTGRES_DB: insurer
+    ports: ["127.0.0.1:${INS_DB_PORT:-5453}:5432"]
+    volumes: [insurer_pg:/var/lib/postgresql/data]
+    networks: [insurer_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d insurer"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   hospital-db:
     image: postgres:16
     profiles: [infra]

@@ -1,6 +1,6 @@
 LOCK = scripts/run_exclusive.sh
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -127,3 +127,39 @@ db-restore:
 
 test-db:
 	$(LOCK) uv run pytest hospital/api/tests -q
+
+# ---- insurer side (Dev B code, host-run like the hospital side) ----
+INS_ENV = set -a && . ./.env && set +a && \
+	export INS_APP_PASSWORD INS_RO_PASSWORD INS_DATABASE_URL=postgresql+asyncpg://ins_app:$$INS_APP_PASSWORD@localhost:$${INS_DB_PORT:-5453}/insurer \
+	INS_OWNER_DATABASE_URL=postgresql://postgres:$$INS_PG_SUPERUSER_PASSWORD@localhost:$${INS_DB_PORT:-5453}/insurer \
+	INS_REDIS_URL=redis://ins_app:$$INS_REDIS_PW@localhost:$${SHARED_REDIS_PORT:-6379}/0 \
+	INS_EVENTS_STREAM=sse:insurer:events \
+	INS_HMAC_SECRETS='{"hosp-001": ["'$$HOSP_TO_INS_HMAC_SECRET'"], "bank-sim": ["dev-bank-sim-callback-secret-00000000000"]}' \
+	INS_INS_TO_HOSP_HMAC_SECRET=$$INS_TO_HOSP_HMAC_SECRET \
+	INS_HOSPITAL_CALLBACK_BASE=http://localhost:8100 \
+	INS_N8N_URL=http://localhost:5689
+
+up-insurer: render
+	$(COMPOSE) --profile insurer up -d --wait insurer-db
+
+migrate-insurer:
+	$(INS_ENV) && cd insurer/api && uv run alembic upgrade head
+
+seed-insurer:
+	$(INS_ENV) && uv run python -m insurer_app.seeds.seed
+
+run-insurer-api:
+	$(INS_ENV) && cd insurer/api && uv run uvicorn insurer_app.main:create_app --factory --port $${INS_API_PORT:-8600}
+
+run-calc:
+	cd insurer/calc_engine && uv run uvicorn calc_engine.api:app --port $${INS_CALC_PORT:-8620}
+
+run-insurer-crew:
+	cd insurer/crew && uv run uvicorn insurer_crew.main:app --port $${INS_CREW_PORT:-8610}
+
+run-tpa-sim:
+	cd services/tpa-sim && uv run uvicorn tpa_sim.main:app --port 8500
+
+test-insurer:
+	$(LOCK) uv run pytest insurer/calc_engine insurer/crew insurer/n8n services/tpa-sim services/rag-service infra/llm-gateway -q
+	$(LOCK) uv run pytest insurer/api -q
