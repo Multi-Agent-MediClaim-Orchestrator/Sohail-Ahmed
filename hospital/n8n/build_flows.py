@@ -442,6 +442,14 @@ def f1() -> Flow:
     f.http(
         "22 API classify", "POST", f"{API} + '/v1/internal/documents/' + {d} + '/classify'", "$json"
     )
+    f.if_("23 Two passes", "($('17 Poll job').first().json.result.passes || []).length >= 2")
+    f.noop("23b Done")
+    f.http(
+        "24 Single pass: needs review",
+        "POST",
+        f"{API} + '/v1/internal/documents/' + {d} + '/status'",
+        "{parse_status: 'needs_review', error: 'single_pass'}",
+    )
     f.http(
         "90 Mark failed",
         "POST",
@@ -468,6 +476,9 @@ def f1() -> Flow:
     f.chain("19 Split passes", "20 API parse pass", "21 Classify body", "22 API classify")
     f.connect("20 API parse pass", "90 Mark failed", 1)
     f.connect("22 API classify", "90 Mark failed", 1)
+    f.connect("22 API classify", "23 Two passes", 0)
+    f.connect("23 Two passes", "23b Done", 0)
+    f.connect("23 Two passes", "24 Single pass: needs review", 1)
     return f
 
 

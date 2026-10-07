@@ -279,11 +279,35 @@
     },
     "22 API classify": {
       "main": [
-        [],
+        [
+          {
+            "index": 0,
+            "node": "23 Two passes",
+            "type": "main"
+          }
+        ],
         [
           {
             "index": 0,
             "node": "90 Mark failed",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "23 Two passes": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "23b Done",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "24 Single pass: needs review",
             "type": "main"
           }
         ]
@@ -961,6 +985,88 @@
       "waitBetweenTries": 2000
     },
     {
+      "id": "54bfb071-8601-5b57-ae97-a9f22663bfc2",
+      "name": "23 Two passes",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "55d58a93-0b69-5026-99cc-761621e62f1d",
+              "leftValue": "={{ ($('17 Poll job').first().json.result.passes || []).length >= 2 }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        6500,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "e33d346d-8ece-5013-ad20-21b4c22b7a38",
+      "name": "23b Done",
+      "parameters": {},
+      "position": [
+        6760,
+        0
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "id": "4703fca5-64ac-562c-af6a-3fce66fb597e",
+      "maxTries": 3,
+      "name": "24 Single pass: needs review",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {parse_status: 'needs_review', error: 'single_pass'} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/documents/' + $('01 Webhook').first().json.body.document_id + '/status' }}"
+      },
+      "position": [
+        7020,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
       "id": "f0477852-6d18-53b5-aa2d-709025c203aa",
       "maxTries": 3,
       "name": "90 Mark failed",
@@ -989,7 +1095,7 @@
         "url": "={{ $env.HOSP_API_URL + '/v1/internal/documents/' + $('01 Webhook').first().json.body.document_id + '/status' }}"
       },
       "position": [
-        6500,
+        7280,
         0
       ],
       "retryOnFail": true,
