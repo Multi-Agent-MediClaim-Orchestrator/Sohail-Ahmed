@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import logging
-
 from collections.abc import Callable
 
 from .app import create_app
