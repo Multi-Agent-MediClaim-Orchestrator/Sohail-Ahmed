@@ -514,3 +514,42 @@ def test_prompts_are_versioned_and_pinnable(tmp_path):
         and pinned.render(a="Z") == "old Z"
         and pinned.meta == {"model": "local"}
     )
+
+
+async def test_rules_llm_gives_grounded_drafts_that_pass_the_guard():
+    from crew.llm import RulesLLM
+
+    llm = RulesLLM()
+    ev = {
+        "query_id": "q",
+        "round": 1,
+        "category": "billing_discrepancy",
+        "evidence": ["Please explain the room rent charge billed on the final bill.", "{}"],
+        "attach_doc_ids": [],
+    }
+    out = await responder.draft(ev, llm, ST)
+    assert (
+        out["unsupported"] == []
+        and out["supervisor"]["pass"] is True
+        and "room rent" in out["draft_text"]
+    )
+    t = await responder.triage(
+        {"category": "missing_document", "round": 1, "text": "send it"}, llm, ST
+    )
+    assert t["action"] == "send_documents" and t["needs_docs"] is True
+    assert (await builder.build(ctx(), llm, ST))["payload"]["totals"]["gross"] == "10800.00"
+
+
+async def test_diagnosis_codes_come_from_the_discharge_summary_when_the_case_has_none():
+    c = ctx()
+    c["documents"].append(
+        {
+            "id": "44444444-4444-4444-8444-444444444444",
+            "doc_type": "discharge_summary",
+            "pages": 1,
+            "typed": {"icd_codes": ["k35.80", "bad", "K35.80"]},
+        }
+    )
+    assert asm.assemble(c)["payload"]["admission"]["diagnosis_codes"] == ["K35.80"]
+    c["case"]["admission"]["diagnosis_codes"] = ["M17.1"]
+    assert asm.assemble(c)["payload"]["admission"]["diagnosis_codes"] == ["M17.1"]  # case facts win

@@ -3,6 +3,7 @@ consulted (by the caller) only for line descriptions the keyword table cannot ca
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 from typing import Any
 
@@ -38,6 +39,18 @@ def _line(raw: dict[str, Any], doc: dict[str, Any]) -> dict[str, Any] | None:
     d = parse_date(fv(raw.get("date")))
     return {"description": desc, "qty": qty, "unit_price": unit, "amount": amount, "code": fv(raw.get("code")),
             "service_date": d, "doc": doc, "category": fv(raw.get("category"))}  # fmt: skip
+
+
+ICD = re.compile(r"^[A-TV-Z]\d{2}(\.\d{1,4})?$")
+
+
+def icd_from_discharge(docs: list[dict[str, Any]]) -> list[str]:
+    for d in docs:
+        if d["doc_type"] == "discharge_summary":
+            raw = fv((d.get("typed") or {}).get("icd_codes")) or []
+            codes = [str(c).strip().upper() for c in (raw if isinstance(raw, list) else [raw])]
+            return list(dict.fromkeys(c for c in codes if ICD.match(c)))[:10]
+    return []
 
 
 def assemble(ctx: dict[str, Any]) -> dict[str, Any]:
@@ -81,7 +94,11 @@ def assemble(ctx: dict[str, Any]) -> dict[str, Any]:
         ln["category"] = cat or "other"
     gross = sum((ln["amount"] for ln in lines), Decimal(0))
     discounts = min(discounts, gross)
-    adm = case["admission"]
+    adm = dict(case["admission"])
+    if not adm.get(
+        "diagnosis_codes"
+    ):  # case facts win; otherwise take the codes printed on the discharge summary
+        adm["diagnosis_codes"] = icd_from_discharge(docs)
     pat = case["patient"]
     payload = {
         "patient": {

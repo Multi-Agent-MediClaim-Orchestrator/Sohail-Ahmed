@@ -4,6 +4,7 @@ JSON-only answers, validated by the caller; up to 2 repair retries with the erro
 from __future__ import annotations
 
 import json
+import re
 import time
 from typing import Any, Protocol
 
@@ -98,3 +99,35 @@ class FakeLLM:
         if self.default is None:
             raise LLMUnavailable("no scripted response")
         return self.default, {"model": model, "tokens_in": 0, "tokens_out": 0}
+
+
+class RulesLLM:
+    """Deterministic stand-in for the model (CREW_LLM=rules): category-based triage, a short grounded reply that quotes
+    the insurer's own words, and no category guesses. For offline runs and the fast end-to-end test; never invents facts."""
+
+    async def complete_json(
+        self, *, model: str, prompt: str, schema: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        info = {"model": "rules", "tokens_in": 0, "tokens_out": 0}
+        if "<lines>" in prompt:  # category mapping: leave unknown lines as "other"
+            return {"items": []}, info
+        if "triage an insurer's query" in prompt:
+            cat = re.search(r"Category: (\w+)", prompt)
+            docs = (cat.group(1) if cat else "") in ("missing_document", "illegible_document")
+            return {
+                "action": "send_documents" if docs else "clarify",
+                "needs_docs": docs,
+                "escalation_risk": False,
+                "note": "rule-based triage",
+            }, info
+        if "Sources:" in prompt:  # draft_reply: S1 is the query text
+            src = re.search(r"\nS1: (.+)", prompt)
+            q = (src.group(1) if src else "your query").strip()
+            quote = q[:60].rstrip()
+            text = f'Thank you for your query: "{quote}". The details are in the documents submitted with the claim, and we are glad to clarify any point.'
+            return {
+                "draft_text": text,
+                "citations": [{"source_id": "S1", "quote": quote}],
+                "missing": [],
+            }, info
+        return {}, info

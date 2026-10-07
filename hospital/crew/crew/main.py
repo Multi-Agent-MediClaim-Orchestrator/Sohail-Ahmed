@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from crew.agents import builder, responder
 from crew.api_client import ApiClient, HttpApi
 from crew.jobs import Job, Runner
-from crew.llm import LLM, OllamaLLM
+from crew.llm import LLM, OllamaLLM, RulesLLM
 from crew.settings import Settings
 
 JOB_TYPES = ("claim-build", "claim-repair", "query-triage", "query-draft")
@@ -33,7 +33,9 @@ def create_app(
     settings: Settings | None = None, *, llm: LLM | None = None, api: ApiClient | None = None
 ) -> FastAPI:
     st = settings or Settings.from_env()
-    llm = llm or OllamaLLM(st.llm_base_url, st.llm_timeout_s)
+    llm = llm or (
+        RulesLLM() if st.llm_mode == "rules" else OllamaLLM(st.llm_base_url, st.llm_timeout_s)
+    )
     api = api or HttpApi(st.api_url, st.token_url, st.client_id, st.client_secret)
 
     async def claim_build(job: Job) -> dict[str, Any]:

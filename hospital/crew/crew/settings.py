@@ -18,6 +18,7 @@ class Settings:
     client_id: str = "hospital-crew"
     client_secret: str = ""
     concurrency: int = 3
+    llm_mode: str = "ollama"  # ollama | rules (deterministic, no model)
     max_tokens_job: int = 30000
     job_ttl_s: int = 86400
     llm_timeout_s: float = 120.0
@@ -40,5 +41,6 @@ class Settings:
             token_url=g("KEYCLOAK_TOKEN_URL", cls.token_url),
             client_secret=g("HOSP_CREW_CLIENT_SECRET", ""),
             concurrency=int(g("CREW_CONCURRENCY", "3")),
+            llm_mode=g("CREW_LLM", "ollama"),
             prompt_pins=pins,
         )
