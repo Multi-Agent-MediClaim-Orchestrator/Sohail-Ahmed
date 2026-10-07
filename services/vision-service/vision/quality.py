@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from dataclasses import asdict, dataclass
 
 import cv2
@@ -41,33 +40,37 @@ def _norm_gray(rgb: np.ndarray) -> np.ndarray:
 
 
 def skew_angle(gray: np.ndarray) -> float:
-    edges = cv2.Canny(gray, 50, 150)
-    lines = cv2.HoughLinesP(
-        edges, 1, math.pi / 720, threshold=80, minLineLength=int(gray.shape[1] * 0.3), maxLineGap=20
+    """Projection-profile method: the rotation that makes text rows sharpest. Needs text lines; returns 0 when the page
+    has too little text or no angle beats the unrotated profile by a clear margin (a stamp or border must not count)."""
+    small = cv2.resize(
+        gray, (800, max(1, int(gray.shape[0] * 800 / gray.shape[1]))), interpolation=cv2.INTER_AREA
     )
-    angles = []
-    if lines is not None:
-        for x1, y1, x2, y2 in lines[:, 0]:
-            a = math.degrees(math.atan2(y2 - y1, x2 - x1))
-            if abs(a) < 20:
-                angles.append(a)
-    if angles:
-        return float(np.clip(np.median(angles), -45, 45))
-    ys, xs = np.where(gray < 128)
-    if len(xs) < 500:
+    binary = (small < 140).astype(np.float32)
+    if binary.sum() < 400:
         return 0.0
-    rect = cv2.minAreaRect(np.column_stack([xs, ys]).astype(np.float32))
-    a = rect[2]
-    a = a - 90 if a > 45 else a
-    return float(np.clip(a, -45, 45)) if abs(a) < 20 else 0.0
+    h, w = binary.shape
+    best, best_a, base = -1.0, 0.0, 0.0
+    for a in np.arange(-15, 15.01, 0.5):
+        m = cv2.getRotationMatrix2D((w / 2, h / 2), float(a), 1.0)
+        r = cv2.warpAffine(binary, m, (w, h), flags=cv2.INTER_NEAREST)
+        v = float(np.var(r.sum(axis=1)))
+        if abs(a) < 1e-9:
+            base = v
+        if v > best:
+            best, best_a = v, float(a)
+    return float(-best_a) if best > base * 1.08 else 0.0
 
 
 def measure(rgb: np.ndarray, page: int, s: Settings) -> PageQuality:
     gray = _norm_gray(rgb)
     h0, w0 = rgb.shape[:2]
     blur = float(cv2.Laplacian(gray, cv2.CV_64F).var())
-    p5, p95 = np.percentile(gray, [5, 95])
-    contrast, bright = float((p95 - p5) / 255), float(gray.mean())
+    # Ink/paper separation by Otsu: percentile contrast reads 0 on a mostly white page (ink is < 5% of the pixels)
+    thr, _ = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    dark, light = gray[gray <= thr], gray[gray > thr]
+    ink_level = float(dark.mean()) if dark.size else float(gray.mean())
+    paper_level = float(light.mean()) if light.size else float(gray.mean())
+    contrast, bright = float((paper_level - ink_level) / 255), float(gray.mean())
     binary = cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 31, 15
     )
@@ -82,12 +85,12 @@ def measure(rgb: np.ndarray, page: int, s: Settings) -> PageQuality:
     density = float(
         text_like * 100 / max(1, gray.size) * 100
     )  # text-like components per 10k pixels, scaled
-    blank = density < 0.2 or (contrast < 0.05)
+    blank = bool(density < 0.2 or (gray < 128).mean() < 0.0005)
     skew = skew_angle(gray)
     h, w = gray.shape
     bw, bh = int(w * 0.015), int(h * 0.015)
     strips = [binary[:, :bw], binary[:, -bw:], binary[:bh, :], binary[-bh:, :]]
-    cropped = (
+    cropped = bool(
         any((st > 0).mean() > 0.02 for st in strips)
         and (binary[:, int(w * 0.015) : int(w * 0.065)] > 0).mean() > 0.05
     )
@@ -100,7 +103,7 @@ def measure(rgb: np.ndarray, page: int, s: Settings) -> PageQuality:
     if bright < s.bright_min:
         reasons.append("too_dark")
     if (
-        bright > s.bright_max and p5 > 150
+        bright > s.bright_max and ink_level > 150
     ):  # a mostly-white page is normal; washed-out text (no dark pixels) is not
         reasons.append("too_bright")
     if abs(skew) > s.skew_max:

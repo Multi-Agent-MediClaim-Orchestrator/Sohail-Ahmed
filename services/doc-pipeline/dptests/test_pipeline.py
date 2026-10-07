@@ -261,3 +261,16 @@ def test_validators():
     assert (
         validate.validate("x", {"icd_codes": ["K80.2", "BAD"]}, [], None)[0]["code"] == "icd_format"
     )
+
+
+def test_net_amount_row_does_not_replace_the_printed_total():
+    text = "Description        Qty   Rate   Amount\nRoom rent            2  1,000.00   2,000.00\nTotal                                 2,000.00\nDiscount                                200.00\nNet amount                            1,800.00"
+    lines, total, disc = tables.extract_lines(text)
+    assert len(lines) == 1 and str(total) == "2000.00" and str(disc) == "200.00"
+    only_net = tables.extract_lines("Room rent    1  500.00  500.00\nNet amount        500.00")
+    assert str(only_net[1]) == "500.00"  # a net-only bill still gets a total
+
+
+def test_descriptions_may_end_in_digits():
+    lines, _, _ = tables.extract_lines("Tab Paracetamol 500mg #2     3     10.00      30.00")
+    assert lines and lines[0]["description"].endswith("#2")

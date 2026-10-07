@@ -1,0 +1,17 @@
+# Hospital-side catalogue (doc 05-01 §2). All names and numbers are fictional.
+hospitals:
+  - {id: H-001, name: "City Care Hospital", city: Pune, reg_no: "MH-PN-10231", stamp: {shape: round, ink: blue}}
+  - {id: H-002, name: "Lakeview Multispeciality Hospital", city: Bengaluru, reg_no: "KA-BL-22871", stamp: {shape: rect, ink: purple}}
+  - {id: H-003, name: "Sunrise Medical Centre", city: Jaipur, reg_no: "RJ-JP-30412", stamp: {shape: round, ink: red}}
+procedures:
+  - {code: appendectomy, dx: ["K35.80"], los: 3, surgery: true, implant: false, price: [60000, 90000]}
+  - {code: cholecystectomy, dx: ["K80.20"], los: 3, surgery: true, implant: false, price: [70000, 110000]}
+  - {code: knee_replacement, dx: ["M17.1"], los: 5, surgery: true, implant: true, price: [220000, 320000]}
+  - {code: coronary_stent, dx: ["I25.10"], los: 4, surgery: true, implant: true, price: [180000, 280000]}
+  - {code: viral_fever, dx: ["B34.9"], los: 3, surgery: false, implant: false, price: [15000, 30000]}
+  - {code: pneumonia, dx: ["J18.9"], los: 5, surgery: false, implant: false, price: [30000, 60000]}
+tariffs:
+  room_per_day: [2500, 4500]
+  icu_per_day: [8000, 14000]
+medicines: ["Tab Paracetamol 500mg", "Inj Ceftriaxone 1g", "IV Fluid NS 500ml", "Tab Pantoprazole 40mg", "Syp Cough Relief 100ml", "Inj Tramadol 50mg", "Tab Amoxicillin 500mg", "Inj Ondansetron 4mg"]
+consumables: ["Surgical gloves", "Disposable syringe 5ml", "IV cannula", "Dressing kit", "Urine bag"]

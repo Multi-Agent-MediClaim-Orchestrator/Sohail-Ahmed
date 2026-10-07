@@ -1,6 +1,22 @@
 # Decisions log
 Format: decision, reason, date. Newest first. Spec fixes are proven by a test.
 
+## 2026-10-07 — synthetic data and evaluation harness (hospital side only)
+
+- `data/synthetic` (package `synth`): seeded, byte-reproducible hospital-side corpus: 11 archetypes (S01-S03, S05-S08,
+  S10, S23-S25), five document types plus implant sticker, stamps/signatures, degradations with a deterministic
+  quality class, labels emitted by the renderer, derived hospital expectations, lint that fails on any Verhoeff-valid
+  12-digit number outside the reserved 9999 range. NOT built: the insurer side (reference calculator, tamper,
+  policy KB, query scripts), loaders other than the file output, golden freezing is a manifest of sha256 only.
+- `data/eval` (package `evalh`): runs the doc-pipeline and vision libraries over the corpus and scores classification,
+  bill-line/total exactness, stamp precision/recall, legibility and "damaged pages are flagged". `--llm none` scores the
+  deterministic parts; `--llm ollama` adds the model passes (slow, opt-in). T_auto tuning needs the insurer's decision
+  logic and is not possible from the hospital side.
+- The harness found three real defects, fixed with regression tests: vision contrast read 0 on mostly-white pages
+  (page called blank / too bright), the skew estimator was fooled by stamp borders (replaced by a projection-profile
+  method), outlined rectangular stamps were rejected; and in doc-pipeline the "Net amount" row replaced the printed
+  total and descriptions ending in a digit were dropped.
+
 ## 2026-10-07 — doc-pipeline and vision-service: what was built instead of the spec's stack
 
 - **Packages are `docpipe` and `vision`**, not `app` (two workspace members called `app` shadow each other in one venv).

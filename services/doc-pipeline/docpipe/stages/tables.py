@@ -10,7 +10,7 @@ from docpipe.stages.numbers import parse_amount, parse_date
 
 AMT = r"(?:Rs\.?|₹|INR)?\s*\d[\d,]*(?:\.\d{1,2})?(?:/-)?"
 ROW = re.compile(
-    rf"^\s*(?:\d{{1,3}}[.)]?\s+)?(?P<desc>[A-Za-z][^\n]*?[A-Za-z)\]])\s{{2,}}(?P<nums>(?:{AMT}\s*)+)$"
+    rf"^\s*(?:\d{{1,3}}[.)]?\s+)?(?P<desc>[A-Za-z][^\n]*?[^\s])\s{{2,}}(?P<nums>(?:{AMT}\s*)+)$"
 )
 TOTAL = re.compile(
     r"(?i)\b(sub\s*total|grand\s*total|net\s*amount|total|balance|advance|discount|gst|tax)\b"
@@ -22,6 +22,7 @@ def extract_lines(text: str) -> tuple[list[dict[str, str]], Decimal | None, Deci
     lines: list[dict[str, str]] = []
     total: Decimal | None = None
     discount: Decimal | None = None
+    net: Decimal | None = None
     for raw in text.splitlines():
         m = ROW.match(raw)
         if not m:
@@ -35,8 +36,12 @@ def extract_lines(text: str) -> tuple[list[dict[str, str]], Decimal | None, Deci
             low = desc.lower()
             if "discount" in low:
                 discount = nums[-1]
-            elif re.search(r"(?i)grand|net amount|^total|sub\s*total", desc):
+            elif re.search(r"(?i)grand|^total|sub\s*total", desc):
                 total = nums[-1]
+            elif re.search(r"(?i)net amount", desc) and total is None:
+                net = nums[
+                    -1
+                ]  # only a fallback: net = total - discount, so it must not replace the printed total
             continue
         amount = nums[-1]
         ln = {"description": desc, "amount": format(amount, "f")}
@@ -48,4 +53,4 @@ def extract_lines(text: str) -> tuple[list[dict[str, str]], Decimal | None, Deci
         if d and parse_date(d.group(1)):
             ln["date"] = parse_date(d.group(1)).isoformat()  # type: ignore[union-attr]
         lines.append(ln)
-    return lines, total, discount
+    return lines, total if total is not None else net, discount

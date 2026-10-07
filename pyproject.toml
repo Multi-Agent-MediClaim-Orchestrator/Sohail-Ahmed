@@ -4,7 +4,7 @@ version = "0.0.0"
 requires-python = ">=3.12"
 
 [tool.uv.workspace]
-members = ["contract/python", "hospital/api", "hospital/crew", "services/doc-pipeline", "services/vision-service"]
+members = ["contract/python", "hospital/api", "hospital/crew", "services/doc-pipeline", "services/vision-service", "data/synthetic", "data/eval"]
 
 [tool.ruff]
 extend-exclude = ["docs"]
@@ -21,6 +21,7 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "hospital/n8n/tests/*" = ["S101", "S105", "S106", "S310", "S603", "S607", "E501"]
 "hospital/api/app/**" = ["B008"]  # FastAPI Depends() defaults
 "hospital/api/app/services/cases.py" = ["S608"]
+"data/**" = ["S101", "S603", "S607", "S311", "E501"]
 "services/**" = ["S101", "B008", "S105", "S106", "E501", "S603", "S607"]
 "hospital/crew/**" = ["S105", "S106", "E501"]
 "hospital/api/app/services/queries.py" = ["S608"]

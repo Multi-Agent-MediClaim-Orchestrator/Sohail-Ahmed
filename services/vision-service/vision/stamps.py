@@ -63,7 +63,10 @@ def detect(rgb: np.ndarray, page: int) -> list[Stamp]:
             ink = float((m[y : y + h, x : x + w] > 0).mean())
             aspect = max(w, h) / max(1, min(w, h))
             round_ = circ > 0.55 and aspect < 1.4
-            rect = ink > 0.5 and 1.2 <= aspect <= 5
+            extent = cv2.contourArea(c) / max(1, w * h)
+            rect = (
+                extent > 0.7 and 1.2 <= aspect <= 5
+            )  # an outlined box: the joined blob fills its bounding box
             if not (round_ or rect):
                 continue
             raw_ink = _raw_ink(rgb[y : y + h, x : x + w], color)

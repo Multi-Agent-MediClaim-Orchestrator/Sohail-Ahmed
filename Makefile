@@ -1,5 +1,5 @@
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -43,6 +43,15 @@ run-vision:
 run-docpipe:
 	set -a && . ./.env && set +a && cd services/doc-pipeline && uv run uvicorn docpipe.main:app_factory --factory --host 127.0.0.1 --port 8200
 
+seed-data:
+	uv run python -m synth.corpus --out data/synthetic/out -n $${N:-100} --seed $${SEED:-42}
+
+seed-golden:
+	uv run python -m synth.corpus --out data/synthetic/out -n $${N:-100} --seed $${SEED:-42} --golden
+
+eval-hospital:
+	uv run python -m evalh.run --corpus data/synthetic/out --out data/eval/report.json
+
 down:
 	$(COMPOSE) --profile infra down
 
@@ -65,6 +74,7 @@ test:
 	uv run pytest contract/tests hospital/api/tests hospital/crew infra/tests -q
 	uv run pytest services/doc-pipeline -q
 	uv run pytest services/vision-service -q
+	uv run pytest data/synthetic data/eval -q
 
 lint:
 	uv run ruff check .

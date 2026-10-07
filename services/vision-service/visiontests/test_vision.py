@@ -194,3 +194,29 @@ def test_http_surface():
             == 415
         )
         assert c.get("/v1/health").json()["detector_mode"] == "classical"
+
+
+def test_sparse_pages_are_not_misjudged():
+    """Regression (found by the evaluation harness): on a mostly white page percentile contrast read 0 and the page was
+    called blank/too bright; a short page with only a stamp border was called skewed."""
+    from PIL import Image, ImageDraw, ImageFont
+    from vhelpers import BOLD, MONO
+
+    im = Image.new("RGB", (W, H), "white")
+    d = ImageDraw.Draw(im)
+    for i in range(6):
+        d.text(
+            (100, 200 + i * 40),
+            f"Short line {i} of a discharge summary",
+            fill="black",
+            font=ImageFont.truetype(MONO, 26),
+        )
+    d.rectangle((700, 1300, 1000, 1420), outline=(110, 25, 165), width=6)
+    d.text(
+        (720, 1340), "HOSPITAL REG 12345", fill=(110, 25, 165), font=ImageFont.truetype(BOLD, 18)
+    )
+    r = q(im)
+    assert r.legible and r.reasons == [] and abs(r.skew_deg) < 1.5
+    assert [s for s in stamps.detect(arr(im), 1) if s.kind == "hospital_stamp"], (
+        "outlined rectangular stamp must be found"
+    )

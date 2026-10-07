@@ -11,3 +11,5 @@ infra/certs/
 infra/redis/rendered/
 infra/keycloak/rendered/
 backups/
+data/synthetic/out/
+data/eval/report.json
