@@ -47,7 +47,7 @@ async def test_audit_chain_stays_valid_after_concurrent_writes(
     await asyncio.gather(
         *(
             client.post(
-                f"/v1/cases/{cid}/documents",
+                f"/v1/cases/{case['id']}/documents",
                 headers={**tok("desk1"), "Idempotency-Key": str(uuid.uuid4())},
                 files=files((f"x{i}.pdf", pdf_bytes(1, marker=uuid.uuid4().hex), PDF)),
             )
