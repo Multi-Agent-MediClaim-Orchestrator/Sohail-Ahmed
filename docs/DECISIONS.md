@@ -1,6 +1,20 @@
 # Decisions log
 Format: decision, reason, date. Newest first. Spec fixes are proven by a test.
 
+## 2026-10-07 — learned stamp detector (replaces "no trained detector")
+
+- The classical colour rule was measured first on a held-out hard-stamp set (90 pages, seed 99; difficulty easy / medium /
+  hard = grey photocopies, faint and black ink, overlap with text, heavy JPEG, ink-coloured distractors): box precision /
+  recall **0.74 / 0.56 overall, 0.25 / 0.07 on hard pages**.
+- New: colour-independent candidates (mid-sized hollow ink components) with 20 shape/ink features, scored by a
+  40-tree random forest trained on 450 synthetic pages (seed 7), exported to `vision/stamp_model.json` and run with numpy
+  only. Same held-out set: **0.99 / 0.97 overall, 0.97 / 0.97 on hard pages**; page-level "has a stamp" 1.00 / 0.98.
+  The existing document-level evaluation (stamp P/R, legibility) is unchanged at 1.00.
+- Limits, stated plainly: trained and tested on pages from the same synthetic generator family, so these numbers
+  overstate real-world accuracy; real scans are untested. No YOLO/ONNX model (needs torch and a GPU). The classical rule
+  remains as the fallback when no model file ships. Retrain with `make train-stamps`, evaluate with `make eval-stamps`;
+  scikit-learn is a dev dependency of `data/eval` only. A regression test guards page recall/precision >= 0.9.
+
 ## 2026-10-07 — end-to-end run, deterministic modes, and what the e2e found
 
 - `make e2e-hospital` runs the real stack (hospital-api, doc-pipeline, vision, crew, n8n, Keycloak, MinIO, ClamAV,

@@ -220,3 +220,44 @@ def test_sparse_pages_are_not_misjudged():
     assert [s for s in stamps.detect(arr(im), 1) if s.kind == "hospital_stamp"], (
         "outlined rectangular stamp must be found"
     )
+
+
+def test_learned_detector_finds_a_grey_photocopy_stamp_the_colour_rule_misses():
+    import random
+    import sys
+    from pathlib import Path
+
+    import numpy as np
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "data" / "synthetic"))
+    from synth.stamps_hard import make_page
+
+    misses = hits = 0
+    for seed in range(40):
+        rng = random.Random(seed)
+        img, labels = make_page(rng, "hard")
+        gt = [x for x in labels if x["kind"] == "hospital_stamp"]
+        if not gt:
+            continue
+        a = np.asarray(img)
+        classical = [
+            s for s in stamps.detect_classical(a, 1) if s.kind in ("seal", "hospital_stamp")
+        ]
+        learned = [s for s in stamps.detect_learned(a, 1) if s.kind in ("seal", "hospital_stamp")]
+        if not classical:
+            misses += 1
+            hits += bool(learned)
+    assert (
+        misses >= 8 and hits >= 0.8 * misses
+    )  # the colour rule is blind on many hard pages; the learned detector sees most
+
+
+def test_model_file_loads_and_scores_deterministically():
+    import numpy as np
+    from vision import stamp_candidates, stamp_model
+
+    fo = stamp_model.load()
+    assert fo is not None and fo.features == stamp_candidates.FEATURES and 0.2 < fo.threshold < 0.9
+    x = np.zeros(len(fo.features), dtype=np.float32)
+    assert fo.proba(x) == fo.proba(x) and 0.0 <= fo.proba(x) <= 1.0
+    assert "synthetic" in fo.meta["note"]  # the limits of the training data travel with the model

@@ -44,7 +44,7 @@ def _ink_masks(rgb: np.ndarray) -> dict[str, np.ndarray]:
     }
 
 
-def detect(rgb: np.ndarray, page: int) -> list[Stamp]:
+def detect_classical(rgb: np.ndarray, page: int) -> list[Stamp]:
     H, W = rgb.shape[:2]
     out: list[Stamp] = []
     for color, m in _ink_masks(rgb).items():
@@ -205,3 +205,55 @@ def present(stamps: list[Stamp], kinds: list[str], det_min: float = 0.5) -> dict
                 ok = True
         out[k] = ok
     return out
+
+
+def _dominant_ink(crop: np.ndarray) -> str:
+    counts = {k: int((m > 0).sum()) for k, m in _ink_masks(crop).items()}
+    best = max(counts, key=lambda k: counts[k])
+    return (
+        best if counts[best] > 0.01 * crop.shape[0] * crop.shape[1] else "black"
+    )  # grey/black ink (photocopies)
+
+
+_FOREST: object = "unset"
+
+
+def forest() -> object:
+    global _FOREST
+    if _FOREST == "unset":
+        from vision import stamp_model
+
+        _FOREST = stamp_model.load()
+    return _FOREST
+
+
+def detect_learned(rgb: np.ndarray, page: int, model: object | None = None) -> list[Stamp]:
+    """Colour-independent candidates scored by the trained forest (grey photocopies and faint ink included)."""
+    from vision import stamp_candidates
+
+    fo = model or forest()
+    out: list[Stamp] = []
+    for bbox, feat in stamp_candidates.candidates(rgb):
+        p = fo.proba(feat)  # type: ignore[attr-defined]
+        if p >= fo.threshold:  # type: ignore[attr-defined]
+            f = dict(zip(stamp_candidates.FEATURES, feat, strict=True))
+            round_ = f["ellipse_ratio"] > 0.8 and f["circularity"] > 0.55 and f["log_aspect"] < 0.3
+            x0, y0, x1, y1 = bbox
+            out.append(
+                Stamp(
+                    page,
+                    bbox,
+                    "seal" if round_ else "hospital_stamp",
+                    "learned",
+                    round(float(p), 2),
+                    ink_color=_dominant_ink(rgb[y0:y1, x0:x1]),
+                )
+            )
+    return _nms(out) + _signatures(rgb, page)
+
+
+def detect(rgb: np.ndarray, page: int) -> list[Stamp]:
+    """Learned detector when a model ships with the service, else the classical rule."""
+    if forest() is not None:
+        return detect_learned(rgb, page)
+    return detect_classical(rgb, page)

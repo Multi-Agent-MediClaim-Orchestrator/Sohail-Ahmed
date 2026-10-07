@@ -8,7 +8,7 @@ synth = { workspace = true }
 doc-pipeline = { workspace = true }
 vision-service = { workspace = true }
 [dependency-groups]
-dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "scikit-learn>=1.4"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
