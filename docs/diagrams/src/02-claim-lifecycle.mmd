@@ -1,0 +1,36 @@
+sequenceDiagram
+  autonumber
+  actor Desk as Hospital desk
+  participant HAPI as hospital-api
+  participant N8N as hospital n8n
+  participant DP as doc-pipeline + vision
+  participant HC as Hospital crew (CrewAI)
+  actor BO as Billing officer
+  participant IAPI as insurer-api
+  participant IC as Insurer crew (CrewAI)
+  participant CALC as calc-engine
+  participant BANK as tpa-sim (bank)
+  Desk->>HAPI: create case, upload PDFs
+  HAPI->>N8N: document uploaded (webhook)
+  N8N->>DP: OCR, classify, mask PII, extract fields
+  DP-->>HAPI: typed fields per document
+  HAPI->>N8N: checklist complete
+  N8N->>HC: claim-build job
+  HC->>HC: ClaimFlow: build lines and totals, estimate admissible amount
+  HC-->>HAPI: claim draft and estimate
+  BO->>HAPI: review, sign off, submit
+  HAPI->>IAPI: signed claim (HMAC, idempotency key)
+  IAPI->>IC: identity, authenticity, coverage, bill mapping, supervisor
+  IAPI->>CALC: payable amount (deterministic)
+  IAPI->>IAPI: decision gate: auto / one approver / two approvers
+  alt documents missing or unclear
+    IAPI-->>HAPI: query (round 1-3)
+    HAPI->>HC: QueryFlow: triage, grounded reply draft
+    BO->>HAPI: approve reply
+    HAPI->>IAPI: reply and documents
+  end
+  IAPI-->>HAPI: decision callback
+  IAPI->>BANK: payout
+  BANK-->>IAPI: paid
+  IAPI-->>HAPI: settled callback
+  Note over HAPI,IAPI: both sides keep a hash-chained audit trail

@@ -1,0 +1,9 @@
+flowchart LR
+  PC["Policy card<br/>product, sum insured<br/>(doc-pipeline fields)"] --> RAGQ["rag-service<br/>hosp_insurer_rules<br/>filter: product + admission date"]
+  RAGQ --> AG["🤖 Policy estimator agent<br/>room rent %, ICU %, co-pay %, sub-limit<br/>each with a verbatim quote"]
+  AG --> GR{"guardrail<br/>quote in wording?<br/>number in quote?"}
+  GR -- no, retry once --> AG
+  GR -- yes --> CP["code parser of the same wording<br/>overrides any number it can read"]
+  CP --> CE["calc_engine<br/>(insurer's engine as a library)"]
+  BL["Claim draft<br/>bill lines"] --> CE
+  CE --> OUT["Estimate<br/>claimed · eligible · payable · patient share<br/>stored with the draft, shown to the officer"]

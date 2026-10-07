@@ -3,7 +3,7 @@ LOCK = scripts/run_exclusive.sh
 export CREWAI_TELEMETRY_OPT_OUT = true
 export OTEL_SDK_DISABLED = true
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: demo demo-offline demo-check demo-down crew-demo ins-crew-demo crew-plot up-rag seed-kb run-rag rag-tokens ins-ui-e2e check-crew up-insurer-n8n n8n-insurer-test db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: diagrams demo demo-offline demo-check demo-down crew-demo ins-crew-demo crew-plot up-rag seed-kb run-rag rag-tokens ins-ui-e2e check-crew up-insurer-n8n n8n-insurer-test db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -56,6 +56,11 @@ crew-demo: ## hospital CrewAI flows on built-in synthetic data (CREW_LLM=ollama 
 
 ins-crew-demo: ## insurer CrewAI flows on built-in synthetic claims (INS_CREW_LLM=ollama for the real model)
 	cd insurer/crew && uv run crewai run
+
+diagrams: ## render docs/diagrams/src/*.mmd to docs/images/*.png and .svg (Mermaid CLI via npx; needs Node and Chrome)
+	@for f in docs/diagrams/src/*.mmd; do n=$$(basename $$f .mmd); \
+	  npx -y @mermaid-js/mermaid-cli -i $$f -o docs/images/$$n.png -b white -s 2 && \
+	  npx -y @mermaid-js/mermaid-cli -i $$f -o docs/images/$$n.svg -b white; done
 
 crew-plot: ## hospital and insurer flow diagrams (HTML) into docs/diagrams
 	mkdir -p docs/diagrams && cd docs/diagrams && uv run --package hospital-crew plot && uv run --package insurer-crew plot
