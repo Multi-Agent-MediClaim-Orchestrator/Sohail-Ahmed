@@ -55,7 +55,7 @@ def main() -> int:
     rows = ev.resolve_gold(store, corpus.build_qa())
     if a.limit:
         rows = rows[: a.limit]
-    chat = GatewayChat(ollama, "ollama", a.chat_model)
+    chat = GatewayChat(ollama, "ollama", a.chat_model, reasoning_effort="none")
     t1 = time.time()
     full = ev.evaluate(store, emb, rows, chat=chat)
     print(f"answers evaluated in {time.time() - t1:.0f}s", flush=True)

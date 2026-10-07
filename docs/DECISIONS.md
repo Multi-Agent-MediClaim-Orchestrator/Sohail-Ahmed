@@ -174,3 +174,13 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
   its output (it recommends 500,000) says nothing about the real value. T_auto stays 50,000 until real engine rows exist.
 - Not built: archetypes S11-S16, S21, S22, S26 and tpa-sim query scripts S19/S20 (they need Dev B's engine and tpa-sim,
   both empty here).
+
+## Local model speed on this machine (NVIDIA T1000, 4 GB)
+- RAG answers were slow because the chat call left the model's "thinking" on: 51 s per answer; with `reasoning_effort: none` the same
+  answer and citation take 3-9 s (setting `CHAT_REASONING_EFFORT`, default none in `make run-rag`).
+- Insurer crew candidates on the 11 known-answer checks (`INS_CREW_MODEL=<m> make check-crew`, knowledge base on):
+  `gemma4:latest` 11/11 in 59 s (baseline, 6.6 GB, partly on CPU); `granite4.1:3b` 11/11 in 73 s; `phi4-mini:3.8b` 10/11 in 122 s
+  (coverage returned no clause); `llama3.2:latest` 9/11 in 248 s (a missed arithmetic finding and an invalid coverage output).
+  A smaller model was not faster end to end here, so `gemma4:latest` stays the default. Decide with the checks, not by size.
+- RAG bookkeeping (`collection_meta`, `retrieval_log`) now lives in one file, `.e2e-logs/rag.db`, for both seeding and the service; the
+  service probes the embedding model at start-up so the first search is not refused as a model mismatch.

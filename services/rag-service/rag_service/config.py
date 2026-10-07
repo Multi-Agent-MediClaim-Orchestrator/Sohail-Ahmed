@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     minio_secret_key: str = ""
     kb_bucket: str = "kb-sources"
     embed_alias: str = "embed"
+    chat_reasoning_effort: str = ""  # "none" for Ollama models that think by default: several times faster, same answers here
     chat_alias: str = "reason-cloud"  # model used for /v1/answer (an Ollama model name when the gateway URL points at Ollama)
     embed_batch: int = 16
     embed_dim: int = 768

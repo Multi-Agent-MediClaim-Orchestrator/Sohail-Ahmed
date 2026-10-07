@@ -45,13 +45,17 @@ class GatewayEmbedder:
 
 
 class GatewayChat:
-    def __init__(self, base_url: str, key: str, alias: str = "reason-cloud", transport: httpx.BaseTransport | None = None) -> None:
+    def __init__(self, base_url: str, key: str, alias: str = "reason-cloud", transport: httpx.BaseTransport | None = None, reasoning_effort: str = "") -> None:
+        self.reasoning_effort = reasoning_effort
         self.http = httpx.Client(base_url=base_url.rstrip("/"), headers={"Authorization": f"Bearer {key}"}, timeout=120, transport=transport)
         self.alias = alias
 
     def __call__(self, messages: list[dict[str, str]], response_format: dict[str, Any], metadata: dict[str, Any] | None = None) -> dict[str, Any]:
         meta = {"system": "shared", "agent": "rag-answer", "prompt_version": "rag-answer@1", **(metadata or {})}
-        r = self.http.post("/v1/chat/completions", json={"model": self.alias, "messages": messages, "temperature": 0, "max_tokens": 1024, "response_format": response_format, "metadata": meta})
+        body: dict[str, Any] = {"model": self.alias, "messages": messages, "temperature": 0, "max_tokens": 1024, "response_format": response_format, "metadata": meta}
+        if self.reasoning_effort:
+            body["reasoning_effort"] = self.reasoning_effort
+        r = self.http.post("/v1/chat/completions", json=body)
         if r.status_code >= 400:
             raise GatewayUnavailable(f"gateway {r.status_code}: {r.text[:200]}")
         j = r.json()

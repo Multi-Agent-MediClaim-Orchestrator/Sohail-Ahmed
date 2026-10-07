@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from collections.abc import Callable
 
 from .app import create_app
@@ -50,7 +52,12 @@ def build():
     store = QdrantStore(cfg.qdrant_url, cfg.qdrant_api_key) if cfg.store == "qdrant" else MemoryStore()
     live = cfg.embedder == "gateway"
     embedder = GatewayEmbedder(cfg.llm_gateway_url, cfg.llm_gateway_key, cfg.embed_alias, cfg.embed_batch) if live else HashEmbedder(cfg.embed_dim)
-    chat = GatewayChat(cfg.llm_gateway_url, cfg.llm_gateway_key, cfg.chat_alias) if live else None
+    if live:  # learn the embedding model id now (as seed_kb does), or the first search is refused as a model mismatch
+        try:
+            embedder.embed(["probe"], kind="query")
+        except Exception as exc:  # noqa: BLE001  (model server not up yet: the id is learned on the first real call)
+            logging.getLogger("rag").warning("embedding probe failed at start-up: %s", exc)
+    chat = GatewayChat(cfg.llm_gateway_url, cfg.llm_gateway_key, cfg.chat_alias, reasoning_effort=cfg.chat_reasoning_effort) if live else None
     return create_app(cfg, store=store, meta=Meta(cfg.db_url), embedder=embedder, chat=chat, loader=_minio_loader(cfg), docpipe=_docpipe(cfg))
 
 

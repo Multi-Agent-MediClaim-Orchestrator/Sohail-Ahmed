@@ -184,7 +184,7 @@ ins-ui-e2e: ## insurer UI browser tests against the real stack (system Chrome)
 RAG_ENV = set -a && . ./.env && set +a && \
 	export STORE=qdrant EMBEDDER=gateway QDRANT_URL=http://localhost:6333 QDRANT_API_KEY=$$QDRANT_API_KEY \
 	LLM_GATEWAY_URL=http://localhost:11434 LLM_GATEWAY_KEY=ollama EMBED_ALIAS=$${RAG_EMBED_MODEL:-nomic-embed-text:latest} \
-	CHAT_ALIAS=$${RAG_CHAT_MODEL:-gemma4:latest} DOCPIPE_URL= DB_URL=.e2e-logs/rag.db JWT_SECRET=$$RAG_JWT_SECRET RAG_PORT=$${RAG_PORT:-8400}
+	CHAT_ALIAS=$${RAG_CHAT_MODEL:-gemma4:latest} CHAT_REASONING_EFFORT=none DOCPIPE_URL= DB_URL="$(CURDIR)/.e2e-logs/rag.db" JWT_SECRET=$$RAG_JWT_SECRET RAG_PORT=$${RAG_PORT:-8400}
 
 up-rag: init-secrets
 	docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/ai.yml --profile rag up -d --wait qdrant
