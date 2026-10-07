@@ -33,7 +33,15 @@ def _s(v: Any) -> Any:
     return v
 
 
-def build_case(global_seed: int, idx: int, recipe: Recipe) -> dict[str, Any]:
+def build_case(
+    global_seed: int,
+    idx: int,
+    recipe: Recipe,
+    identity: dict[str, Any] | None = None,
+    discharged_on: dt.date | None = None,
+) -> dict[str, Any]:
+    """`identity` (full_name, dob, gender, member_id, policy_number) and `discharged_on` let a caller tie the case to a
+    member who exists in the insurer's data and to dates inside that member's policy; everything else stays seeded."""
     rng = case_rng(global_seed, idx)
     seed = case_seed(global_seed, idx)
     procs = CATALOG["procedures"]
@@ -43,8 +51,13 @@ def build_case(global_seed: int, idx: int, recipe: Recipe) -> dict[str, Any]:
         proc = rng.choice([p for p in procs if not p["implant"]])
     hosp = rng.choice(CATALOG["hospitals"])
     discharged = ANCHOR - dt.timedelta(days=rng.randrange(20, 300))
+    if discharged_on is not None:
+        discharged = discharged_on
     admitted = discharged - dt.timedelta(days=max(1, proc["los"] + rng.randrange(-1, 2)))
     member = make_member(rng, seed, idx)
+    if identity:
+        for k, v in identity.items():
+            setattr(member, k, dt.date.fromisoformat(v) if k == "dob" and isinstance(v, str) else v)
     case = Case(
         f"SYN-{idx:06d}",
         seed,

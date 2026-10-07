@@ -151,7 +151,8 @@ async def preview(cfg: ConfigService, case_id: UUID) -> dict[str, Any]:
 def _validate_submit(body: SubmitBody, rec: Decision, calc: CalculationResult | None, case: ClaimCase, reject_reasons: list[str], user: Any) -> tuple[Decimal, list[dict[str, Any]]]:
     if body.outcome not in ("approve", "partial", "reject"):
         raise ProblemError("validation_error", "outcome must be approve, partial or reject (needs_info is raised by the query loop)", status=422)
-    payable = calc.payable_amount if calc is not None else Decimal("0")
+    # the recommendation holds the engine payable net of any bill-level discount (see verification: approved + deductions == claimed)
+    payable = rec.approved_amount if rec.approved_amount is not None else (calc.payable_amount if calc is not None else Decimal("0"))
     deductions = [dict(x) for x in (rec.deductions or [])]
     if body.outcome == "reject":
         codes = [c for c in body.reason_codes if c in reject_reasons or c.startswith(("auth.", "coverage.", "calc.", "identity.", "completeness."))]

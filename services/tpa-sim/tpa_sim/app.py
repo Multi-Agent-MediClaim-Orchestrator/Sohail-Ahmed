@@ -21,7 +21,7 @@ from pydantic import ValidationError
 
 from . import dsl
 from .bank import BankSim
-from .bank_api import BANK_KEY_ID, bank_router
+from .bank_api import BANK_KEY_ID, bank_router, make_callback_sender
 from .clock import Clock
 from .config import SimSettings, get_settings
 from .engine import Engine
@@ -38,6 +38,7 @@ def create_app(settings: SimSettings | None = None, *, clock: Clock | None = Non
     clock = clock or Clock()
     store = Store(cfg.db_url)
     bank = BankSim()
+    bank.callback = make_callback_sender(cfg.ins_base_url, cfg.bank_callback_secret.encode())  # payouts report back to insurer-api
     scenarios: dict[str, dsl.Scenario] = {}
     engine = Engine(store, clock, cfg, scenarios, http)
 

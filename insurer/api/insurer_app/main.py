@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -65,6 +66,25 @@ class _AutoLimiter:
         return await (self.r.hit(key_id) if self.lazy.client is not None else self.m.hit(key_id))
 
 
+async def _cron_loop(stop: asyncio.Event) -> None:  # pragma: no cover - long running loop
+    """Single-process stand-in for the Arq cron entries: SLA tick every 5 minutes, settlement auto-close hourly."""
+    from . import jobs_cron
+    from .services import settlement
+
+    n = 0
+    while not stop.is_set():
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=300)
+        except TimeoutError:
+            n += 1
+            try:
+                await jobs_cron.sla_tick()
+                if n % 12 == 0:
+                    await settlement.autoclose()
+            except Exception:
+                log.exception("cron pass failed")
+
+
 def create_app(settings: Settings | None = None, *, redis: Any | None = None, use_redis: bool = True) -> FastAPI:
     s = settings or get_settings()
     lazy = _LazyRedis()
@@ -77,7 +97,27 @@ def create_app(settings: Settings | None = None, *, redis: Any | None = None, us
         app.state.redis = r
         if r is not None:
             events.set_bus(events.RedisEventBus(r, s.events_stream, 10_000))
+        from . import jobs_cron
+        from .services import (  # noqa: F401  (imports register the job handlers)
+            docs_fetch,
+            jobs,
+            queries,
+            settlement,
+        )
+
+        stop = asyncio.Event()
+        bg: list[asyncio.Task[Any]] = []
+        if s.jobs_mode != "manual":  # arq mode: `arq insurer_app.worker.WorkerSettings` runs the same handlers
+            jobs.configure(s.jobs_mode)
+        if s.run_dispatcher:  # callbacks to hospitals, parked n8n triggers, due settlement retries
+            bg.append(asyncio.create_task(jobs_cron.run_dispatcher(stop)))
+        if s.run_cron:
+            bg.append(asyncio.create_task(_cron_loop(stop)))
         yield
+        stop.set()
+        for t in bg:
+            t.cancel()
+        await asyncio.gather(*bg, return_exceptions=True)
         if r is not None and redis is None:
             await r.aclose()
         await db.dispose_db()

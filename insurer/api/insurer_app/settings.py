@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     n8n_service_token: str = ""
     crew_url: str = ""  # empty = no crew: steps run rules-only (no degraded flag)
     orchestrator: str = "inline"  # inline | n8n
+    jobs_mode: str = "inline"  # inline (asyncio tasks in this process) | arq (needs the worker and arq:* keys) | manual (tests)
+    run_dispatcher: bool = True  # outbox -> hospital callbacks every second
+    run_cron: bool = True  # SLA tick / settlement auto-close
     crew_timeout_seconds: int = 90
     calc_engine_url: str = "inprocess"  # or http://calc-engine:8120
     calc_remote: bool = False

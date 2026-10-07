@@ -1,6 +1,6 @@
 LOCK = scripts/run_exclusive.sh
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -55,6 +55,9 @@ eval-hospital:
 
 e2e-hospital:
 	$(LOCK) uv run python scripts/e2e_hospital.py
+
+e2e-full:
+	$(LOCK) uv run python scripts/e2e_full.py
 
 ui-e2e:
 	$(LOCK) scripts/ui_e2e.sh
@@ -146,7 +149,7 @@ migrate-insurer:
 	$(INS_ENV) && cd insurer/api && uv run alembic upgrade head
 
 seed-insurer:
-	$(INS_ENV) && uv run python -m insurer_app.seeds.seed
+	$(INS_ENV) && INS_SEED_PROFILE=demo uv run python -m insurer_app.seeds.seed
 
 run-insurer-api:
 	$(INS_ENV) && cd insurer/api && uv run uvicorn insurer_app.main:create_app --factory --port $${INS_API_PORT:-8600}
@@ -157,9 +160,13 @@ run-calc:
 run-insurer-crew:
 	cd insurer/crew && uv run uvicorn insurer_crew.main:app --port $${INS_CREW_PORT:-8610}
 
-run-tpa-sim:
+run-tpa-sim: 
 	cd services/tpa-sim && uv run uvicorn tpa_sim.main:app --port 8500
 
 test-insurer:
 	$(LOCK) uv run pytest insurer/calc_engine insurer/crew insurer/n8n services/tpa-sim services/rag-service infra/llm-gateway -q
 	$(LOCK) uv run pytest insurer/api -q
+
+db-reset-insurer:
+	$(COMPOSE) --profile insurer rm -sfv insurer-db
+	-docker volume rm claims_insurer_pg

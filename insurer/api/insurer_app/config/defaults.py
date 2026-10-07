@@ -53,3 +53,20 @@ DOC_REQUIREMENTS: dict[str, Any] = {
     "stamp_required_for": ["final_bill", "itemised_bill", "pharmacy_bill"],
     "min_parse_confidence": 0.80,
 }
+
+# Product decision (shared with the hospital checklist): prescription + pharmacy bill + final bill, plus a procedure bill for
+# surgery and an implant sticker for implants; everything else optional. Used by the `demo` seed profile (make seed-insurer);
+# the unit tests keep the document-03 default above.
+DOC_REQUIREMENTS_PRODUCT: dict[str, Any] = {
+    "required": ["prescription", "pharmacy_bill", "final_bill"],
+    "optional": ["discharge_summary", "itemised_bill", "claim_form", "id_proof", "policy_card", "lab_report", "radiology_report",
+                 "investigation_report", "admission_note", "preauth_approval"],
+    "conditional": [
+        {"if": {"bill_has_category": "surgery"}, "require": ["procedure_bill"]},
+        {"if": {"bill_has_category": "implant"}, "require": ["implant_sticker"]},
+        {"if": {"claim_type": "reimbursement"}, "require": ["payment_receipt", "cancelled_cheque"]},
+        {"if": {"admission_type": "emergency", "medico_legal": True}, "require": ["fir_mlc"]},
+    ],
+    "stamp_required_for": ["final_bill", "itemised_bill", "pharmacy_bill", "procedure_bill"],
+    "min_parse_confidence": 0.80,
+}

@@ -392,14 +392,19 @@ async def finalize_run(cfg: ConfigService, run_id: UUID, actor: str = "svc-n8n-i
         calc_step = next((st for st in steps if st.step == "calculation"), None)
         have_calc = calc_row is not None and calc_step is not None and calc_step.status in ("passed", "flagged", "failed")
         det = calc_step.deterministic if (calc_step and calc_step.deterministic) else {}
-        dec = decide_run(gating, calc_payable=calc_row.payable_amount if have_calc and calc_row else None,
-                         calc_claimed=Decimal(str(det.get("claimed"))) if have_calc and det.get("claimed") else None,
+        # The calculator works on bill lines (gross). A bill-level discount is the hospital's own concession: it comes off the
+        # payable, so approved + deductions == claimed (contract V-12) and we never approve more than was claimed.
+        calc_gross = Decimal(str(det.get("claimed"))) if have_calc and det.get("claimed") else None
+        discount = max(Decimal("0.00"), calc_gross - case.claimed_amount) if calc_gross is not None else Decimal("0.00")
+        payable_net = max(Decimal("0.00"), calc_row.payable_amount - discount) if have_calc and calc_row else None
+        dec = decide_run(gating, calc_payable=payable_net,
+                         calc_claimed=case.claimed_amount if calc_gross is not None else None,
                          calc_blocked=det.get("blocked") if have_calc else None, manual_verification=manual)
         # --- persist the recommendation (kind='recommendation') ---
         outcome_map = {"approve": "approve", "partial": "partial", "reject": "reject"}
         rec: Decision | None = None
         if dec.recommendation:
-            amount = Decimal("0.00") if dec.recommendation == "reject" else (calc_row.payable_amount if calc_row else Decimal("0.00"))
+            amount = Decimal("0.00") if dec.recommendation == "reject" else (payable_net if payable_net is not None else Decimal("0.00"))
             deductions = (calc_row.output.get("summary_deductions") if calc_row else []) or []
             reason_codes = dec.reason_codes if dec.recommendation == "reject" else sorted({d["rule_id"] for d in deductions})
             rec = Decision(id=uuid7(), case_id=case.id, kind="recommendation", outcome=outcome_map[dec.recommendation], approved_amount=amount, reason_codes=reason_codes,

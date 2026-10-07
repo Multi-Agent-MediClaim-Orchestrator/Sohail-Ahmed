@@ -19,6 +19,7 @@ from sqlalchemy import create_engine, text
 
 from insurer_app.config.defaults import (
     DOC_REQUIREMENTS,
+    DOC_REQUIREMENTS_PRODUCT,
     PRODUCTS,
     QUERY_POLICY,
     THRESHOLDS,
@@ -158,7 +159,7 @@ def _publish(c, domain: str, name: str, payload: dict) -> None:
 def _seed_config(c) -> None:
     _publish(c, "thresholds", "default", THRESHOLDS)
     _publish(c, "query_policy", "default", QUERY_POLICY)
-    _publish(c, "doc_requirements", "default", DOC_REQUIREMENTS)
+    _publish(c, "doc_requirements", "default", DOC_REQUIREMENTS_PRODUCT if os.environ.get("INS_SEED_PROFILE") == "demo" else DOC_REQUIREMENTS)
     for code in PRODUCTS:
         _publish(c, "policy_rules", code, policy_rules(code))
     _publish(c, "policy_rules", "default", policy_rules("HEALTH-PLUS-GOLD"))
