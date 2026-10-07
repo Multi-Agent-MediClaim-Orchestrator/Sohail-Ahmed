@@ -1,4 +1,5 @@
-"""Claim builder and repair (doc 09 tasks 5-6)."""
+"""Claim builder and repair (doc 09 tasks 5-6). Arithmetic and assembly are code; the CrewAI category-mapper agent only
+labels bill lines the keyword table cannot, and its labels are checked against the allowed set."""
 
 from __future__ import annotations
 
@@ -8,7 +9,7 @@ from typing import Any
 import yaml
 from claim_contract.enums import BillCategory
 
-from crew import prompts
+from crew import prompts, team
 from crew.llm import LLM
 from crew.settings import Settings
 from crew.tools import assemble as asm
@@ -23,8 +24,9 @@ async def build(ctx: dict[str, Any], llm: LLM, st: Settings) -> dict[str, Any]:
     if out["ambiguous"]:
         p = prompts.load(st.prompt_dir, "map_category", st.prompt_pins)
         lines = "\n".join(f"{i}: {out['lines'][i]}" for i in out["ambiguous"])
-        resp, mi = await llm.complete_json(model=st.model_local, prompt=p.render(lines=lines))
-        for it in resp.get("items", []):
+        res = await team.run_task("category_mapper", p.render(lines=lines), llm, st.model_local)
+        resp, mi = res.data, res.model_info
+        for it in _items(resp):
             i, cat = it.get("index"), it.get("category")
             if i in out["ambiguous"] and cat in CATS:  # unknown labels are ignored, never trusted
                 out["payload"]["bill_lines"][i]["category"] = cat
@@ -35,6 +37,11 @@ async def build(ctx: dict[str, Any], llm: LLM, st: Settings) -> dict[str, Any]:
             "tokens_out": mi["tokens_out"],
         }
     return {"payload": out["payload"], "provenance": out["provenance"], "model_info": info}
+
+
+def _items(resp: dict[str, Any]) -> list[dict[str, Any]]:
+    items = resp.get("items")
+    return [it for it in items if isinstance(it, dict)] if isinstance(items, list) else []
 
 
 class RepairRejected(Exception):
@@ -61,8 +68,9 @@ async def repair(
         p = prompts.load(st.prompt_dir, "map_category", st.prompt_pins)
         idx = [i for i, ln in enumerate(fixed["bill_lines"]) if ln["category"] == "other"]
         lines = "\n".join(f"{i}: {fixed['bill_lines'][i]['description']}" for i in idx)
-        resp, mi = await llm.complete_json(model=st.model_local, prompt=p.render(lines=lines))
-        for it in resp.get("items", []):
+        res = await team.run_task("category_mapper", p.render(lines=lines), llm, st.model_local)
+        resp, mi = res.data, res.model_info
+        for it in _items(resp):
             if it.get("index") in idx and it.get("category") in CATS:
                 fixed["bill_lines"][it["index"]]["category"] = it["category"]
         info = {"alias": mi["model"], "prompt_version": p.version}

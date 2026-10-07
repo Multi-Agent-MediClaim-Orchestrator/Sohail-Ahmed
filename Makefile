@@ -1,6 +1,9 @@
 LOCK = scripts/run_exclusive.sh
+# CrewAI: no telemetry leaves the machine, for every recipe (an existing .env may predate these keys)
+export CREWAI_TELEMETRY_OPT_OUT = true
+export OTEL_SDK_DISABLED = true
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: up-rag seed-kb run-rag rag-tokens ins-ui-e2e check-crew up-insurer-n8n n8n-insurer-test db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: crew-demo crew-plot up-rag seed-kb run-rag rag-tokens ins-ui-e2e check-crew up-insurer-n8n n8n-insurer-test db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -34,6 +37,12 @@ run-ui:
 
 run-crew:
 	set -a && . ./.env && set +a && uv run uvicorn crew.main:app_factory --factory --app-dir hospital/crew --host 127.0.0.1 --port 8010
+
+crew-demo: ## hospital CrewAI flows on built-in synthetic data (CREW_LLM=ollama for the real model)
+	cd hospital/crew && uv run crewai run
+
+crew-plot: ## hospital flow diagrams (HTML) into docs/diagrams
+	mkdir -p docs/diagrams && cd docs/diagrams && uv run --package hospital-crew plot
 
 test-llm:
 	$(LOCK) uv run pytest hospital/crew services/doc-pipeline -q -m llm -s

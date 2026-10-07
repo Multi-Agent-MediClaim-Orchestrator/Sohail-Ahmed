@@ -103,9 +103,13 @@ Top-level folders:
 
 ## 3. The "Crew AI": what it is and which file runs it
 
-**There is no CrewAI library in this project.** "Crew" here means *a small web service that holds a team of single-purpose AI
-agents*. Each agent is a plain Python function with a prompt, a strict output schema, and code that checks what the model said.
-(This choice is logged in `docs/DECISIONS.md`.) Both sides have one.
+"Crew" here means *a small web service that holds a team of single-purpose AI agents*. Both sides have one.
+
+- **Hospital crew: CrewAI.** Each job runs a CrewAI Flow (`hospital/crew/crew/flows.py`) whose steps call CrewAI agents
+  (`crew/config/agents.yaml`, `crew/team.py`); deterministic checks are the tasks' guardrails. See `hospital/crew/README.md`
+  and `make crew-demo`.
+- **Insurer crew: still plain Python** (migration step 3 of `docs/CREWAI_MIGRATION_PLAN.md`). Each agent is a function with
+  a prompt, a strict output schema, and code that checks what the model said.
 
 ### 3.1 The insurer crew (`insurer/crew/insurer_crew/`) — the one to show
 

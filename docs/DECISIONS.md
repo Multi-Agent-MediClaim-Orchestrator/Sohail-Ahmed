@@ -184,3 +184,16 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
   A smaller model was not faster end to end here, so `gemma4:latest` stays the default. Decide with the checks, not by size.
 - RAG bookkeeping (`collection_meta`, `retrieval_log`) now lives in one file, `.e2e-logs/rag.db`, for both seeding and the service; the
   service probes the embedding model at start-up so the first search is not refused as a model mismatch.
+
+## 2026-10-07 — hospital crew moved to CrewAI (supersedes "no CrewAI package" for the hospital side)
+
+- `crewai[litellm]==1.15.23` is pinned in both crew packages. It caps pydantic below 2.13, so the workspace runs pydantic
+  2.12.5; contract, hospital-api (457 tests), insurer-api and the offline suites give the same results before and after.
+- Hospital jobs run as CrewAI Flows (`ClaimFlow`, `QueryFlow`) with CrewAI agents (category mapper, triage, reply writer).
+  The `/v1/jobs/*` HTTP surface is unchanged, so hospital-api, n8n and the UI are untouched.
+- Agents reach the model through `BridgeLLM`, a CrewAI `BaseLLM` over the existing clients: PII guard before every call,
+  the Ollama breaker, JSON repair and `CREW_LLM=rules` all still apply. The agents have no tools: deterministic code runs
+  in the flow steps and as task guardrails (grounding G01-G08 with one retry), never as model tool calls, because the
+  local models are unreliable at multi-step tool use.
+- CrewAI memory and knowledge stay off (they default to OpenAI embeddings); telemetry is opted out in the Makefile,
+  `.env.example` and the Dockerfiles.

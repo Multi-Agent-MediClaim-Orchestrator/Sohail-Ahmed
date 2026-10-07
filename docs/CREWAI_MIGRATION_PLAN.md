@@ -1,6 +1,9 @@
 # CrewAI migration plan: gap analysis and mapping
 
-Status: proposal for team review (2026-10-07). Nothing in this file is implemented yet.
+Status (2026-10-07): steps 1 and 2 of §6 are done (crewai pinned; the hospital crew's four existing jobs run on
+CrewAI Flows and agents, see `hospital/crew/README.md`). Still open from §3.1: the Document, Validation and Policy
+Estimate crews (new hospital functionality; today the doc-pipeline and hospital-api do intake and completeness). Steps
+3-7 are open.
 Scope source: the team's problem statement (multi-agent cashless and reimbursement claim processing with CrewAI) and the
 repository as of branch `claude/festive-ramanujan-kzdnxj`.
 

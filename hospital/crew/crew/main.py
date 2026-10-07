@@ -1,5 +1,6 @@
-"""hospital-crew: FastAPI wrapper around the agents (doc 09 §4). Binds to localhost; the API/n8n are the only
-callers. Results go back to the hospital API with the crew's own service token."""
+"""hospital-crew: FastAPI wrapper around the CrewAI flows (doc 09 §4). Binds to localhost; the API/n8n are the only
+callers. Each job runs one CrewAI Flow (crew/flows.py); results go back to the hospital API with the crew's own
+service token."""
 
 from __future__ import annotations
 
@@ -8,8 +9,8 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
-from crew.agents import builder, responder
 from crew.api_client import ApiClient, HttpApi
+from crew.flows import ClaimFlow, FlowDeps, QueryFlow
 from crew.jobs import Job, Runner
 from crew.llm import LLM, OllamaLLM, RulesLLM
 from crew.settings import Settings
@@ -25,10 +26,6 @@ class JobIn(BaseModel):
     correlation_id: str | None = None
 
 
-def flat(info: dict[str, Any]) -> dict[str, str | int | float | None]:
-    return {k: v for k, v in info.items() if isinstance(v, (str, int, float)) or v is None}
-
-
 def create_app(
     settings: Settings | None = None, *, llm: LLM | None = None, api: ApiClient | None = None
 ) -> FastAPI:
@@ -40,39 +37,18 @@ def create_app(
 
     async def claim_build(job: Job) -> dict[str, Any]:
         i = job.input
-        ctx = await api.get(f"/v1/internal/cases/{i['case_id']}/build-context")
-        rep = i.get("repair")
-        if rep:
-            prev = ctx.get("previous_draft")
-            if prev is None:
-                raise ValueError("no previous draft to repair")
-            out = await builder.repair(prev, rep.get("errors", []), llm, st)
-            rnd = int(rep.get("round", 1))
-        else:
-            out = await builder.build(ctx, llm, st)
-            rnd = 0
-        if job.cancel.is_set():
-            return {"cancelled": True}
-        body = {"job_id": job.id if not i.get("job_id") else i["job_id"], "payload": out["payload"], "provenance": out["provenance"],
-                "model_info": flat(out["model_info"]), "repair_round": rnd}  # fmt: skip
-        await api.post(i.get("callback") or f"/v1/internal/cases/{i['case_id']}/claim/draft", body)
-        return {"posted": True, "repair_round": rnd}
+        flow = ClaimFlow.create(FlowDeps(llm, api, st, job.cancel))
+        return await flow.kickoff_async(inputs={"case_id": i["case_id"], "job_id": i.get("job_id") or job.id,
+                                                "callback": i.get("callback"), "repair": i.get("repair")})  # fmt: skip
 
-    async def query_triage(job: Job) -> dict[str, Any]:
-        q = await api.get(f"/v1/internal/queries/{job.input['query_id']}")
-        out = await responder.triage(q, llm, st)
-        mi = out.pop("_model_info")
-        await api.post(f"/v1/internal/queries/{q['id']}/triage-result", out)
-        return out | {"model_info": mi}
+    def query_job(kind: str):  # noqa: ANN202
+        async def run(job: Job) -> dict[str, Any]:
+            flow = QueryFlow.create(FlowDeps(llm, api, st, job.cancel))
+            return await flow.kickoff_async(inputs={"query_id": job.input["query_id"], "kind": kind})
 
-    async def query_draft(job: Job) -> dict[str, Any]:
-        qid = job.input["query_id"]
-        ctx = await api.get(f"/v1/internal/queries/{qid}/context")
-        out = await responder.draft(ctx, llm, st)
-        body = {"draft_text": out["draft_text"], "citations": out["citations"], "attached_doc_ids": ctx.get("attach_doc_ids", []),
-                "model_info": flat(out["model_info"] | {"supervisor_pass": int(out["supervisor"]["pass"])})}  # fmt: skip
-        await api.post(f"/v1/internal/queries/{qid}/draft-result", body)
-        return {"supervisor": out["supervisor"], "unsupported": out["unsupported"]}
+        return run
+
+    query_triage, query_draft = query_job("triage"), query_job("draft")
 
     runner = Runner({"claim-build": claim_build, "claim-repair": claim_build, "query-triage": query_triage, "query-draft": query_draft},
                     st.concurrency, st.job_ttl_s)  # fmt: skip
@@ -123,9 +99,12 @@ def create_app(
     @app.get("/v1/agents")
     async def agents() -> dict[str, Any]:
         from crew import prompts
+        from crew.team import AGENTS
 
         return {"prompts": {n: prompts.load(st.prompt_dir, n, st.prompt_pins).version for n in ("map_category", "triage", "draft_reply", "supervise")},
-                "jobs": list(JOB_TYPES)}  # fmt: skip
+                "jobs": list(JOB_TYPES), "framework": "crewai",
+                "agents": {k: {"role": v["role"], "prompt": v["prompt"]} for k, v in AGENTS.items()},
+                "flows": {"ClaimFlow": ["claim-build", "claim-repair"], "QueryFlow": ["query-triage", "query-draft"]}}  # fmt: skip
 
     return app
 
