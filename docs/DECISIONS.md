@@ -1,6 +1,28 @@
 # Decisions log
 Format: decision, reason, date. Newest first. Spec fixes are proven by a test.
 
+## 2026-10-07 — n8n flows (doc 08): thin orchestrator over what the API already does
+
+The API already runs its own completeness scheduler, document sweeper, claim-build crew call, outbox worker and
+overdue job. Duplicating that in n8n would give two owners of the same state, so the flows are adapted:
+
+- **F1** skips the crew `classify-extract` step and the VLM escalation: the doc-pipeline (MinerU → Presidio → Ollama,
+  two passes) classifies. n8n posts each pass to `/parse`, then `/classify`.
+- **F2/F3/F4/F5c/F6/F7** are thin: notify, watchdog, or a cron wrapper around an existing API job. F3 returns stuck
+  builds (the API starts the crew itself); F4 has two checks (15 min, 8 h) instead of a 32-iteration loop; F6 fires
+  in-app reminders only (no SMTP in a localhost demo; email items are marked failed with a reason).
+- **Idempotency** is `POST /v1/internal/idempotency` (Redis `SET NX` under the permitted `idem:hosp:*` prefix) so n8n
+  needs no Redis credentials. Token caching is dropped (client-credentials is cheap).
+- **U3 polling** is one bounded Code node (loop limited by `max_wait_s`), not a Wait-node loop.
+- **Single n8n process** on the host network (same `localhost` URLs and token issuer as everything else); queue mode
+  and a worker add a container for no gain at this scale. Postgres database `n8n`, role `n8n_app`.
+- Cron flows also expose a secured `jobs/*` webhook so ops (and tests) can run them on demand; `n8n execute`
+  cannot start a schedule trigger.
+- Tests run against a real n8n container with a stub for every downstream service (`hospital/n8n/tests`).
+- New internal endpoints: `idempotency`, `documents/{id}`, `cases/{id}/notify`, `cases/{id}/ack-status`,
+  `ops/events`, `reminders/due|fired|failed`, `queries/{id}`, `cases/stale-building`, `outbox/stalled`.
+- hospital-api listens on **8100** locally (8000 is taken by another project on this machine).
+
 ## 2026-10-07 — LLM stack: Ollama only, no Gemini key (user decision)
 - General model: Ollama `gemma4:31b-cloud` on the existing server at `localhost:11434` (verified: answers in ~1.5 s, capabilities completion/thinking/tools/vision). Private/raw-ID pages: local `gemma4:latest` (7.5B, vision, runs locally) and deterministic code. Hugging Face models only where a task needs a specialised model (stamp detection, OCR), chosen when the vision-service is built.
 - Reason: the user has no Gemini key and already runs Ollama. Cloud inference leaves the machine, so only Presidio-masked text goes to `gemma4:31b-cloud`; this keeps the earlier privacy rule (raw IDs never leave).

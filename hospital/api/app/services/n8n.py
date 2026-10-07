@@ -15,14 +15,19 @@ class N8nClient(Protocol):
 
 
 class HttpN8n:
-    def __init__(self, base_url: str, client: httpx.AsyncClient | None = None) -> None:
+    def __init__(
+        self, base_url: str, client: httpx.AsyncClient | None = None, secret: str = ""
+    ) -> None:
+        self.secret = secret
         self.base = base_url.rstrip("/")
         self.client = client or httpx.AsyncClient(timeout=5)
 
     async def trigger(self, path: str, payload: dict[str, Any], idem: str) -> bool:
         try:
             r = await self.client.post(
-                f"{self.base}/{path}", json=payload, headers={"X-Idempotency-Key": idem}
+                f"{self.base}/{path}",
+                json=payload,
+                headers={"X-Idempotency-Key": idem, "X-Webhook-Secret": self.secret},
             )
             return r.status_code < 300
         except httpx.HTTPError as e:

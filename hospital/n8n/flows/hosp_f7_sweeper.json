@@ -1,0 +1,377 @@
+{
+  "active": false,
+  "connections": {
+    "01 Cron": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "01 Webhook": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Secret ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "02 Secret ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "03 Accepted",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "04 Unauthorized",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "03 Accepted": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "05 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06 Run job",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06 Run job": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07 Outbox stalled",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "07 Outbox stalled": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "08 Any stalled",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "08 Any stalled": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "09 Tell admin",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_f7_sweeper",
+  "name": "hosp-stuck-sweeper",
+  "nodes": [
+    {
+      "id": "3dc0ecc1-3a10-584b-a197-224f3847fc3d",
+      "name": "01 Cron",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "expression": "*/2 * * * *",
+              "field": "cronExpression"
+            }
+          ]
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "350eda4f-4627-5ff0-922b-dae60ec6b241",
+      "name": "05 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "3ebdf3e4-2526-56d4-beed-2300801c931d",
+      "maxTries": 3,
+      "name": "06 Run job",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/jobs/sweeper' }}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "a927f6f1-839e-5ec0-81eb-0db3e90fc43a",
+      "name": "01 Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {},
+        "path": "jobs/sweeper",
+        "responseMode": "responseNode"
+      },
+      "position": [
+        780,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "4ca2f719-7874-5b2d-9565-cba1aa50dbf3"
+    },
+    {
+      "id": "e00e8ab3-7034-556c-9dea-87fef70a4bfc",
+      "name": "02 Secret ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "04c543ad-0743-5307-b968-69af73282fc2",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] === $env.N8N_WEBHOOK_SECRET }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1040,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "f2b9cdfa-fd67-5ef3-a2c8-74485cd2a126",
+      "name": "03 Accepted",
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "respondWith": "json",
+        "responseBody": "{\"accepted\": true}"
+      },
+      "position": [
+        1300,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "2da4d6ab-0a0b-512c-a7f3-2c51ef9b9bdc",
+      "name": "04 Unauthorized",
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        },
+        "respondWith": "json",
+        "responseBody": "{\"code\": \"invalid_signature\"}"
+      },
+      "position": [
+        1560,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "e1eae34a-ec8d-5801-9abc-c544d2461f6d",
+      "maxTries": 3,
+      "name": "07 Outbox stalled",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "timeout": 10000
+        },
+        "sendHeaders": true,
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/outbox/stalled' }}"
+      },
+      "position": [
+        1820,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "38880691-7c18-5ae6-8951-42f86ba35bc1",
+      "name": "08 Any stalled",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "abd2d88d-fe16-5c26-af46-73595cf5dada",
+              "leftValue": "={{ ($json.items || []).length > 0 }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        2080,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "2d8e9709-3ba1-5cba-b364-91d31ff9a7b9",
+      "maxTries": 3,
+      "name": "09 Tell admin",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {workflow: 'hosp-stuck-sweeper', severity: 'high', error: 'outbox rows are stalled or dead'} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/ops/events' }}"
+      },
+      "position": [
+        2340,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "errorWorkflow": "hosp_f8_error",
+    "executionOrder": "v1"
+  }
+}

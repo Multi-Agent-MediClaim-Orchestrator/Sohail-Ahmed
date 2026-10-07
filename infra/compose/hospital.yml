@@ -1,0 +1,47 @@
+# Hospital orchestration. Host networking on purpose: n8n reaches the API, Keycloak and the shared services on
+# localhost with the same URLs (and token issuer) the rest of the demo uses. One process, no worker: queue mode
+# would add a second container for no gain at this scale (see docs/DECISIONS.md).
+services:
+  hospital-n8n:
+    image: n8nio/n8n:2.41.6
+    profiles: [hospital]
+    restart: unless-stopped
+    network_mode: host
+    mem_limit: 768m
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    environment:
+      N8N_PORT: ${HOSP_N8N_PORT:-5688}
+      N8N_RUNNERS_BROKER_PORT: ${HOSP_N8N_BROKER_PORT:-5695}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_WEBHOOK_SECRET: ${N8N_WEBHOOK_SECRET}
+      N8N_CLIENT_SECRET: ${HOSP_N8N_CLIENT_SECRET}
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_SECURE_COOKIE: "false"
+      N8N_PAYLOAD_SIZE_MAX: "16"
+      N8N_LOG_LEVEL: info
+      GENERIC_TIMEZONE: Asia/Kolkata
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: "336"
+      EXECUTIONS_TIMEOUT: "900"
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: localhost
+      DB_POSTGRESDB_PORT: ${HOSP_DB_PORT:-5432}
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n_app
+      DB_POSTGRESDB_PASSWORD: ${N8N_APP_PW}
+      HOSP_API_URL: ${HOSP_API_URL:-http://localhost:8100}
+      HOSP_CREW_URL: ${HOSP_CREW_URL:-http://localhost:8010}
+      DOCPIPE_URL: ${DOCPIPE_URL:-http://localhost:8200}
+      VISION_URL: ${VISION_URL:-http://localhost:8300}
+      KEYCLOAK_TOKEN_URL: ${KEYCLOAK_TOKEN_URL:-http://localhost:8080/realms/hospital/protocol/openid-connect/token}
+      INTAKE_MAX_PARSE_WAIT_S: ${INTAKE_MAX_PARSE_WAIT_S:-300}
+    volumes:
+      - ../../hospital/n8n/flows:/flows:ro
+      - ../../hospital/n8n/entrypoint.sh:/entrypoint.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:${HOSP_N8N_PORT:-5688}/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s

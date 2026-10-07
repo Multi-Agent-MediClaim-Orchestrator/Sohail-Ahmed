@@ -125,6 +125,11 @@ async def submit(
     worker = getattr(st, "outbox", None)
     if worker is not None:
         worker.wake()
+    await st.n8n.trigger(
+        "claim/submitted",
+        {"case_id": str(case.id)},
+        f"submitted:{out.get('idempotency_key', case.id)}",
+    )
     return out
 
 

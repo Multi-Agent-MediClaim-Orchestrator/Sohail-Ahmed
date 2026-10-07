@@ -1,0 +1,110 @@
+{
+  "active": false,
+  "connections": {
+    "00 Trigger": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "01 Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "01 Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Shape",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_u1_auth",
+  "name": "util-auth-token",
+  "nodes": [
+    {
+      "id": "4c11b19c-c3d6-58ff-8aa7-d1b77a3cdf1f",
+      "name": "00 Trigger",
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "661f14b4-5b9b-5205-a436-231ba736e9f5",
+      "maxTries": 3,
+      "name": "01 Token",
+      "parameters": {
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "hospital-n8n"
+            },
+            {
+              "name": "client_secret",
+              "value": "={{ $env.N8N_CLIENT_SECRET }}"
+            }
+          ]
+        },
+        "contentType": "form-urlencoded",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ '' }}"
+            }
+          ]
+        },
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "keypair",
+        "url": "={{ $env.KEYCLOAK_TOKEN_URL }}"
+      },
+      "position": [
+        260,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "82be74ec-5199-548b-a85b-5cd5fd40bba6",
+      "name": "02 Shape",
+      "parameters": {
+        "jsCode": "return [{json: {access_token: $json.access_token, expires_in: $json.expires_in}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "active": false,
+  "connections": {
+    "01 Cron": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "01 Webhook": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Secret ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "02 Secret ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "03 Accepted",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "04 Unauthorized",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "03 Accepted": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "05 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06 Return stuck builds",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_f3_build",
+  "name": "hosp-claim-build",
+  "nodes": [
+    {
+      "id": "34ff47e0-f284-5fc8-a4a8-91f47de287a1",
+      "name": "01 Cron",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "expression": "*/5 * * * *",
+              "field": "cronExpression"
+            }
+          ]
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "2332dcf6-6f92-5283-9372-f50ad5dcc403",
+      "name": "05 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "d69560fc-dbd4-542e-b6d3-5d5fbe499bdb",
+      "maxTries": 3,
+      "name": "06 Return stuck builds",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/jobs/claim-build-timeouts' }}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "b25b8b47-87aa-508a-b4e0-3236d836dbe6",
+      "name": "01 Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {},
+        "path": "jobs/claim-build",
+        "responseMode": "responseNode"
+      },
+      "position": [
+        780,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "07f13be3-4319-5169-9369-ad6c2b883d42"
+    },
+    {
+      "id": "e7446335-a2d7-5f90-97b9-eb22de4c1f20",
+      "name": "02 Secret ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "959a4ba5-8be1-534d-beb3-eadba11b3417",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] === $env.N8N_WEBHOOK_SECRET }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1040,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "326109fe-2695-5375-8e52-1e05604c3c08",
+      "name": "03 Accepted",
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "respondWith": "json",
+        "responseBody": "{\"accepted\": true}"
+      },
+      "position": [
+        1300,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "80ad9d82-6e56-57d7-9a71-ff9cdd92e5d4",
+      "name": "04 Unauthorized",
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        },
+        "respondWith": "json",
+        "responseBody": "{\"code\": \"invalid_signature\"}"
+      },
+      "position": [
+        1560,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "errorWorkflow": "hosp_f8_error",
+    "executionOrder": "v1"
+  }
+}

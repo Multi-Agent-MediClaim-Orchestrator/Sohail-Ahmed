@@ -1,0 +1,681 @@
+{
+  "active": false,
+  "connections": {
+    "01 Webhook": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Secret ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "02 Secret ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "03 Accepted",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "04 Unauthorized",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "03 Accepted": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "05 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06 Idempotency",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06 Idempotency": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06b Dedupe",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06b Dedupe": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07 Duplicate",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "07 Duplicate": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07b Duplicate end",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "08 Wait 15 min",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "08 Wait 15 min": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "09 Ack status",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "09 Ack status": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "10 Acknowledged",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "10 Acknowledged": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "10b Done",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "11 Banner",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "11 Banner": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "12 Wait to 8 h",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "12 Wait to 8 h": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "13 Get Token again",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "13 Get Token again": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "14 Ack status again",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "14 Ack status again": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "15 Acknowledged later",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "15 Acknowledged later": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "15b Done",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "16 Escalate",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_f4_submission_watch",
+  "name": "hosp-submission-watch",
+  "nodes": [
+    {
+      "id": "3eb3e956-c3fb-5b51-b24e-821af8de4916",
+      "name": "01 Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {},
+        "path": "claim/submitted",
+        "responseMode": "responseNode"
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "6c9ae3ee-93c3-5a41-b407-25b08ff771d4"
+    },
+    {
+      "id": "dcf5d9f2-842d-507d-beea-20f1d2e7c077",
+      "name": "02 Secret ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "36447a29-7da0-5c86-9142-976b982470ae",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] === $env.N8N_WEBHOOK_SECRET }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "a0b67845-e026-56d8-b785-28b1d621f72a",
+      "name": "03 Accepted",
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "respondWith": "json",
+        "responseBody": "{\"accepted\": true}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "311d143a-cf14-577b-8199-65a3e69a5529",
+      "name": "04 Unauthorized",
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        },
+        "respondWith": "json",
+        "responseBody": "{\"code\": \"invalid_signature\"}"
+      },
+      "position": [
+        780,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "c9a9b358-9901-54b5-8a43-b128dc7cd4dc",
+      "name": "05 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        1040,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "81a7636a-825a-5623-8b3d-acdbc3e23672",
+      "name": "06 Idempotency",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "workflow",
+              "type": "string",
+              "value": "f4"
+            },
+            {
+              "id": "a2",
+              "name": "key",
+              "type": "string",
+              "value": "={{ $('01 Webhook').first().json.headers['x-idempotency-key'] || $('01 Webhook').first().json.body.document_id }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "mode": "manual"
+      },
+      "position": [
+        1300,
+        0
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "61677a6e-e155-55d6-96c3-b4b14f18b970",
+      "name": "06b Dedupe",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u2_idem"
+        }
+      },
+      "position": [
+        1560,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "7d444c0d-f601-595d-97bc-915de3606516",
+      "name": "07 Duplicate",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "0596ed4b-9434-59d2-8b6a-f218189be9c3",
+              "leftValue": "={{ $json.duplicate === true }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1820,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "00f1d44f-3ed2-54ea-9b58-4d1d8d61713d",
+      "name": "07b Duplicate end",
+      "parameters": {},
+      "position": [
+        2080,
+        0
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "id": "1066ebb8-6b61-56e2-b774-ac20814fff72",
+      "name": "08 Wait 15 min",
+      "parameters": {
+        "amount": 900,
+        "resume": "timeInterval",
+        "unit": "seconds"
+      },
+      "position": [
+        2340,
+        0
+      ],
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "8bf0cca5-adbd-5330-956d-5aba131047d4",
+      "maxTries": 3,
+      "name": "09 Ack status",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "timeout": 10000
+        },
+        "sendHeaders": true,
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/cases/' + $('01 Webhook').first().json.body.case_id + '/ack-status' }}"
+      },
+      "position": [
+        2600,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "d23497b6-6ef1-5389-a6ed-9d18197b18bf",
+      "name": "10 Acknowledged",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "6e4395b3-07b9-5d39-98db-2e41c3ecfe37",
+              "leftValue": "={{ $json.acknowledged === true }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        2860,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "e40bf097-4a33-5553-b857-cb6ce4bf8b44",
+      "name": "10b Done",
+      "parameters": {},
+      "position": [
+        3120,
+        0
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "id": "cddadbd4-49b2-54b5-9bf6-231c2109bff9",
+      "maxTries": 3,
+      "name": "11 Banner",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {event: 'submission.unacknowledged', data: {minutes: 15} } }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/cases/' + $('01 Webhook').first().json.body.case_id + '/notify' }}"
+      },
+      "position": [
+        3380,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "eef49b28-3ed9-5265-ab37-3c527abc543b",
+      "name": "12 Wait to 8 h",
+      "parameters": {
+        "amount": 27900,
+        "resume": "timeInterval",
+        "unit": "seconds"
+      },
+      "position": [
+        3640,
+        0
+      ],
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "de440f5b-7bce-592e-b04c-0c3ae0993c52",
+      "name": "13 Get Token again",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        3900,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "f266a925-874e-51ca-aa8f-2f89c03d0d38",
+      "name": "14 Ack status again",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.access_token }}"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "timeout": 10000
+        },
+        "sendHeaders": true,
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/cases/' + $('01 Webhook').first().json.body.case_id + '/ack-status' }}"
+      },
+      "position": [
+        4160,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    },
+    {
+      "id": "c23edb30-2261-59dd-8e9e-7960eb7533b5",
+      "name": "15 Acknowledged later",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "fcd8b9b7-b651-56c6-8340-4a73087f11c1",
+              "leftValue": "={{ $json.acknowledged === true }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        4420,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "c1b03403-09fc-5668-968a-55f8ad65875b",
+      "name": "15b Done",
+      "parameters": {},
+      "position": [
+        4680,
+        0
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "id": "0abccf49-4c2d-5a37-b83a-8c25927e020f",
+      "maxTries": 3,
+      "name": "16 Escalate",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {workflow: 'hosp-submission-watch', severity: 'high', error: 'claim not acknowledged after 8h', node: $('01 Webhook').first().json.body.case_id} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/ops/events' }}"
+      },
+      "position": [
+        4940,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "errorWorkflow": "hosp_f8_error",
+    "executionOrder": "v1"
+  }
+}

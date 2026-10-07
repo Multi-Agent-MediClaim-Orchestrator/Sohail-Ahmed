@@ -1,0 +1,99 @@
+{
+  "active": false,
+  "connections": {
+    "01 Error Trigger": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "05 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06 Report",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_f8_error",
+  "name": "hosp-global-error",
+  "nodes": [
+    {
+      "id": "246150ee-2b1c-5b0d-b72c-0fb4a8b12fce",
+      "name": "01 Error Trigger",
+      "parameters": {},
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1
+    },
+    {
+      "id": "88285eec-3599-57f4-b9ea-9f0dbd313470",
+      "name": "05 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "7515c8db-3958-5e95-b950-0fc89b2e71a9",
+      "maxTries": 3,
+      "name": "06 Report",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {workflow: $('01 Error Trigger').first().json.workflow.name, execution_id: String($('01 Error Trigger').first().json.execution.id), node: $('01 Error Trigger').first().json.execution.lastNodeExecuted, error: String($('01 Error Trigger').first().json.execution.error.message).slice(0, 1500), severity: 'medium'} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/ops/events' }}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

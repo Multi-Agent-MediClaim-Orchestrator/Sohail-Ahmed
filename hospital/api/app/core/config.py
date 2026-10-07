@@ -50,7 +50,8 @@ class Settings(BaseModel):
     crew_url: str = "http://localhost:8010"
     claim_build_timeout_s: int = 300
     # integrations
-    n8n_webhook_base: str = "http://localhost:5678/webhook"
+    n8n_webhook_base: str = "http://localhost:5688/webhook"
+    n8n_webhook_secret: str = ""
     insurer_base_url: str = "http://localhost:8100"
     hospital_key_id: str = "hosp-001"
     hospital_to_insurer_secret: str = ""
@@ -82,6 +83,7 @@ class Settings(BaseModel):
             "hospital_to_insurer_secret": g("HOSP_TO_INS_HMAC_SECRET"),
             "insurer_to_hospital_secret": g("INS_TO_HOSP_HMAC_SECRET"),
             "hospital_key_id": g("HOSP_KEY_ID", "hosp-001"),
+            "n8n_webhook_secret": g("N8N_WEBHOOK_SECRET", ""),
             "llm_base_url": g("HOSP_LLM_BASE_URL", "http://localhost:11434/v1"),
             "llm_model": g("HOSP_LLM_MODEL", "gemma4:31b-cloud"),
             "llm_local_model": g("HOSP_LLM_LOCAL_MODEL", "gemma4:latest"),

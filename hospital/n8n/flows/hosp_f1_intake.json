@@ -1,0 +1,1006 @@
+{
+  "active": false,
+  "connections": {
+    "01 Webhook": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Secret ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "02 Secret ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "03 Accepted",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "04 Unauthorized",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "03 Accepted": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "05 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06 Idempotency",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06 Idempotency": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06b Dedupe",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06b Dedupe": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07 Duplicate",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "07 Duplicate": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07b Duplicate end",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "08 Get document",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "08 Get document": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "09 Scan clean",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "09 Scan clean": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "10 Vision quality",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "09b Not clean: stop",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "10 Vision quality": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "11 Quality body",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "11 Quality body",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "11 Quality body": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "12 API quality",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "12 API quality": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "13 Blocking quality",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "13 Blocking quality": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "14 Mark needs review",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "15 Parse (doc-pipeline)",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "15 Parse (doc-pipeline)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "16 Poll set",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "90 Mark failed",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "16 Poll set": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "17 Poll job",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "17 Poll job": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "18 Parse ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "18 Parse ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "19 Split passes",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "90 Mark failed",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "19 Split passes": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "20 API parse pass",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "20 API parse pass": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "21 Classify body",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "90 Mark failed",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "21 Classify body": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "22 API classify",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "22 API classify": {
+      "main": [
+        [],
+        [
+          {
+            "index": 0,
+            "node": "90 Mark failed",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_f1_intake",
+  "name": "hosp-intake-document",
+  "nodes": [
+    {
+      "id": "b56a99a8-f052-5130-b895-46721534f461",
+      "name": "01 Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {},
+        "path": "intake/document-uploaded",
+        "responseMode": "responseNode"
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "d4fa0653-38c1-5da1-b760-cb0d44df28c7"
+    },
+    {
+      "id": "83da0786-8174-5054-8ec2-f6b9d8db8325",
+      "name": "02 Secret ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "7550d3f6-0838-5524-857a-b32d458514eb",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] === $env.N8N_WEBHOOK_SECRET }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "d8efc62c-b958-5fca-b0ab-2a2ab73d2675",
+      "name": "03 Accepted",
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "respondWith": "json",
+        "responseBody": "{\"accepted\": true}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "dfb3369b-7130-5333-938f-76109972e4cd",
+      "name": "04 Unauthorized",
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        },
+        "respondWith": "json",
+        "responseBody": "{\"code\": \"invalid_signature\"}"
+      },
+      "position": [
+        780,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "34a2d693-1b86-58ef-9259-12b3698be6d3",
+      "name": "05 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        1040,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "9160d264-20ea-5314-abdf-a8029ac97a91",
+      "name": "06 Idempotency",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "workflow",
+              "type": "string",
+              "value": "f1"
+            },
+            {
+              "id": "a2",
+              "name": "key",
+              "type": "string",
+              "value": "={{ $('01 Webhook').first().json.headers['x-idempotency-key'] || $('01 Webhook').first().json.body.document_id }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "mode": "manual"
+      },
+      "position": [
+        1300,
+        0
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "42e0050c-62dc-5165-9f52-7182edd914a1",
+      "name": "06b Dedupe",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u2_idem"
+        }
+      },
+      "position": [
+        1560,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "7d53e2fa-533d-5eaf-beec-0d7843e65e2b",
+      "name": "07 Duplicate",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "d6e6e83a-4f1f-5d0c-85e4-3791acc8e9ba",
+              "leftValue": "={{ $json.duplicate === true }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1820,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "1faa7d52-36ae-529a-9a4d-8fadde3c78ea",
+      "name": "07b Duplicate end",
+      "parameters": {},
+      "position": [
+        2080,
+        0
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "id": "98df89a9-be52-5258-8005-d3a9ab2b8581",
+      "maxTries": 3,
+      "name": "08 Get document",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "timeout": 10000
+        },
+        "sendHeaders": true,
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/documents/' + $('01 Webhook').first().json.body.document_id }}"
+      },
+      "position": [
+        2340,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "cacdecb3-8749-513d-a6f5-02d139e71900",
+      "name": "09 Scan clean",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "3db868c8-f60c-5021-902b-143dcbd6fc96",
+              "leftValue": "={{ $json.scan_status === 'clean' }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        2600,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "34e921c3-b91f-586f-83a2-46f640bd16f5",
+      "name": "09b Not clean: stop",
+      "parameters": {},
+      "position": [
+        2860,
+        0
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "id": "90f3a3b8-d458-553a-b7d0-08e3c5a1f753",
+      "maxTries": 3,
+      "name": "10 Vision quality",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {document_id: $json.id, url: $json.presigned_url} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.VISION_URL + '/v1/quality' }}"
+      },
+      "position": [
+        3120,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "c780731e-daa9-5d3e-b6de-313d04b7d645",
+      "name": "11 Quality body",
+      "parameters": {
+        "jsCode": "const q = $json.quality_score !== undefined ? $json : {quality_score: 1, flags: []};\nreturn [{json: {quality_score: q.quality_score, flags: q.flags || [], has_required_stamp: q.has_required_stamp ?? null}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "position": [
+        3380,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "40296bbe-0f43-593f-ab87-8a831c43a4f8",
+      "maxTries": 3,
+      "name": "12 API quality",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ $json }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/documents/' + $('01 Webhook').first().json.body.document_id + '/quality' }}"
+      },
+      "position": [
+        3640,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "eb3fd7c8-735a-5fbe-8df3-5315969cfec4",
+      "name": "13 Blocking quality",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c28964dd-ca16-5525-8c3c-4a0344a9ff77",
+              "leftValue": "={{ ($('11 Quality body').first().json.flags || []).some(x => ['blurry','unreadable','blank','too_dark'].includes(x)) }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        3900,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "85dba616-5395-5f70-9186-746af3e666da",
+      "maxTries": 3,
+      "name": "14 Mark needs review",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {parse_status: 'needs_review', error: 'quality_blocked'} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/documents/' + $('01 Webhook').first().json.body.document_id + '/status' }}"
+      },
+      "position": [
+        4160,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "65880f69-6764-5eb4-8564-e1eeb1e0aa60",
+      "maxTries": 3,
+      "name": "15 Parse (doc-pipeline)",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {document_id: $('01 Webhook').first().json.body.document_id, case_id: $('01 Webhook').first().json.body.case_id, url: $('08 Get document').first().json.presigned_url} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 15000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.DOCPIPE_URL + '/v1/parse' }}"
+      },
+      "position": [
+        4420,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "199e1639-edab-5505-a492-0669ed8e4e05",
+      "name": "16 Poll set",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1",
+              "name": "base_url",
+              "type": "string",
+              "value": "={{ $env.DOCPIPE_URL }}"
+            },
+            {
+              "id": "b2",
+              "name": "job_id",
+              "type": "string",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "id": "b3",
+              "name": "interval_s",
+              "type": "number",
+              "value": 5
+            },
+            {
+              "id": "b4",
+              "name": "max_wait_s",
+              "type": "number",
+              "value": "={{ Number($env.INTAKE_MAX_PARSE_WAIT_S || 300) }}"
+            }
+          ]
+        },
+        "mode": "manual"
+      },
+      "position": [
+        4680,
+        0
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "978228cf-e018-546a-86c0-650a9f0a17e8",
+      "name": "17 Poll job",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u3_poll"
+        }
+      },
+      "position": [
+        4940,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "0058b1b1-1a60-5d9e-848e-172164ee991b",
+      "name": "18 Parse ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "eb71da10-9728-5a91-85e6-97dc6102f477",
+              "leftValue": "={{ $json.state === 'succeeded' }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        5200,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "d33882f8-54ae-5a94-baa1-a97c65ae00b3",
+      "name": "19 Split passes",
+      "parameters": {
+        "jsCode": "const r = $json.result || {};\nreturn (r.passes || []).map(p => ({json: {pass: p, doc_type: r.doc_type ?? null, confidence: r.classify_confidence ?? 0}}));",
+        "mode": "runOnceForAllItems"
+      },
+      "position": [
+        5460,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "c6434702-8a1e-5801-842f-4e1d41b0448a",
+      "maxTries": 3,
+      "name": "20 API parse pass",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ $json.pass }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/documents/' + $('01 Webhook').first().json.body.document_id + '/parse' }}"
+      },
+      "position": [
+        5720,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "4c877cf8-0cc3-5c43-aa7b-19175d0cacc3",
+      "name": "21 Classify body",
+      "parameters": {
+        "jsCode": "const first = $('19 Split passes').first().json;\nreturn [{json: {doc_type: first.doc_type, confidence: first.confidence, source: 'auto'}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "position": [
+        5980,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "6c319385-d2f6-510c-92c2-3cf849c85a4d",
+      "maxTries": 3,
+      "name": "22 API classify",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ $json }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/documents/' + $('01 Webhook').first().json.body.document_id + '/classify' }}"
+      },
+      "position": [
+        6240,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "f0477852-6d18-53b5-aa2d-709025c203aa",
+      "maxTries": 3,
+      "name": "90 Mark failed",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {parse_status: 'failed', error: ($json.error && ($json.error.message || $json.error) || 'pipeline_failed').toString().slice(0, 400)} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/documents/' + $('01 Webhook').first().json.body.document_id + '/status' }}"
+      },
+      "position": [
+        6500,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "errorWorkflow": "hosp_f8_error",
+    "executionOrder": "v1"
+  }
+}

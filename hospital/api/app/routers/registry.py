@@ -17,6 +17,7 @@ def routers() -> list[Any]:
         "claims",
         "callbacks",
         "queries",
+        "internal_ops",
         "stream",
     ):
         try:

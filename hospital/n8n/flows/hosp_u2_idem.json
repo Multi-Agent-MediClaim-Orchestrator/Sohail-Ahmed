@@ -1,0 +1,102 @@
+{
+  "active": false,
+  "connections": {
+    "00 Trigger": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "01 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "01 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Check",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_u2_idem",
+  "name": "util-idempotency",
+  "nodes": [
+    {
+      "id": "319d3fa4-af18-5cee-a210-7e905d9efb80",
+      "name": "00 Trigger",
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "d3810060-4f36-5ef5-b1a9-b1360b1f3879",
+      "name": "01 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "2af0f66a-6535-5108-a796-3cb41e710eb4",
+      "maxTries": 3,
+      "name": "02 Check",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {workflow: $('00 Trigger').first().json.workflow, key: $('00 Trigger').first().json.key} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/idempotency' }}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

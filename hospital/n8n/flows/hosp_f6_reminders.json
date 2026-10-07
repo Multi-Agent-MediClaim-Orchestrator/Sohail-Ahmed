@@ -1,0 +1,446 @@
+{
+  "active": false,
+  "connections": {
+    "01 Cron": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "01 Webhook": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Secret ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "02 Secret ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "03 Accepted",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "04 Unauthorized",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "03 Accepted": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "05 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06 Due reminders",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06 Due reminders": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07 One item each",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "07 One item each": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "08 Batches of 10",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "08 Batches of 10": {
+      "main": [
+        [],
+        [
+          {
+            "index": 0,
+            "node": "09 In-app channel",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "09 In-app channel": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "10 Fired",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "11 Skipped (no email in this deployment)",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "10 Fired": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "08 Batches of 10",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "11 Skipped (no email in this deployment)": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "08 Batches of 10",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_f6_reminders",
+  "name": "hosp-reminders",
+  "nodes": [
+    {
+      "id": "0bbbaca7-95ef-51ee-ba39-4a54e5dac498",
+      "name": "01 Cron",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "expression": "*/5 * * * *",
+              "field": "cronExpression"
+            }
+          ]
+        }
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "14dda1be-615f-5820-9fb4-636c37001f12",
+      "name": "05 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "6bc3da7a-9a21-5c18-9409-46b16bd8aba1",
+      "maxTries": 3,
+      "name": "06 Due reminders",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "timeout": 10000
+        },
+        "sendHeaders": true,
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/reminders/due?limit=50' }}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "4325d97b-ea4a-5555-9d5c-6575d3cf5bb4",
+      "name": "07 One item each",
+      "parameters": {
+        "jsCode": "return ($json.items || []).map(r => ({json: r}));",
+        "mode": "runOnceForAllItems"
+      },
+      "position": [
+        780,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "1fad9366-9661-5f0b-b5f7-8644fbc0356f",
+      "name": "08 Batches of 10",
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "position": [
+        1040,
+        0
+      ],
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3
+    },
+    {
+      "id": "29063e1c-67c1-58d3-9ccc-f29bc8fea02e",
+      "name": "09 In-app channel",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "58b26bb0-0d87-5224-bd2c-87a8c1569fad",
+              "leftValue": "={{ $json.channel === 'in_app' }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1300,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "c4ed169a-516f-5ee9-849f-735838b8bf66",
+      "maxTries": 3,
+      "name": "10 Fired",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {result: 'in_app'} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/reminders/' + $json.id + '/fired' }}"
+      },
+      "position": [
+        1560,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "0636606e-fd79-5da8-962b-753a55aabef4",
+      "maxTries": 3,
+      "name": "11 Skipped (no email in this deployment)",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {error: 'email channel is not configured'} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/reminders/' + $json.id + '/failed' }}"
+      },
+      "position": [
+        1820,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "8e80a199-46f3-5c59-8a25-ed9f07d1b553",
+      "name": "01 Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {},
+        "path": "jobs/reminders",
+        "responseMode": "responseNode"
+      },
+      "position": [
+        2080,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "751e5b2b-1709-5e18-a5e0-8a6c562376a0"
+    },
+    {
+      "id": "484380d9-de5b-5cdc-8dd8-361239a308f7",
+      "name": "02 Secret ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "2837358e-a7ef-5060-8e07-138e7ebd50cf",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] === $env.N8N_WEBHOOK_SECRET }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        2340,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "ab6d287b-163e-5441-8b5b-80fdb2272689",
+      "name": "03 Accepted",
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "respondWith": "json",
+        "responseBody": "{\"accepted\": true}"
+      },
+      "position": [
+        2600,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "0b9230d1-ddf0-5ee0-8c31-3818c2e7f310",
+      "name": "04 Unauthorized",
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        },
+        "respondWith": "json",
+        "responseBody": "{\"code\": \"invalid_signature\"}"
+      },
+      "position": [
+        2860,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "errorWorkflow": "hosp_f8_error",
+    "executionOrder": "v1"
+  }
+}

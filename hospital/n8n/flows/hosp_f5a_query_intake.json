@@ -1,0 +1,708 @@
+{
+  "active": false,
+  "connections": {
+    "01 Webhook": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Secret ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "02 Secret ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "03 Accepted",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "04 Unauthorized",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "03 Accepted": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "05 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06 Idempotency",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06 Idempotency": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06b Dedupe",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06b Dedupe": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07 Duplicate",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "07 Duplicate": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07b Duplicate end",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "08 Get query",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "08 Get query": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "09 Crew triage",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "09 Crew triage": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "10 Poll set",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "16 Needs owner",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "10 Poll set": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "11 Poll job",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "11 Poll job": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "12 Triage ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "12 Triage ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "13 Post triage",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "16 Needs owner",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "13 Post triage": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "14 Auto draftable",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "14 Auto draftable": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "15 Start draft",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "16 Needs owner",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_f5a_query_intake",
+  "name": "hosp-query-intake",
+  "nodes": [
+    {
+      "id": "e6ece607-9e1f-5b58-9023-a0e9fab6e94d",
+      "name": "01 Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {},
+        "path": "query/intake",
+        "responseMode": "responseNode"
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "3c1f4df5-5fd8-56aa-8c9b-4283ac78b5be"
+    },
+    {
+      "id": "aa2aea2a-cef2-5010-a26d-d00f64ec248a",
+      "name": "02 Secret ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "ba995744-75c4-5b6f-a848-210b6f0d6825",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] === $env.N8N_WEBHOOK_SECRET }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "a97e024e-9127-52cf-9e46-7fc27ba49fbc",
+      "name": "03 Accepted",
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "respondWith": "json",
+        "responseBody": "{\"accepted\": true}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "cf25fca9-5742-574a-86c5-bddbffe4e6e9",
+      "name": "04 Unauthorized",
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        },
+        "respondWith": "json",
+        "responseBody": "{\"code\": \"invalid_signature\"}"
+      },
+      "position": [
+        780,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "1976bfc0-b39c-5758-b5b9-803e07891dfe",
+      "name": "05 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        1040,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "722cfd8f-6c51-5a00-a51d-1637b7c826e0",
+      "name": "06 Idempotency",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "workflow",
+              "type": "string",
+              "value": "f5a"
+            },
+            {
+              "id": "a2",
+              "name": "key",
+              "type": "string",
+              "value": "={{ $('01 Webhook').first().json.body.query_id + ':intake' }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "mode": "manual"
+      },
+      "position": [
+        1300,
+        0
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "05a8cdc0-a658-54e8-8193-cdd83ebeec6f",
+      "name": "06b Dedupe",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u2_idem"
+        }
+      },
+      "position": [
+        1560,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "6a357424-0e63-5644-8687-24b71bc781ca",
+      "name": "07 Duplicate",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "44ac9ca9-a5b9-5f38-917a-cd89e3e1a24e",
+              "leftValue": "={{ $json.duplicate === true }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1820,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "edec3386-526d-55a7-bf7a-722618ff7a0b",
+      "name": "07b Duplicate end",
+      "parameters": {},
+      "position": [
+        2080,
+        0
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "id": "19cdfb48-097b-5c34-8982-c3cbc398a00b",
+      "maxTries": 3,
+      "name": "08 Get query",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "timeout": 10000
+        },
+        "sendHeaders": true,
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/queries/' + $('01 Webhook').first().json.body.query_id }}"
+      },
+      "position": [
+        2340,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "d5e65481-442c-5140-ae23-9af60196cd74",
+      "maxTries": 3,
+      "name": "09 Crew triage",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {query_id: $json.id, case_id: $json.case_id} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 15000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_CREW_URL + '/v1/jobs/query-triage' }}"
+      },
+      "position": [
+        2600,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "5bcf0d0a-6c6e-59a0-bf99-3b97388c23b1",
+      "name": "10 Poll set",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "base_url",
+              "type": "string",
+              "value": "={{ $env.HOSP_CREW_URL }}"
+            },
+            {
+              "id": "c2",
+              "name": "job_id",
+              "type": "string",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "id": "c3",
+              "name": "interval_s",
+              "type": "number",
+              "value": 3
+            },
+            {
+              "id": "c4",
+              "name": "max_wait_s",
+              "type": "number",
+              "value": 60
+            }
+          ]
+        },
+        "mode": "manual"
+      },
+      "position": [
+        2860,
+        0
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "d5b6737f-8689-56bb-892c-7867237aa981",
+      "name": "11 Poll job",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u3_poll"
+        }
+      },
+      "position": [
+        3120,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "20cfc202-16b8-50c6-a37a-12acfa0553dc",
+      "name": "12 Triage ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "972f5a99-0356-5f4a-b5d6-37a0be3c1306",
+              "leftValue": "={{ $json.state === 'succeeded' }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        3380,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "b7a56279-fc80-5834-b34c-f38d89cfbe2f",
+      "maxTries": 3,
+      "name": "13 Post triage",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ $json.result }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/queries/' + $('01 Webhook').first().json.body.query_id + '/triage-result' }}"
+      },
+      "position": [
+        3640,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "50c57e03-8e37-5f3f-8d3e-e3de18acbde1",
+      "name": "14 Auto draftable",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "d1f5ed83-e27c-512d-bd70-da4d813ca4a5",
+              "leftValue": "={{ $('08 Get query').first().json.round < 3 && !$('08 Get query').first().json.escalation_risk && $('13 Post triage').first().json.triage_source === 'crew' }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        3900,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "16630755-ae61-57dc-9f8d-514e28ac45dd",
+      "maxTries": 3,
+      "name": "15 Start draft",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {query_id: $('01 Webhook').first().json.body.query_id, case_id: $('08 Get query').first().json.case_id} }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_CREW_URL + '/v1/jobs/query-draft' }}"
+      },
+      "position": [
+        4160,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "0b56ed72-569a-539e-b0a4-80cafbcf5eee",
+      "maxTries": 3,
+      "name": "16 Needs owner",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {event: 'query.needs_owner', data: {query_id: $('01 Webhook').first().json.body.query_id} } }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/cases/' + $('08 Get query').first().json.case_id + '/notify' }}"
+      },
+      "position": [
+        4420,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "errorWorkflow": "hosp_f8_error",
+    "executionOrder": "v1"
+  }
+}

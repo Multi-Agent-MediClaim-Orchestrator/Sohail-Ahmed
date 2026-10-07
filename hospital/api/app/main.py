@@ -77,7 +77,9 @@ def create_app(
             s.minio_endpoint, s.minio_access_key, s.minio_secret_key, s.minio_bucket, s.minio_secure
         )
         app.state.clam = services.get("clam") or ClamAV(s.clamav_host, s.clamav_port)
-        app.state.n8n = services.get("n8n") or HttpN8n(s.n8n_webhook_base)
+        app.state.n8n = services.get("n8n") or HttpN8n(
+            s.n8n_webhook_base, secret=s.n8n_webhook_secret
+        )
         app.state.crew = services.get("crew") or HttpCrew(s.crew_url)
         app.state.insurer_client = services.get("insurer_client") or httpx.AsyncClient(
             base_url=s.insurer_base_url

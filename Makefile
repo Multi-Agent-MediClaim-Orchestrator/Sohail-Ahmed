@@ -1,5 +1,5 @@
-COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml
-.PHONY: fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
+.PHONY: flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -15,6 +15,15 @@ render:
 up-infra: render
 	$(COMPOSE) --profile infra up -d --wait
 	set -a && . ./.env && set +a && MINIO_ENDPOINT=localhost:$${SHARED_MINIO_PORT:-9000} uv run python infra/minio/init.py
+
+flows:
+	uv run python hospital/n8n/build_flows.py && uv run python scripts/lint_flows.py
+
+up-n8n:
+	$(COMPOSE) --profile hospital up -d --wait hospital-n8n
+
+n8n-test:
+	uv run pytest hospital/n8n -q
 
 down:
 	$(COMPOSE) --profile infra down

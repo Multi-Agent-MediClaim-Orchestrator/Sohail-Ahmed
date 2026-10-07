@@ -1,0 +1,342 @@
+{
+  "active": false,
+  "connections": {
+    "01 Webhook": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "02 Secret ok",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "02 Secret ok": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "03 Accepted",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "04 Unauthorized",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "03 Accepted": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "05 Get Token",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "05 Get Token": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06 Idempotency",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06 Idempotency": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "06b Dedupe",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "06b Dedupe": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07 Duplicate",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "07 Duplicate": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "07b Duplicate end",
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "node": "08 Notify",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hosp_f2_completeness",
+  "name": "hosp-completeness-loop",
+  "nodes": [
+    {
+      "id": "a77dde2c-8977-51c8-83e0-240d63d81b86",
+      "name": "01 Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "options": {},
+        "path": "completeness/changed",
+        "responseMode": "responseNode"
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "830af7c6-79d7-5b11-bb0a-3acc203dfce2"
+    },
+    {
+      "id": "b6b39d16-f114-5466-b0d7-70c9bf8a8e77",
+      "name": "02 Secret ok",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "1d58d54f-ec84-5d6b-8c0b-879898cd6c8e",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] === $env.N8N_WEBHOOK_SECRET }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        260,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "7227c651-60a7-5665-aa2c-5339f964d029",
+      "name": "03 Accepted",
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "respondWith": "json",
+        "responseBody": "{\"accepted\": true}"
+      },
+      "position": [
+        520,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "9be2f3dc-651a-5803-82b6-5f45641f8bbb",
+      "name": "04 Unauthorized",
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        },
+        "respondWith": "json",
+        "responseBody": "{\"code\": \"invalid_signature\"}"
+      },
+      "position": [
+        780,
+        0
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "5ca3b7c3-d031-547f-997e-48b8c2aac026",
+      "name": "05 Get Token",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u1_auth"
+        }
+      },
+      "position": [
+        1040,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "a31e4120-515c-506f-bee0-adf14182684b",
+      "name": "06 Idempotency",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "workflow",
+              "type": "string",
+              "value": "f2"
+            },
+            {
+              "id": "a2",
+              "name": "key",
+              "type": "string",
+              "value": "={{ $('01 Webhook').first().json.body.case_id + ':' + Math.floor(Date.now()/10000) }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "mode": "manual"
+      },
+      "position": [
+        1300,
+        0
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    },
+    {
+      "id": "4d9f44e4-fc79-59e3-b4ad-6fb317f32203",
+      "name": "06b Dedupe",
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hosp_u2_idem"
+        }
+      },
+      "position": [
+        1560,
+        0
+      ],
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2
+    },
+    {
+      "id": "c5ee5450-68d6-5190-9430-37b38714cf12",
+      "name": "07 Duplicate",
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "283814cb-d060-58e0-8d2a-dbb031fffc4f",
+              "leftValue": "={{ $json.duplicate === true }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          }
+        },
+        "options": {}
+      },
+      "position": [
+        1820,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "7b074d04-a9d2-5818-9519-bb7cfa5d755d",
+      "name": "07b Duplicate end",
+      "parameters": {},
+      "position": [
+        2080,
+        0
+      ],
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1
+    },
+    {
+      "id": "01d950f5-e86f-5b39-b5b3-6ceb63be3709",
+      "maxTries": 3,
+      "name": "08 Notify",
+      "parameters": {
+        "contentType": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Correlation-Id",
+              "value": "={{ $('01 Webhook').first().json.body.correlation_id || '' }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('05 Get Token').first().json.access_token }}"
+            }
+          ]
+        },
+        "jsonBody": "={{ {event: 'completeness.updated', data: {} } }}",
+        "method": "POST",
+        "options": {
+          "timeout": 10000
+        },
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "url": "={{ $env.HOSP_API_URL + '/v1/internal/cases/' + $('01 Webhook').first().json.body.case_id + '/notify' }}"
+      },
+      "position": [
+        2340,
+        0
+      ],
+      "retryOnFail": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "errorWorkflow": "hosp_f8_error",
+    "executionOrder": "v1"
+  }
+}

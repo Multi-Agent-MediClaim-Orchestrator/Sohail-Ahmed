@@ -17,7 +17,8 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "infra/tests/**" = ["S101", "S603", "S607"]
 "hospital/api/alembic/versions/*" = ["E501"]   # raw DDL copied from the spec
 "hospital/api/app/models/*" = ["E501", "UP042"]  # generated from the migrated schema
-"hospital/api/tests/*" = ["S101", "S608", "E501", "S311"]
+"hospital/api/tests/*" = ["S101", "S106", "S608", "E501", "S311"]
+"hospital/n8n/tests/*" = ["S101", "S105", "S106", "S310", "S603", "S607", "E501"]
 "hospital/api/app/**" = ["B008"]  # FastAPI Depends() defaults
 "hospital/api/app/services/cases.py" = ["S608"]
 "hospital/api/app/services/queries.py" = ["S608"]
@@ -26,7 +27,7 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "**/tests/**" = ["S101"]
 
 [tool.pytest.ini_options]
-markers = ["unit", "integration", "contract", "e2e", "slow", "llm"]
+markers = ["unit", "integration", "contract", "e2e", "slow", "llm", "n8n"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
