@@ -1,0 +1,18 @@
+:root { --bg: #fff; --fg: #1a1d21; --muted: #5b6573; --line: #d8dde3; --ok: #1b7f4b; --warning: #a15c00; --blocker: #b3261e; --info: #1d5fa8; }
+@media (prefers-color-scheme: dark) { :root { --bg: #14171a; --fg: #e8ebef; --muted: #9aa5b1; --line: #2c333b; --ok: #52c98a; --warning: #f0a93b; --blocker: #ff7b72; --info: #6cb0ff; } }
+body { margin: 0; font: 14px/1.45 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+nav { display: flex; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+nav a { color: var(--info); text-decoration: none; }
+main { padding: 16px; }
+table { border-collapse: collapse; width: 100%; } th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+.muted { color: var(--muted); } .error { color: var(--blocker); }
+.chip { display: inline-block; padding: 1px 8px; border: 1px solid var(--line); border-radius: 10px; font-size: 12px; margin-right: 4px; }
+.chip-blocker, .chip-failed { color: var(--blocker); border-color: var(--blocker); } .chip-warning { color: var(--warning); border-color: var(--warning); }
+.chip-ok, .chip-passed { color: var(--ok); border-color: var(--ok); } .chip-info { color: var(--info); border-color: var(--info); }
+.banner { border: 1px solid var(--info); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
+.ws-header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
+.panes { display: grid; grid-template-columns: 1fr 1.2fr 1.6fr; gap: 16px; } .pane { border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-width: 0; }
+@media (max-width: 1100px) { .panes { grid-template-columns: 1fr; } }
+.ws-footer { margin-top: 12px; color: var(--muted); font-size: 12px; }
+label { display: block; margin: 8px 0; } input, select, textarea { display: block; width: 100%; max-width: 420px; padding: 6px; font: inherit; }
+button { padding: 6px 14px; font: inherit; cursor: pointer; } button[disabled] { cursor: not-allowed; opacity: 0.6; }

@@ -1,0 +1,150 @@
+[
+ {
+  "name": "calc_agreement_vs_reference",
+  "value": 1.0,
+  "k": 296,
+  "n": 296,
+  "ci95": [
+   0.9872,
+   1.0
+  ],
+  "target": 0.995,
+  "pass": true,
+  "suite": "calc"
+ },
+ {
+  "name": "decision_route_correctness",
+  "value": 1.0,
+  "k": 202,
+  "n": 202,
+  "ci95": [
+   0.9813,
+   1.0
+  ],
+  "target": 1.0,
+  "pass": true,
+  "suite": "gate"
+ },
+ {
+  "name": "wrongful_auto_path",
+  "value": 0.0,
+  "k": 0,
+  "n": 202,
+  "ci95": [
+   -0.0,
+   0.0187
+  ],
+  "target": 0.0,
+  "pass": true,
+  "suite": "gate"
+ },
+ {
+  "name": "mapper_rule_accuracy",
+  "value": 1.0,
+  "k": 210,
+  "n": 210,
+  "ci95": [
+   0.982,
+   1.0
+  ],
+  "target": 0.97,
+  "pass": true,
+  "suite": "mapper"
+ },
+ {
+  "name": "identity_match_recall",
+  "value": 1.0,
+  "k": 200,
+  "n": 200,
+  "ci95": [
+   0.9812,
+   1.0
+  ],
+  "target": 0.98,
+  "pass": true,
+  "suite": "identity"
+ },
+ {
+  "name": "identity_mismatch_recall",
+  "value": 1.0,
+  "k": 200,
+  "n": 200,
+  "ci95": [
+   0.9812,
+   1.0
+  ],
+  "target": 0.95,
+  "pass": true,
+  "suite": "identity"
+ },
+ {
+  "name": "rag_recall@5",
+  "value": 0.93,
+  "target": 0.85,
+  "pass": true,
+  "k": null,
+  "n": 120,
+  "ci95": null,
+  "suite": "rag"
+ },
+ {
+  "name": "rag_mrr",
+  "value": 0.8002,
+  "target": 0.6,
+  "pass": true,
+  "k": null,
+  "n": 120,
+  "ci95": null,
+  "suite": "rag"
+ },
+ {
+  "name": "rag_ndcg@5",
+  "value": 0.8329,
+  "target": 0.7,
+  "pass": true,
+  "k": null,
+  "n": 120,
+  "ci95": null,
+  "suite": "rag"
+ },
+ {
+  "name": "rag_citation_precision",
+  "value": 0.6104,
+  "target": 0.9,
+  "pass": false,
+  "k": null,
+  "n": 120,
+  "ci95": null,
+  "suite": "rag"
+ },
+ {
+  "name": "rag_insufficient_evidence_accuracy",
+  "value": 1.0,
+  "target": 0.9,
+  "pass": true,
+  "k": null,
+  "n": 120,
+  "ci95": null,
+  "suite": "rag"
+ },
+ {
+  "name": "rag_temporal_trap_accuracy",
+  "value": 1.0,
+  "target": 0.95,
+  "pass": true,
+  "k": null,
+  "n": 120,
+  "ci95": null,
+  "suite": "rag"
+ },
+ {
+  "name": "rag_numeric_faithfulness",
+  "value": 1.0,
+  "target": 1.0,
+  "pass": true,
+  "k": null,
+  "n": 120,
+  "ci95": null,
+  "suite": "rag"
+ }
+]

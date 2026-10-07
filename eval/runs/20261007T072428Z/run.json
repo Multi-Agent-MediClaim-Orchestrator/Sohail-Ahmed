@@ -1,0 +1,16 @@
+{
+ "stamp": "20261007T072428Z",
+ "seed": 42,
+ "cases": 300,
+ "python": "3.12.10",
+ "generator": "1.0.0",
+ "llm_mode": "offline-stub",
+ "not_run": {
+  "doc_parse_accuracy": "needs doc-pipeline (Dev A) and rendered images",
+  "vision_stamp_signature": "needs vision-service",
+  "pii_masking_recall": "needs Presidio in doc-pipeline",
+  "verification_pipeline_e2e": "run `pytest insurer/api/tests/test_golden_e2e.py` (needs Docker/Postgres)",
+  "llm_agent_quality": "needs the live gateway (Gemini/Ollama); offline stubs only here",
+  "calibration": "needs parser/vision confidences from the live pipeline"
+ }
+}

@@ -1,0 +1,290 @@
+{
+ "applies_to": [
+  "insurer"
+ ],
+ "archetype": "S06",
+ "archetype_name": "missing_conditional_doc",
+ "case_id": "SYN-009006",
+ "documents": [
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cb8a",
+   "doc_type": "discharge_summary",
+   "sha256": "3a8c2988405c033805d5b4d4935a8a1b633e53e92127b7281dd266ee1bd05a5e",
+   "size_bytes": 1013
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cb8b",
+   "doc_type": "final_bill",
+   "sha256": "36d440e41ff7d76a7c7e002ab8b94450cb5e0806f4a71916b29b9675c0519e9b",
+   "size_bytes": 1225
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cb8c",
+   "doc_type": "itemised_bill",
+   "sha256": "0cd8824af4d3728307e298f740778ecb80d34c791f48330a03e45ca78577f953",
+   "size_bytes": 1231
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cb8d",
+   "doc_type": "claim_form",
+   "sha256": "47ac9b3414c86e6247f367683da4bdcfaecdf2866f4d609222bc06c204eb6a65",
+   "size_bytes": 908
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cb8e",
+   "doc_type": "id_proof",
+   "sha256": "2f7b7a3db8bb68737973a12ffc29a6835831da6e45ae252a378e419fb7856bfb",
+   "size_bytes": 904
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cb8f",
+   "doc_type": "policy_card",
+   "sha256": "10485eed91793c7c5ea4e6877304cfd9329104868400697d1b21a2fe61c53c0e",
+   "size_bytes": 910
+  }
+ ],
+ "expected": {
+  "hospital": {
+   "complete": false,
+   "missing": [
+    "implant_sticker"
+   ]
+  },
+  "insurer": {
+   "blocked": null,
+   "finding_codes_include": [
+    "completeness.missing_required"
+   ],
+   "gate_amount": "183300.00",
+   "payable": "28300.00",
+   "reference_flags": [
+    "WAITING_PERIOD_HIT"
+   ],
+   "rejected_at_door": false,
+   "route": "none",
+   "status": "needs_info"
+  }
+ },
+ "labels": {
+  "degrade": null,
+  "expected_quality_class": "good",
+  "handwritten": false,
+  "late_filing": false,
+  "pii_in_free_text": false,
+  "stamp_present": true,
+  "tamper": null
+ },
+ "member": {
+  "cover_start": "2025-01-21",
+  "dob": "2001-02-27",
+  "full_name": "Rahul Gupta",
+  "gender": "F",
+  "member_id": "MEM-70000014",
+  "relationship": "spouse"
+ },
+ "policy": {
+  "end_date": "2027-01-20",
+  "policy_number": "POL-NIV-2025-000104",
+  "premium_paid_until": "2027-01-20",
+  "start_date": "2026-01-21",
+  "sum_insured": 2500000
+ },
+ "procedure_group": "knee_replacement",
+ "product": "HEALTH-PLUS-GOLD",
+ "scenario": "happy_path",
+ "schema_version": "1.0",
+ "seed": 42,
+ "submission": {
+  "admission": {
+   "admission_type": "planned",
+   "admitted_on": "2026-09-07",
+   "diagnosis_codes": [
+    "M17.1"
+   ],
+   "discharged_on": "2026-09-11",
+   "hospital_id": "HOSP-0007",
+   "preauth_ref": "PA-2026-09006",
+   "procedure_codes": [
+    "0SRC0JZ"
+   ],
+   "treating_doctor": "Dr. R. Menon"
+  },
+  "bill_lines": [
+   {
+    "amount": {
+     "amount": "16000.00",
+     "currency": "INR"
+    },
+    "category": "room",
+    "code": "ITM-0001",
+    "description": "Room rent (semi-private)",
+    "line_id": "L001",
+    "qty": "4",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cb8b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "4000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "60000.00",
+     "currency": "INR"
+    },
+    "category": "surgery",
+    "code": "ITM-0002",
+    "description": "Surgeon fee",
+    "line_id": "L002",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cb8b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "60000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "95000.00",
+     "currency": "INR"
+    },
+    "category": "implant",
+    "code": "ITM-0003",
+    "description": "Knee prosthesis",
+    "line_id": "L003",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cb8b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "95000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "12300.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0004",
+    "description": "Medicines",
+    "line_id": "L004",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cb8b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "12300.00",
+     "currency": "INR"
+    }
+   }
+  ],
+  "claim_ref": "HC-2026-009006",
+  "claim_type": "cashless",
+  "config_versions": {
+   "confidence_gates": 1,
+   "deadlines": 2,
+   "doc_requirements": 4,
+   "router_rules": 3
+  },
+  "contract_version": "1.0",
+  "documents": [
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cb8a",
+    "doc_type": "discharge_summary",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cb8a/discharge_summary.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "discharge_summary.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "3a8c2988405c033805d5b4d4935a8a1b633e53e92127b7281dd266ee1bd05a5e",
+    "size_bytes": 1013
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cb8b",
+    "doc_type": "final_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cb8b/final_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "final_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "36d440e41ff7d76a7c7e002ab8b94450cb5e0806f4a71916b29b9675c0519e9b",
+    "size_bytes": 1225
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cb8c",
+    "doc_type": "itemised_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cb8c/itemised_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "itemised_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "0cd8824af4d3728307e298f740778ecb80d34c791f48330a03e45ca78577f953",
+    "size_bytes": 1231
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cb8d",
+    "doc_type": "claim_form",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cb8d/claim_form.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "claim_form.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "47ac9b3414c86e6247f367683da4bdcfaecdf2866f4d609222bc06c204eb6a65",
+    "size_bytes": 908
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cb8e",
+    "doc_type": "id_proof",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cb8e/id_proof.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "id_proof.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "2f7b7a3db8bb68737973a12ffc29a6835831da6e45ae252a378e419fb7856bfb",
+    "size_bytes": 904
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cb8f",
+    "doc_type": "policy_card",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cb8f/policy_card.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "policy_card.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "10485eed91793c7c5ea4e6877304cfd9329104868400697d1b21a2fe61c53c0e",
+    "size_bytes": 910
+   }
+  ],
+  "patient": {
+   "dob": "2001-02-27",
+   "full_name": "Rahul Gupta",
+   "gender": "F",
+   "id_proof_hash": "850649939faba80f2db49726b44d717d0daca63d67f237f790bd4c4bb6e58cc7",
+   "member_id": "MEM-70000014",
+   "policy_number": "POL-NIV-2025-000104"
+  },
+  "submitted_at": "2026-09-11T16:42:10Z",
+  "totals": {
+   "claimed": {
+    "amount": "183300.00",
+    "currency": "INR"
+   },
+   "discounts": {
+    "amount": "0.00",
+    "currency": "INR"
+   },
+   "gross": {
+    "amount": "183300.00",
+    "currency": "INR"
+   }
+  }
+ },
+ "utilised_prior": "0.00"
+}

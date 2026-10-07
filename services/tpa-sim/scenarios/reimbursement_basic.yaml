@@ -1,0 +1,10 @@
+id: reimbursement_basic
+name: Reimbursement basic
+description: Reimbursement flow - query for a cancelled cheque, approve, settle with UTR.
+match: {claim_type: reimbursement}
+steps:
+  - {id: verifying, kind: status, status: verifying, after: 2s}
+  - {id: q1, kind: query, category: missing_document, requested_doc_types: [cancelled_cheque], text: "Please upload a cancelled cheque for the payee account.", after: 2s}
+  - {id: w1, kind: wait_response}
+  - {id: decision, kind: decision, outcome: approve, after: 3s}
+  - {id: paid, kind: settlement, settle: paid, after: 5s}

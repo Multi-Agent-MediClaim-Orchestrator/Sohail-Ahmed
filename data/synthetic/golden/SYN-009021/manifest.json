@@ -1,0 +1,13 @@
+{
+ "files": {
+  "case.json": "e031eb9480b51d46111a493df492a500e086aa569ba6081e92df8abfc9fd2afc",
+  "docs/claim_form_cf4d.pdf": "ef928f7e592989e3e5a5875d2eb7fc40a46d4a79fc3ca4d53d34be9f06b46077",
+  "docs/discharge_summary_cf4a.pdf": "f82a8eb3b6fcb9d776136dc298d0e7cf009d2fe3ef2eacf48851c46020a1489f",
+  "docs/final_bill_cf4b.pdf": "69fe47f39829e78b08c77be573ec3cb20a91afb61ffdcaab2e28159ca552dfc0",
+  "docs/id_proof_cf4e.pdf": "412edcb06b21774d8b41b7c79089cee0476ff5b5ac626485a5afabfecd30590c",
+  "docs/implant_sticker_cf50.pdf": "333f418351ef4baa4dab8a23ae0a4ad07db9f93b5718b2563f36eb690cabcb2b",
+  "docs/itemised_bill_cf4c.pdf": "ed976007765416f0276245c97c3972262784b4bebcf44ecb0a1a26119e5fd7e9",
+  "docs/policy_card_cf4f.pdf": "42f2026162870c5e45836066138e4ad0c7ea077f0a0b48b1c66f87039d27480d"
+ },
+ "generator_version": "1.0.0"
+}

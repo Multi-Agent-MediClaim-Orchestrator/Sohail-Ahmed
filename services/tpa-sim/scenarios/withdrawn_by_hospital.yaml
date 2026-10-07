@@ -1,0 +1,7 @@
+id: withdrawn_by_hospital
+name: Withdrawn by hospital
+description: Waits for the hospital to withdraw; the claim is then closed.
+steps:
+  - {id: verifying, kind: status, status: verifying, after: 2s}
+  - {id: hold, kind: wait_response}
+  - {id: never, kind: status, status: ready_for_decision}

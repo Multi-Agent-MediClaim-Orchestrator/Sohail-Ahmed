@@ -1,0 +1,9 @@
+id: identity_mismatch
+name: Identity mismatch query
+description: Query category identity_mismatch requesting id_proof; approve after the response.
+steps:
+  - {id: verifying, kind: status, status: verifying, after: 2s}
+  - {id: q1, kind: query, category: identity_mismatch, requested_doc_types: [id_proof], text: "The patient name differs from the policy record; please upload a valid photo ID.", after: 2s}
+  - {id: w1, kind: wait_response}
+  - {id: decision, kind: decision, outcome: approve, after: 5s}
+  - {id: paid, kind: settlement, settle: paid, after: 10s}

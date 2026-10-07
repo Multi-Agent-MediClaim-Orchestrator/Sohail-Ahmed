@@ -1,0 +1,20 @@
+from,to,port,expected,note
+insurer-api,insurer-db,5432,allow,own database
+insurer-api,redis,6379,allow,cache/idempotency
+insurer-api,minio,9000,allow,document store (presigned fetch)
+insurer-api,calc-engine,8120,allow,pure calculator
+insurer-api,insurer-crew,8110,allow,agents
+insurer-api,rag-service,8400,allow,retrieval
+insurer-api,tpa-sim,8500,allow,bank simulator (settlement is simulation only)
+insurer-api,hospital-api,8000,allow,callbacks only via HOSPITAL_API_URL
+insurer-api,hospital-db,5432,deny,not on this compose network
+insurer-crew,llm-gateway,4000,allow,the only LLM path
+insurer-crew,insurer-db,5432,deny,agents hold no DB credentials
+insurer-crew,internet,443,deny,no provider keys; gateway only
+rag-service,qdrant,6333,allow,vector store
+rag-service,llm-gateway,4000,allow,embeddings and answers
+rag-service,insurer-db,5432,deny,independent SQLite
+llm-gateway,internet,443,allow,only service allowed to reach providers (Gemini)
+llm-gateway,ollama,11434,allow,local models
+insurer-ui,insurer-api,8100,allow,BFF proxy
+insurer-ui,insurer-db,5432,deny,UI calls only insurer-api

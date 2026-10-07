@@ -1,0 +1,8 @@
+# Optional (profile `obs`): scrape every service's /metrics every 30 s. Weak-machine default is OFF; `scripts/doctor.py` works without it.
+global: {scrape_interval: 30s, evaluation_interval: 30s}
+rule_files: [alerts.yml]
+scrape_configs:
+  - {job_name: insurer-api, metrics_path: /metrics, static_configs: [{targets: ["insurer-api:8100"]}]}
+  - {job_name: insurer-crew, metrics_path: /metrics, static_configs: [{targets: ["insurer-crew:8110"]}]}
+  - {job_name: rag-service, metrics_path: /metrics, static_configs: [{targets: ["rag-service:8400"]}]}
+  - {job_name: llm-gateway, metrics_path: /metrics, static_configs: [{targets: ["llm-gateway:4000"]}]}

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "insurer-crew"
+version = "0.1.0"
+description = "Stateless LLM agent service for the insurer (Dev B)"
+requires-python = ">=3.12"
+dependencies = ["claim-contract", "calc-engine", "fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27", "pydantic>=2.7", "pydantic-settings>=2.2", "PyJWT>=2.8", "prometheus-client>=0.20", "rapidfuzz>=3.6", "redis>=5"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["insurer_crew*"]
+
+[tool.setuptools.package-data]
+insurer_crew = ["prompts/*.md", "templates/*.md", "data/*.yaml"]

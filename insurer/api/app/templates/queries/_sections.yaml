@@ -1,0 +1,22 @@
+# per-category section text used by the deterministic fallback (03-05 §5 task 5). {docs} = requested document types.
+missing_document:
+  title: "Missing documents"
+  body: "please provide the following document(s): {docs}"
+illegible_document:
+  title: "Illegible documents"
+  body: "the following document(s) could not be read reliably, please resubmit a clear copy: {docs}"
+identity_mismatch:
+  title: "Identity verification"
+  body: "the patient details on the submitted documents differ from the policy record; please provide a valid identity proof and policy card ({docs})"
+medical_clarification:
+  title: "Medical clarification"
+  body: "please provide a short clinical justification for the dates and treatment on the claim, with supporting reports ({docs})"
+billing_discrepancy:
+  title: "Billing discrepancy"
+  body: "the bill totals do not reconcile with the itemised lines; please provide a corrected itemised bill or an explanation ({docs})"
+policy_exclusion:
+  title: "Policy clarification"
+  body: "the treatment may fall under a policy exclusion; please share the treating doctor's justification"
+other:
+  title: "Additional information"
+  body: "additional information is required to process this claim"

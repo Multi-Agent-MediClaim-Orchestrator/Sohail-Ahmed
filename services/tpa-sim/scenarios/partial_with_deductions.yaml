@@ -1,0 +1,8 @@
+id: partial_with_deductions
+name: Partial approval with deductions
+description: Partial approval (room rent cap, non-payable consumables, co-pay).
+steps:
+  - {id: verifying, kind: status, status: verifying, after: 2s}
+  - {id: ready, kind: status, status: ready_for_decision, after: 5s}
+  - {id: decision, kind: decision, outcome: partial, approved_ratio: 0.8, reason_codes: [ROOM_RENT_CAP, NON_PAYABLE, COPAY], after: 5s}
+  - {id: paid, kind: settlement, settle: paid, after: 10s}

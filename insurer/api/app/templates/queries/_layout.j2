@@ -1,0 +1,9 @@
+Dear {{ hospital_name }} team,
+{% if round >= 3 %}This is the final request on this claim (round {{ round }} of 3). {% endif %}To continue processing claim {{ claim_ref }} we need the following:
+{% for s in sections %}
+{{ loop.index }}) {{ s.title }}: {{ s.body }}
+{% endfor %}
+{% if doc_list %}Documents requested: {{ doc_list }}.
+{% endif %}Please respond by {{ due_text }}.{% if round >= 3 %} Without a response the claim will be referred to a senior reviewer for a decision on the information available.{% endif %}
+For questions please contact the claims desk quoting {{ insurer_claim_no }}.
+Thank you.

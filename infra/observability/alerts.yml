@@ -1,0 +1,9 @@
+groups:
+  - name: claims-insurer
+    rules:
+      - {alert: OutboxDeadLetter, expr: "outbox_dead_letter > 0", for: 1m, labels: {severity: high}, annotations: {runbook: "R2"}}
+      - {alert: AuditChainBroken, expr: 'increase(audit_chain_verify_failures_total[1h]) > 0', labels: {severity: critical}, annotations: {runbook: "R7"}}
+      - {alert: HumanQueueStale, expr: 'human_queue_age_seconds{queue="review"} > 86400', for: 10m, labels: {severity: medium}, annotations: {runbook: "notify reviewers"}}
+      - {alert: InsurerNotReady, expr: "service_ready == 0", for: 2m, labels: {severity: high}, annotations: {runbook: "R4"}}
+      - {alert: CrewDegradedOutputs, expr: "rate(crew_degraded_total[10m]) > 0.3 * rate(crew_requests_total[10m])", for: 10m, labels: {severity: medium}, annotations: {runbook: "R3"}}
+      - {alert: RagInsufficientEvidenceHigh, expr: "rate(rag_insufficient_evidence_total[30m]) > 0.5", for: 30m, labels: {severity: low}, annotations: {runbook: "R3"}}

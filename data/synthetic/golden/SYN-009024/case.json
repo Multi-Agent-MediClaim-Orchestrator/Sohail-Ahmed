@@ -1,0 +1,1083 @@
+{
+ "applies_to": [
+  "insurer"
+ ],
+ "archetype": "S24",
+ "archetype_name": "multi_page_bill_50_lines",
+ "case_id": "SYN-009024",
+ "documents": [
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008d00a",
+   "doc_type": "discharge_summary",
+   "sha256": "273cf0fe7c70624af14901872e73f19274a2ae80b5f341548ce208ef3ea627f0",
+   "size_bytes": 1014
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+   "doc_type": "final_bill",
+   "sha256": "ecd577a754a7e19019e8a7f6b9356277fd1e4e68f137f16fc6357790c71dd88f",
+   "size_bytes": 4019
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008d00c",
+   "doc_type": "itemised_bill",
+   "sha256": "6d611295e8c24d453f4e27fd103765f4b8e332b8df2ead895e956f366366787c",
+   "size_bytes": 4025
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008d00d",
+   "doc_type": "claim_form",
+   "sha256": "239c7caf6325326413b3ae129250237b1038b49c290e1db463fef7ac63b31ae6",
+   "size_bytes": 909
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008d00e",
+   "doc_type": "id_proof",
+   "sha256": "12493dc8a0e58efecabbf9c3b72b23a8725ae984bc5aebe2c04135f9ff53a654",
+   "size_bytes": 905
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008d00f",
+   "doc_type": "policy_card",
+   "sha256": "2221068d7e36bdfc9a8e3a501c8d404b280d83ee3520e7572672c21e6e07270d",
+   "size_bytes": 911
+  }
+ ],
+ "expected": {
+  "hospital": {
+   "complete": true,
+   "missing": []
+  },
+  "insurer": {
+   "blocked": null,
+   "finding_codes_include": [],
+   "gate_amount": "115131.00",
+   "payable": "115131.00",
+   "reference_flags": [],
+   "rejected_at_door": false,
+   "route": "single_approver",
+   "status": "ready_for_decision"
+  }
+ },
+ "labels": {
+  "degrade": null,
+  "expected_quality_class": "good",
+  "handwritten": false,
+  "late_filing": false,
+  "pii_in_free_text": false,
+  "stamp_present": true,
+  "tamper": null
+ },
+ "member": {
+  "cover_start": "2026-01-01",
+  "dob": "1965-11-05",
+  "full_name": "Sunita Menon",
+  "gender": "F",
+  "member_id": "MEM-70000121",
+  "relationship": "self"
+ },
+ "policy": {
+  "end_date": "2026-12-31",
+  "policy_number": "POL-NIV-2025-000140",
+  "premium_paid_until": "2026-12-31",
+  "start_date": "2026-01-01",
+  "sum_insured": 1000000
+ },
+ "procedure_group": "urology",
+ "product": "HEALTH-PLUS-GOLD",
+ "scenario": "happy_path",
+ "schema_version": "1.0",
+ "seed": 42,
+ "submission": {
+  "admission": {
+   "admission_type": "planned",
+   "admitted_on": "2026-09-01",
+   "diagnosis_codes": [
+    "N20.0"
+   ],
+   "discharged_on": "2026-09-04",
+   "hospital_id": "HOSP-0001",
+   "preauth_ref": "PA-2026-09024",
+   "procedure_codes": [
+    "0TC30ZZ"
+   ],
+   "treating_doctor": "Dr. R. Menon"
+  },
+  "bill_lines": [
+   {
+    "amount": {
+     "amount": "9000.00",
+     "currency": "INR"
+    },
+    "category": "room",
+    "code": "ITM-0001",
+    "description": "Room rent (semi-private)",
+    "line_id": "L001",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "3000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "500.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0002",
+    "description": "Medicine item 0",
+    "line_id": "L002",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "500.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1274.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0003",
+    "description": "Medicine item 1",
+    "line_id": "L003",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "637.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1722.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0004",
+    "description": "Medicine item 2",
+    "line_id": "L004",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "574.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "611.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0005",
+    "description": "Medicine item 3",
+    "line_id": "L005",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "611.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1696.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0006",
+    "description": "Medicine item 4",
+    "line_id": "L006",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "848.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1755.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0007",
+    "description": "Medicine item 5",
+    "line_id": "L007",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "585.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "722.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0008",
+    "description": "Medicine item 6",
+    "line_id": "L008",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "722.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1518.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0009",
+    "description": "Medicine item 7",
+    "line_id": "L009",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "759.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1788.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0010",
+    "description": "Medicine item 8",
+    "line_id": "L010",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "596.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "733.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0011",
+    "description": "Medicine item 9",
+    "line_id": "L011",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "733.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2140.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0012",
+    "description": "Medicine item 10",
+    "line_id": "L012",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "1070.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2421.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0013",
+    "description": "Medicine item 11",
+    "line_id": "L013",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "807.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "844.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0014",
+    "description": "Medicine item 12",
+    "line_id": "L014",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "844.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1562.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0015",
+    "description": "Medicine item 13",
+    "line_id": "L015",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "781.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "3654.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0016",
+    "description": "Medicine item 14",
+    "line_id": "L016",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "1218.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "855.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0017",
+    "description": "Medicine item 15",
+    "line_id": "L017",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "855.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1984.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0018",
+    "description": "Medicine item 16",
+    "line_id": "L018",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "992.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "3387.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0019",
+    "description": "Medicine item 17",
+    "line_id": "L019",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "1129.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1166.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0020",
+    "description": "Medicine item 18",
+    "line_id": "L020",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "1166.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2406.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0021",
+    "description": "Medicine item 19",
+    "line_id": "L021",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "1203.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "3420.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0022",
+    "description": "Medicine item 20",
+    "line_id": "L022",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "1140.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1277.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0023",
+    "description": "Medicine item 21",
+    "line_id": "L023",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "1277.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2828.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0024",
+    "description": "Medicine item 22",
+    "line_id": "L024",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "1414.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "4053.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0025",
+    "description": "Medicine item 23",
+    "line_id": "L025",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "1351.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1488.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0026",
+    "description": "Medicine item 24",
+    "line_id": "L026",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "1488.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1450.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0027",
+    "description": "Medicine item 25",
+    "line_id": "L027",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "725.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2286.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0028",
+    "description": "Medicine item 26",
+    "line_id": "L028",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "762.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "799.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0029",
+    "description": "Medicine item 27",
+    "line_id": "L029",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "799.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1472.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0030",
+    "description": "Medicine item 28",
+    "line_id": "L030",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "736.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1719.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0031",
+    "description": "Medicine item 29",
+    "line_id": "L031",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "573.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "910.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0032",
+    "description": "Medicine item 30",
+    "line_id": "L032",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "910.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1694.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0033",
+    "description": "Medicine item 31",
+    "line_id": "L033",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "847.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2952.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0034",
+    "description": "Medicine item 32",
+    "line_id": "L034",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "984.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1021.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0035",
+    "description": "Medicine item 33",
+    "line_id": "L035",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "1021.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1716.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0036",
+    "description": "Medicine item 34",
+    "line_id": "L036",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "858.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "3285.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0037",
+    "description": "Medicine item 35",
+    "line_id": "L037",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "1095.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1032.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0038",
+    "description": "Medicine item 36",
+    "line_id": "L038",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "1032.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1938.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0039",
+    "description": "Medicine item 37",
+    "line_id": "L039",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "969.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "3318.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0040",
+    "description": "Medicine item 38",
+    "line_id": "L040",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "1106.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "1243.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0041",
+    "description": "Medicine item 39",
+    "line_id": "L041",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "1243.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "300.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0042",
+    "description": "Consumable 0",
+    "line_id": "L042",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "150.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "322.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0043",
+    "description": "Consumable 1",
+    "line_id": "L043",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "161.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "344.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0044",
+    "description": "Consumable 2",
+    "line_id": "L044",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "172.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "366.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0045",
+    "description": "Consumable 3",
+    "line_id": "L045",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "183.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "388.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0046",
+    "description": "Consumable 4",
+    "line_id": "L046",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "194.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "410.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0047",
+    "description": "Consumable 5",
+    "line_id": "L047",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "205.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "432.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0048",
+    "description": "Consumable 6",
+    "line_id": "L048",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "216.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "454.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0049",
+    "description": "Consumable 7",
+    "line_id": "L049",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "227.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "476.00",
+     "currency": "INR"
+    },
+    "category": "consumable",
+    "code": "ITM-0050",
+    "description": "Consumable 8",
+    "line_id": "L050",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "238.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "30000.00",
+     "currency": "INR"
+    },
+    "category": "surgery",
+    "code": "ITM-0051",
+    "description": "Surgeon fee",
+    "line_id": "L051",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "30000.00",
+     "currency": "INR"
+    }
+   }
+  ],
+  "claim_ref": "HC-2026-009024",
+  "claim_type": "cashless",
+  "config_versions": {
+   "confidence_gates": 1,
+   "deadlines": 2,
+   "doc_requirements": 4,
+   "router_rules": 3
+  },
+  "contract_version": "1.0",
+  "documents": [
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008d00a",
+    "doc_type": "discharge_summary",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008d00a/discharge_summary.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "discharge_summary.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "273cf0fe7c70624af14901872e73f19274a2ae80b5f341548ce208ef3ea627f0",
+    "size_bytes": 1014
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008d00b",
+    "doc_type": "final_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008d00b/final_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "final_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "ecd577a754a7e19019e8a7f6b9356277fd1e4e68f137f16fc6357790c71dd88f",
+    "size_bytes": 4019
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008d00c",
+    "doc_type": "itemised_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008d00c/itemised_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "itemised_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "6d611295e8c24d453f4e27fd103765f4b8e332b8df2ead895e956f366366787c",
+    "size_bytes": 4025
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008d00d",
+    "doc_type": "claim_form",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008d00d/claim_form.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "claim_form.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "239c7caf6325326413b3ae129250237b1038b49c290e1db463fef7ac63b31ae6",
+    "size_bytes": 909
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008d00e",
+    "doc_type": "id_proof",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008d00e/id_proof.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "id_proof.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "12493dc8a0e58efecabbf9c3b72b23a8725ae984bc5aebe2c04135f9ff53a654",
+    "size_bytes": 905
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008d00f",
+    "doc_type": "policy_card",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008d00f/policy_card.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "policy_card.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "2221068d7e36bdfc9a8e3a501c8d404b280d83ee3520e7572672c21e6e07270d",
+    "size_bytes": 911
+   }
+  ],
+  "patient": {
+   "dob": "1965-11-05",
+   "full_name": "Sunita Menon",
+   "gender": "F",
+   "id_proof_hash": "2b2fde33ca29455003e1a92fb36dc249ce4b22cbb931289ac48ed45361d373f9",
+   "member_id": "MEM-70000121",
+   "policy_number": "POL-NIV-2025-000140"
+  },
+  "submitted_at": "2026-09-04T16:42:10Z",
+  "totals": {
+   "claimed": {
+    "amount": "115131.00",
+    "currency": "INR"
+   },
+   "discounts": {
+    "amount": "0.00",
+    "currency": "INR"
+   },
+   "gross": {
+    "amount": "115131.00",
+    "currency": "INR"
+   }
+  }
+ },
+ "utilised_prior": "0.00"
+}

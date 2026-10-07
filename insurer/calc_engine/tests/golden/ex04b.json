@@ -1,0 +1,142 @@
+{
+ "note": "",
+ "input": {
+  "case_id": "0191f0a2-0000-7000-8000-000000000001",
+  "claim_type": "cashless",
+  "admission_type": "planned",
+  "policy": {
+   "policy_number": "P-1",
+   "product_code": "HF-GOLD",
+   "status": "active",
+   "start_date": "2026-01-01",
+   "end_date": "2026-12-31",
+   "premium_paid_until": "2026-12-31",
+   "grace_days": 30,
+   "sum_insured": "500000.00",
+   "bonus_sum": "0.00",
+   "utilised_this_year": "0.00",
+   "sum_insured_basis": "individual"
+  },
+  "member": {
+   "member_id": "M-9",
+   "relationship": "self",
+   "dob": "1964-01-01",
+   "cover_start": "2020-01-01",
+   "pre_existing": []
+  },
+  "admission": {
+   "admitted_on": "2026-09-01",
+   "discharged_on": "2026-09-04",
+   "admission_type": "planned",
+   "diagnosis_codes": [
+    "K35.8"
+   ],
+   "procedure_codes": [],
+   "procedure_group": null,
+   "day_care": false,
+   "hospital": {
+    "hospital_id": "H-1",
+    "network_status": "network",
+    "room_rent_tier": null
+   }
+  },
+  "lines": [
+   {
+    "line_ref": "L1",
+    "category": "other",
+    "mapped_group": "medicine",
+    "description": "medicine L1",
+    "qty": "1",
+    "unit_price": "100000.00",
+    "claimed_amount": "100000.00",
+    "mapping_source": "rule",
+    "source_doc_id": "0191f0a2-0000-7000-8000-0000000000d1"
+   }
+  ],
+  "rules": {
+   "schema_version": 1,
+   "order_profile": "standard",
+   "room_rent": {
+    "type": "percent_of_si",
+    "percent": "1.0",
+    "icu_percent": "2.0",
+    "per_day_cap": null,
+    "tier_caps": {
+     "A": "7000",
+     "B": "5000",
+     "C": "4000"
+    },
+    "use_tier_caps": false
+   },
+   "proportionate_deduction": true,
+   "proportionate_applies_to": [
+    "doctor_fees",
+    "surgeon_fees",
+    "anaesthesia",
+    "ot_charges",
+    "nursing",
+    "investigation",
+    "procedure_package"
+   ],
+   "proportionate_exempt": [
+    "medicine",
+    "implant",
+    "consumable"
+   ],
+   "sub_limits": {},
+   "line_caps": {},
+   "hospitalisation_windows": {
+    "pre_days": 30,
+    "post_days": 60
+   },
+   "co_pay": {
+    "percent": "10",
+    "conditions": {
+     "age_gte": 61
+    }
+   },
+   "non_network_co_pay_percent": "20",
+   "stack_co_pay": false,
+   "co_pay_order": "before_deductible",
+   "deductible": {
+    "amount": "10000",
+    "type": "per_claim"
+   },
+   "waiting_periods_days": {
+    "initial": 30,
+    "pre_existing": 730,
+    "specific": {}
+   },
+   "pre_existing_group_map": {},
+   "accident_icd_prefixes": [
+    "S",
+    "T"
+   ],
+   "exclusions": {
+    "icd_prefixes": [],
+    "tags": [
+     "cosmetic",
+     "dental_cosmetic",
+     "non_medical"
+    ],
+    "non_medical_policy": "exclude_all"
+   },
+   "day_care_groups": [
+    "cataract"
+   ],
+   "sum_insured_basis": "individual"
+  },
+  "rules_version": 12
+ },
+ "expected": {
+  "payable_total": "80000.00",
+  "patient_pays_total": "20000.00",
+  "blocked": null,
+  "flags": [
+   "ORDER_PROFILE_NON_DEFAULT"
+  ],
+  "line_payables": {},
+  "line_allowed": {},
+  "remaining_after": null
+ }
+}

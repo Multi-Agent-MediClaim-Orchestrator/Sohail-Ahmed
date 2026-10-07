@@ -1,0 +1,8 @@
+id: needs_docs_then_reject
+name: Unanswered document queries then rejection
+description: A missing-document query goes unanswered until due; the claim is rejected for non-submission.
+steps:
+  - {id: verifying, kind: status, status: verifying, after: 2s}
+  - {id: q1, kind: query, category: missing_document, requested_doc_types: [discharge_summary, final_bill], text: "Please upload the discharge summary and final bill.", after: 2s, due_in: 1h}
+  - {id: w1, kind: wait_response, on_timeout: 1h}
+  - {id: decision, kind: decision, outcome: reject, reason_codes: [NON_SUBMISSION], after: 1s}

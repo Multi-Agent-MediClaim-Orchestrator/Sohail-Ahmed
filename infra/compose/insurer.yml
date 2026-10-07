@@ -1,0 +1,78 @@
+# Dev B insurer services (profile `insurer`). Build context is the repo root.
+services:
+  insurer-api:
+    build: {context: ../.., dockerfile: insurer/api/Dockerfile}
+    profiles: ["insurer"]
+    restart: unless-stopped
+    depends_on:
+      insurer-db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    environment:
+      INS_DATABASE_URL: postgresql+asyncpg://ins_app:${INS_APP_DB_PASSWORD:-ins_app_dev}@insurer-db:5432/insurer
+      INS_OWNER_DATABASE_URL: postgresql://postgres:${INS_PG_SUPERUSER_PASSWORD:-postgres}@insurer-db:5432/insurer
+      INS_REDIS_URL: redis://redis:6379/0
+      INS_MINIO_ENDPOINT: minio:9000
+      INS_CREW_URL: http://insurer-crew:8110
+      INS_RAG_URL: http://rag-service:8400
+      INS_CALC_ENGINE_URL: http://calc-engine:8120
+      INS_CALC_REMOTE: "true"
+      INS_TPA_SIM_URL: http://tpa-sim:8500
+      INS_SETTLEMENT_MODE: sim               # never anything else: no real money
+      INS_ORCHESTRATOR: ${INS_ORCHESTRATOR:-inline}
+      INS_HOSPITAL_CALLBACK_BASE: ${HOSPITAL_API_URL:-http://host.docker.internal:8000}
+    env_file: [{path: ../../.env, required: false}]
+    ports: ["127.0.0.1:8100:8100"]
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8100/v1/health')"], interval: 10s, timeout: 3s, retries: 12}
+    mem_limit: 768m
+
+  calc-engine:
+    build: {context: ../.., dockerfile: insurer/calc_engine/Dockerfile}
+    profiles: ["insurer"]
+    restart: unless-stopped
+    ports: ["127.0.0.1:8120:8120"]
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8120/v1/health')"], interval: 10s, timeout: 3s, retries: 10}
+    mem_limit: 256m
+
+  insurer-crew:
+    build: {context: ../.., dockerfile: insurer/crew/Dockerfile}
+    profiles: ["insurer"]
+    restart: unless-stopped
+    depends_on: {redis: {condition: service_healthy}}
+    environment:
+      INS_LLM_GATEWAY_URL: http://llm-gateway:4000
+      INS_RAG_URL: http://rag-service:8400
+      INS_CREW_MAX_CONCURRENCY: "2"            # weak machine: at most two LLM-bound requests at once
+    env_file: [{path: ../../.keys.env, required: false}]   # INS_LLM_VIRTUAL_KEY / INS_RAG_TOKEN come from the bootstrap scripts
+    ports: ["127.0.0.1:8110:8110"]
+    mem_limit: 1g
+
+  insurer-ui:
+    build: {context: ../.., dockerfile: insurer/ui/Dockerfile}
+    profiles: ["insurer"]
+    restart: unless-stopped
+    environment: {INS_API_URL: "http://insurer-api:8100"}
+    ports: ["127.0.0.1:3100:3100"]
+    mem_limit: 384m
+
+  insurer-n8n:
+    image: n8nio/n8n:1.64.3
+    profiles: ["n8n"]            # optional: INS_ORCHESTRATOR=inline is the default and needs no n8n
+    restart: unless-stopped
+    environment:
+      DB_TYPE: sqlite
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      NODE_FUNCTION_ALLOW_BUILTIN: crypto      # flows verify webhook HMACs with require("crypto") (found by running real n8n)
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"   # flows read INS_* settings via $env
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: "168"
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      WEBHOOK_URL: http://insurer-n8n:5678/
+    env_file: [{path: ../../insurer/n8n/.env, required: false}]
+    ports: ["127.0.0.1:5679:5678"]
+    volumes: ["n8n_data:/home/node/.n8n"]
+    mem_limit: 640m
+
+volumes:
+  n8n_data:

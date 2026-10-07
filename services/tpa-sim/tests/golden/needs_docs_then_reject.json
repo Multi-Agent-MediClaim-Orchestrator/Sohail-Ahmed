@@ -1,0 +1,17 @@
+[
+ [
+  "status",
+  1,
+  "verifying"
+ ],
+ [
+  "queries",
+  2,
+  "missing_document"
+ ],
+ [
+  "decisions",
+  3,
+  "reject"
+ ]
+]

@@ -1,0 +1,22 @@
+[
+ [
+  "status",
+  1,
+  "verifying"
+ ],
+ [
+  "queries",
+  2,
+  "clarification"
+ ],
+ [
+  "decisions",
+  3,
+  "approve"
+ ],
+ [
+  "settlements",
+  4,
+  "paid"
+ ]
+]

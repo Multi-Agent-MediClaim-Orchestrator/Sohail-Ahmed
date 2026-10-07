@@ -1,0 +1,284 @@
+{
+ "applies_to": [
+  "insurer"
+ ],
+ "archetype": "S01",
+ "archetype_name": "clean_cashless_planned",
+ "case_id": "SYN-009001",
+ "documents": [
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008ca4a",
+   "doc_type": "discharge_summary",
+   "sha256": "e9231256e7ef0e711fdfa549100e8ca037541d670b99eb67cca7896923f355e1",
+   "size_bytes": 1012
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008ca4b",
+   "doc_type": "final_bill",
+   "sha256": "b59fd023f34423bf2c10bf787f33977247ed174f4f7a563d434661c8a4782eae",
+   "size_bytes": 1214
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008ca4c",
+   "doc_type": "itemised_bill",
+   "sha256": "e90dadfa08748e8039b59358230193073d6ae7d2c1b2dcff51dbefd772cd2427",
+   "size_bytes": 1221
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008ca4d",
+   "doc_type": "claim_form",
+   "sha256": "7187c10187fcc9e4e3000dae46c589936b8125089e7a30c87bba1faf01ca8ef9",
+   "size_bytes": 907
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008ca4e",
+   "doc_type": "id_proof",
+   "sha256": "fc121c29161684bee2c509e465b175c95613380a63967ad8e9ac01e9cf12b2bc",
+   "size_bytes": 903
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008ca4f",
+   "doc_type": "policy_card",
+   "sha256": "e90abef7d0ec2c7ad8d5fe31736a274939f834fd11f3ba9cc56447cc27c55d17",
+   "size_bytes": 909
+  }
+ ],
+ "expected": {
+  "hospital": {
+   "complete": true,
+   "missing": []
+  },
+  "insurer": {
+   "blocked": null,
+   "finding_codes_include": [],
+   "gate_amount": "20500.00",
+   "payable": "20500.00",
+   "reference_flags": [],
+   "rejected_at_door": false,
+   "route": "auto",
+   "status": "ready_for_decision"
+  }
+ },
+ "labels": {
+  "degrade": null,
+  "expected_quality_class": "good",
+  "handwritten": false,
+  "late_filing": false,
+  "pii_in_free_text": false,
+  "stamp_present": true,
+  "tamper": null
+ },
+ "member": {
+  "cover_start": "2026-01-06",
+  "dob": "2016-09-25",
+  "full_name": "Rohan Iyer",
+  "gender": "F",
+  "member_id": "MEM-70000003",
+  "relationship": "spouse"
+ },
+ "policy": {
+  "end_date": "2027-01-05",
+  "policy_number": "POL-NIV-2025-000101",
+  "premium_paid_until": "2027-01-05",
+  "start_date": "2026-01-06",
+  "sum_insured": 1000000
+ },
+ "procedure_group": "cardiac",
+ "product": "HEALTH-PLUS-GOLD",
+ "scenario": "happy_path",
+ "schema_version": "1.0",
+ "seed": 42,
+ "submission": {
+  "admission": {
+   "admission_type": "planned",
+   "admitted_on": "2026-09-02",
+   "diagnosis_codes": [
+    "I25.1"
+   ],
+   "discharged_on": "2026-09-04",
+   "hospital_id": "HOSP-0002",
+   "preauth_ref": "PA-2026-09001",
+   "procedure_codes": [
+    "02703ZZ"
+   ],
+   "treating_doctor": "Dr. R. Menon"
+  },
+  "bill_lines": [
+   {
+    "amount": {
+     "amount": "6000.00",
+     "currency": "INR"
+    },
+    "category": "room",
+    "code": "ITM-0001",
+    "description": "Room rent (semi-private)",
+    "line_id": "L001",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008ca4b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "3000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "8400.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0002",
+    "description": "Medicines",
+    "line_id": "L002",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008ca4b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "8400.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "4100.00",
+     "currency": "INR"
+    },
+    "category": "investigation",
+    "code": "ITM-0003",
+    "description": "Investigations",
+    "line_id": "L003",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008ca4b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "4100.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2000.00",
+     "currency": "INR"
+    },
+    "category": "consultation",
+    "code": "ITM-0004",
+    "description": "Consultation",
+    "line_id": "L004",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008ca4b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "2000.00",
+     "currency": "INR"
+    }
+   }
+  ],
+  "claim_ref": "HC-2026-009001",
+  "claim_type": "cashless",
+  "config_versions": {
+   "confidence_gates": 1,
+   "deadlines": 2,
+   "doc_requirements": 4,
+   "router_rules": 3
+  },
+  "contract_version": "1.0",
+  "documents": [
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008ca4a",
+    "doc_type": "discharge_summary",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008ca4a/discharge_summary.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "discharge_summary.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "e9231256e7ef0e711fdfa549100e8ca037541d670b99eb67cca7896923f355e1",
+    "size_bytes": 1012
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008ca4b",
+    "doc_type": "final_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008ca4b/final_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "final_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "b59fd023f34423bf2c10bf787f33977247ed174f4f7a563d434661c8a4782eae",
+    "size_bytes": 1214
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008ca4c",
+    "doc_type": "itemised_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008ca4c/itemised_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "itemised_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "e90dadfa08748e8039b59358230193073d6ae7d2c1b2dcff51dbefd772cd2427",
+    "size_bytes": 1221
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008ca4d",
+    "doc_type": "claim_form",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008ca4d/claim_form.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "claim_form.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "7187c10187fcc9e4e3000dae46c589936b8125089e7a30c87bba1faf01ca8ef9",
+    "size_bytes": 907
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008ca4e",
+    "doc_type": "id_proof",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008ca4e/id_proof.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "id_proof.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "fc121c29161684bee2c509e465b175c95613380a63967ad8e9ac01e9cf12b2bc",
+    "size_bytes": 903
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008ca4f",
+    "doc_type": "policy_card",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008ca4f/policy_card.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "policy_card.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "e90abef7d0ec2c7ad8d5fe31736a274939f834fd11f3ba9cc56447cc27c55d17",
+    "size_bytes": 909
+   }
+  ],
+  "patient": {
+   "dob": "2016-09-25",
+   "full_name": "Rohan Iyer",
+   "gender": "F",
+   "id_proof_hash": "56ec2fe8c414eaca8a11f8b8d8ebeebe54317a00f9764206f574615248bd2984",
+   "member_id": "MEM-70000003",
+   "policy_number": "POL-NIV-2025-000101"
+  },
+  "submitted_at": "2026-09-04T16:42:10Z",
+  "totals": {
+   "claimed": {
+    "amount": "20500.00",
+    "currency": "INR"
+   },
+   "discounts": {
+    "amount": "0.00",
+    "currency": "INR"
+   },
+   "gross": {
+    "amount": "20500.00",
+    "currency": "INR"
+   }
+  }
+ },
+ "utilised_prior": "0.00"
+}

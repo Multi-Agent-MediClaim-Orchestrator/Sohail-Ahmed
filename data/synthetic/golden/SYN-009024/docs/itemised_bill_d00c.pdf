@@ -1,0 +1,110 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Producer (synthetic-gen) /Title (itemised_bill) /CreationDate (D:20260101000000Z) >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 2597 >>
+stream
+BT /F1 10 Tf 40 800 Td 12 TL
+(itemised_bill) Tj T*
+() Tj T*
+(Patient: Sunita Menon) Tj T*
+(DOB: 1965-11-05) Tj T*
+(Member: MEM-70000121) Tj T*
+(Policy: POL-NIV-2025-000140) Tj T*
+(Admitted: 2026-09-01  Discharged: 2026-09-04) Tj T*
+(L001 Room rent \(semi-private\) qty 3 x 3000.00 = 9000.00) Tj T*
+(L002 Medicine item 0 qty 1 x 500.00 = 500.00) Tj T*
+(L003 Medicine item 1 qty 2 x 637.00 = 1274.00) Tj T*
+(L004 Medicine item 2 qty 3 x 574.00 = 1722.00) Tj T*
+(L005 Medicine item 3 qty 1 x 611.00 = 611.00) Tj T*
+(L006 Medicine item 4 qty 2 x 848.00 = 1696.00) Tj T*
+(L007 Medicine item 5 qty 3 x 585.00 = 1755.00) Tj T*
+(L008 Medicine item 6 qty 1 x 722.00 = 722.00) Tj T*
+(L009 Medicine item 7 qty 2 x 759.00 = 1518.00) Tj T*
+(L010 Medicine item 8 qty 3 x 596.00 = 1788.00) Tj T*
+(L011 Medicine item 9 qty 1 x 733.00 = 733.00) Tj T*
+(L012 Medicine item 10 qty 2 x 1070.00 = 2140.00) Tj T*
+(L013 Medicine item 11 qty 3 x 807.00 = 2421.00) Tj T*
+(L014 Medicine item 12 qty 1 x 844.00 = 844.00) Tj T*
+(L015 Medicine item 13 qty 2 x 781.00 = 1562.00) Tj T*
+(L016 Medicine item 14 qty 3 x 1218.00 = 3654.00) Tj T*
+(L017 Medicine item 15 qty 1 x 855.00 = 855.00) Tj T*
+(L018 Medicine item 16 qty 2 x 992.00 = 1984.00) Tj T*
+(L019 Medicine item 17 qty 3 x 1129.00 = 3387.00) Tj T*
+(L020 Medicine item 18 qty 1 x 1166.00 = 1166.00) Tj T*
+(L021 Medicine item 19 qty 2 x 1203.00 = 2406.00) Tj T*
+(L022 Medicine item 20 qty 3 x 1140.00 = 3420.00) Tj T*
+(L023 Medicine item 21 qty 1 x 1277.00 = 1277.00) Tj T*
+(L024 Medicine item 22 qty 2 x 1414.00 = 2828.00) Tj T*
+(L025 Medicine item 23 qty 3 x 1351.00 = 4053.00) Tj T*
+(L026 Medicine item 24 qty 1 x 1488.00 = 1488.00) Tj T*
+(L027 Medicine item 25 qty 2 x 725.00 = 1450.00) Tj T*
+(L028 Medicine item 26 qty 3 x 762.00 = 2286.00) Tj T*
+(L029 Medicine item 27 qty 1 x 799.00 = 799.00) Tj T*
+(L030 Medicine item 28 qty 2 x 736.00 = 1472.00) Tj T*
+(L031 Medicine item 29 qty 3 x 573.00 = 1719.00) Tj T*
+(L032 Medicine item 30 qty 1 x 910.00 = 910.00) Tj T*
+(L033 Medicine item 31 qty 2 x 847.00 = 1694.00) Tj T*
+(L034 Medicine item 32 qty 3 x 984.00 = 2952.00) Tj T*
+(L035 Medicine item 33 qty 1 x 1021.00 = 1021.00) Tj T*
+(L036 Medicine item 34 qty 2 x 858.00 = 1716.00) Tj T*
+(L037 Medicine item 35 qty 3 x 1095.00 = 3285.00) Tj T*
+(L038 Medicine item 36 qty 1 x 1032.00 = 1032.00) Tj T*
+(L039 Medicine item 37 qty 2 x 969.00 = 1938.00) Tj T*
+(L040 Medicine item 38 qty 3 x 1106.00 = 3318.00) Tj T*
+(L041 Medicine item 39 qty 1 x 1243.00 = 1243.00) Tj T*
+(L042 Consumable 0 qty 2 x 150.00 = 300.00) Tj T*
+(L043 Consumable 1 qty 2 x 161.00 = 322.00) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 522 >>
+stream
+BT /F1 10 Tf 40 800 Td 12 TL
+(L044 Consumable 2 qty 2 x 172.00 = 344.00) Tj T*
+(L045 Consumable 3 qty 2 x 183.00 = 366.00) Tj T*
+(L046 Consumable 4 qty 2 x 194.00 = 388.00) Tj T*
+(L047 Consumable 5 qty 2 x 205.00 = 410.00) Tj T*
+(L048 Consumable 6 qty 2 x 216.00 = 432.00) Tj T*
+(L049 Consumable 7 qty 2 x 227.00 = 454.00) Tj T*
+(L050 Consumable 8 qty 2 x 238.00 = 476.00) Tj T*
+(L051 Surgeon fee qty 1 x 30000.00 = 30000.00) Tj T*
+(Gross: 115131.00) Tj T*
+(Net claimed: 115131.00) Tj T*
+(Hospital stamp: PRESENT) Tj T*
+ET
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000295 00000 n 
+0000000421 00000 n 
+0000003070 00000 n 
+0000003196 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R /Info 4 0 R >>
+startxref
+3769
+%%EOF

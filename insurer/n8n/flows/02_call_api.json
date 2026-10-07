@@ -1,0 +1,132 @@
+{
+  "id": "02_call_api",
+  "name": "02_call_api",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "HTTP wrapper: token, idempotency key, retries (2s/8s/30s); 409 run_in_progress is success (already=true); other 4xx are hard errors.",
+        "height": 120,
+        "width": 420
+      },
+      "name": "Sticky purpose",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "01_get_token"
+      },
+      "name": "Get token",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "={{ $('Execute Workflow Trigger').first().json.method }}",
+        "url": "={{ $env.INS_API_URL + $('Execute Workflow Trigger').first().json.path }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Execute Workflow Trigger').first().json.body || {}) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        }
+      },
+      "name": "HTTP request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        720,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "functionCode": "const r = $input.first().json; const s = r.statusCode; if (s >= 200 && s < 300) return [{json:{ok:true, status:s, body:r.body}}]; if (s === 409 && r.body?.code === 'run_in_progress') return [{json:{ok:true, already:true, status:s, body:r.body}}]; if (s >= 500) throw new Error('api_5xx_' + s); return [{json:{ok:false, hard:true, status:s, body:r.body}}];"
+      },
+      "name": "Classify",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get token": {
+      "main": [
+        [
+          {
+            "node": "HTTP request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP request": {
+      "main": [
+        [
+          {
+            "node": "Classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "errorWorkflow": "00_common_error_handler"
+  },
+  "tags": [
+    {
+      "id": "insurerTag00001",
+      "name": "insurer"
+    }
+  ]
+}

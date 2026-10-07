@@ -1,0 +1,270 @@
+{
+ "applies_to": [
+  "insurer"
+ ],
+ "archetype": "S19",
+ "archetype_name": "query_loop_resolved_r2",
+ "case_id": "SYN-009019",
+ "documents": [
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008ceca",
+   "doc_type": "discharge_summary",
+   "sha256": "3b3b9db1776a4f08feb2b9e6905e72c904ffeb38214cc828d73c1de71badbbfd",
+   "size_bytes": 1012
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cecb",
+   "doc_type": "final_bill",
+   "sha256": "10e7d3a00e6c435c6200c38255a899c7bd22a3174998f7f6dcd30d348d571c1f",
+   "size_bytes": 1214
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cecc",
+   "doc_type": "itemised_bill",
+   "sha256": "d8847b892cf211e6e6551986e537479224713eda8d35a6bd6b6d2edd69c55b46",
+   "size_bytes": 1221
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cecd",
+   "doc_type": "claim_form",
+   "sha256": "f595c8faff2aedfa41ba9d2b5e923e55e92fdde74bcd4db99eae72bf6e231bfe",
+   "size_bytes": 907
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cece",
+   "doc_type": "policy_card",
+   "sha256": "df3d6409932102510ad6df1a279c72d2857e2f7bd46c6c596e3e5e9e12108c7a",
+   "size_bytes": 909
+  }
+ ],
+ "expected": {
+  "hospital": {
+   "complete": false,
+   "missing": [
+    "id_proof"
+   ]
+  },
+  "insurer": {
+   "blocked": null,
+   "finding_codes_include": [
+    "completeness.missing_required"
+   ],
+   "gate_amount": "20300.00",
+   "payable": "20300.00",
+   "reference_flags": [],
+   "rejected_at_door": false,
+   "route": "none",
+   "status": "needs_info"
+  }
+ },
+ "labels": {
+  "degrade": null,
+  "expected_quality_class": "good",
+  "handwritten": false,
+  "late_filing": false,
+  "pii_in_free_text": false,
+  "stamp_present": true,
+  "tamper": null
+ },
+ "member": {
+  "cover_start": "2026-05-21",
+  "dob": "1942-06-02",
+  "full_name": "Neha Desai",
+  "gender": "M",
+  "member_id": "MEM-70000085",
+  "relationship": "self"
+ },
+ "policy": {
+  "end_date": "2027-05-20",
+  "policy_number": "POL-NIV-2025-000128",
+  "premium_paid_until": "2027-05-20",
+  "start_date": "2026-05-21",
+  "sum_insured": 500000
+ },
+ "procedure_group": "abdominal_surgery",
+ "product": "HEALTH-PLUS-GOLD",
+ "scenario": "query_twice_then_approve",
+ "schema_version": "1.0",
+ "seed": 42,
+ "submission": {
+  "admission": {
+   "admission_type": "planned",
+   "admitted_on": "2026-09-20",
+   "diagnosis_codes": [
+    "K35.8"
+   ],
+   "discharged_on": "2026-09-22",
+   "hospital_id": "HOSP-0004",
+   "preauth_ref": "PA-2026-09019",
+   "procedure_codes": [
+    "0DTJ4ZZ"
+   ],
+   "treating_doctor": "Dr. R. Menon"
+  },
+  "bill_lines": [
+   {
+    "amount": {
+     "amount": "6000.00",
+     "currency": "INR"
+    },
+    "category": "room",
+    "code": "ITM-0001",
+    "description": "Room rent (semi-private)",
+    "line_id": "L001",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cecb",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "3000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "8200.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0002",
+    "description": "Medicines",
+    "line_id": "L002",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cecb",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "8200.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "4100.00",
+     "currency": "INR"
+    },
+    "category": "investigation",
+    "code": "ITM-0003",
+    "description": "Investigations",
+    "line_id": "L003",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cecb",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "4100.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2000.00",
+     "currency": "INR"
+    },
+    "category": "consultation",
+    "code": "ITM-0004",
+    "description": "Consultation",
+    "line_id": "L004",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cecb",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "2000.00",
+     "currency": "INR"
+    }
+   }
+  ],
+  "claim_ref": "HC-2026-009019",
+  "claim_type": "cashless",
+  "config_versions": {
+   "confidence_gates": 1,
+   "deadlines": 2,
+   "doc_requirements": 4,
+   "router_rules": 3
+  },
+  "contract_version": "1.0",
+  "documents": [
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008ceca",
+    "doc_type": "discharge_summary",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008ceca/discharge_summary.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "discharge_summary.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "3b3b9db1776a4f08feb2b9e6905e72c904ffeb38214cc828d73c1de71badbbfd",
+    "size_bytes": 1012
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cecb",
+    "doc_type": "final_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cecb/final_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "final_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "10e7d3a00e6c435c6200c38255a899c7bd22a3174998f7f6dcd30d348d571c1f",
+    "size_bytes": 1214
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cecc",
+    "doc_type": "itemised_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cecc/itemised_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "itemised_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "d8847b892cf211e6e6551986e537479224713eda8d35a6bd6b6d2edd69c55b46",
+    "size_bytes": 1221
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cecd",
+    "doc_type": "claim_form",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cecd/claim_form.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "claim_form.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "f595c8faff2aedfa41ba9d2b5e923e55e92fdde74bcd4db99eae72bf6e231bfe",
+    "size_bytes": 907
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cece",
+    "doc_type": "policy_card",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cece/policy_card.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "policy_card.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "df3d6409932102510ad6df1a279c72d2857e2f7bd46c6c596e3e5e9e12108c7a",
+    "size_bytes": 909
+   }
+  ],
+  "patient": {
+   "dob": "1942-06-02",
+   "full_name": "Neha Desai",
+   "gender": "M",
+   "id_proof_hash": "b6c094593257b818a10104fed55abbe28a69708d8a5384e7014b1cf61d8d5c48",
+   "member_id": "MEM-70000085",
+   "policy_number": "POL-NIV-2025-000128"
+  },
+  "submitted_at": "2026-09-22T16:42:10Z",
+  "totals": {
+   "claimed": {
+    "amount": "20300.00",
+    "currency": "INR"
+   },
+   "discounts": {
+    "amount": "0.00",
+    "currency": "INR"
+   },
+   "gross": {
+    "amount": "20300.00",
+    "currency": "INR"
+   }
+  }
+ },
+ "utilised_prior": "0.00"
+}

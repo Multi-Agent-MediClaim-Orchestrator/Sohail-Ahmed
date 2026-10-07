@@ -1,0 +1,17 @@
+# Simulators (profile `sim`): the TPA/insurer + bank simulator that Dev A develops against. No real money anywhere.
+services:
+  tpa-sim:
+    build: {context: ../.., dockerfile: services/tpa-sim/Dockerfile}
+    profiles: ["sim"]
+    restart: unless-stopped
+    environment:
+      TPA_SIM_DB_URL: sqlite+aiosqlite:////data/tpa_sim.db
+      TPA_SIM_HOSP_BASE_URL: ${HOSPITAL_API_URL:-http://host.docker.internal:8000}
+      TPA_SIM_INS_BASE_URL: http://insurer-api:8100
+    volumes: ["tpa_sim_data:/data"]
+    ports: ["127.0.0.1:8500:8500"]
+    healthcheck: {test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8500/sim/health')"], interval: 10s, timeout: 3s, retries: 10}
+    mem_limit: 256m
+
+volumes:
+  tpa_sim_data:

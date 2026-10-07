@@ -1,0 +1,44 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Producer (synthetic-gen) /Title (claim_form) /CreationDate (D:20260101000000Z) >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 230 >>
+stream
+BT /F1 10 Tf 40 800 Td 12 TL
+(claim_form) Tj T*
+() Tj T*
+(Patient: Deepa Reddy) Tj T*
+(DOB: 1994-08-25) Tj T*
+(Member: MEM-70000005) Tj T*
+(Policy: POL-NIV-2025-000101) Tj T*
+(Admitted: 2026-09-04  Discharged: 2026-09-06) Tj T*
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000286 00000 n 
+0000000412 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R /Info 4 0 R >>
+startxref
+693
+%%EOF

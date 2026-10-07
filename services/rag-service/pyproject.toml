@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-service"
+version = "0.1.0"
+description = "Hybrid retrieval + grounded answers over Qdrant (Dev B)"
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27", "pydantic>=2.7", "pydantic-settings>=2.2", "PyJWT>=2.8", "prometheus-client>=0.20", "psutil>=5.9", "pyyaml>=6"]
+
+[project.optional-dependencies]
+minio = ["minio>=7"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rag_service*"]

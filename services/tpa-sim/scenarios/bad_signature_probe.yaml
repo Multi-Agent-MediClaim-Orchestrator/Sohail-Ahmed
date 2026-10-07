@@ -1,0 +1,8 @@
+id: bad_signature_probe
+name: Bad signature probe
+description: First callback signed with the wrong secret, second with +10 min timestamp skew, third valid. The hospital must reject the first two.
+steps:
+  - {id: wrong_secret, kind: status, status: verifying, signing: bad_secret, after: 2s}
+  - {id: skewed, kind: status, status: verifying, signing: skew_plus_10m, after: 2s}
+  - {id: valid, kind: status, status: verifying, after: 2s}
+  - {id: decision, kind: decision, outcome: approve, after: 2s}

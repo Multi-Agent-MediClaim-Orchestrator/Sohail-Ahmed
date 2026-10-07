@@ -1,0 +1,232 @@
+{
+  "id": "11_step_document_fetch",
+  "name": "11_step_document_fetch",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Step document_fetch: start -> (context -> crew, if applicable) -> post result; follow the API's next_step. Failure policy 6.15: crew unavailable/invalid -> post failed result, continue.",
+        "height": 120,
+        "width": 420
+      },
+      "name": "Sticky purpose",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $json.run_id }}/steps/document_fetch/start",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST step start').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}"
+      },
+      "name": "POST step start",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        480,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.INS_API_URL }}/internal/cases/{{ $('Execute Workflow Trigger').first().json.case_id }}/docs-status",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        }
+      },
+      "name": "GET docs-status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        720,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.all_fetched }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF all fetched",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "name": "Wait 10s and re-poll (max 30)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $('Execute Workflow Trigger').first().json.run_id }}/steps/document_fetch/result",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST step result').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({status:$json.failed?.length ? \"failed\" : \"passed\", failed:$json.failed}) }}"
+      },
+      "name": "POST step result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1440,
+        0
+      ],
+      "continueOnFail": false
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "POST step start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST step start": {
+      "main": [
+        [
+          {
+            "node": "GET docs-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET docs-status": {
+      "main": [
+        [
+          {
+            "node": "IF all fetched",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF all fetched": {
+      "main": [
+        [
+          {
+            "node": "POST step result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10s and re-poll (max 30)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "errorWorkflow": "00_common_error_handler"
+  },
+  "tags": [
+    {
+      "id": "insurerTag00001",
+      "name": "insurer"
+    }
+  ]
+}

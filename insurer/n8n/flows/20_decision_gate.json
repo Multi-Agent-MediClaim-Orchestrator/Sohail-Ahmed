@@ -1,0 +1,204 @@
+{
+  "id": "20_decision_gate",
+  "name": "20_decision_gate",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Trigger decision-task-open: emit approval.requested (SSE toast) and mail approvers. No Wait node - SLA nudges are cron-driven.",
+        "height": 120,
+        "width": 420
+      },
+      "name": "Sticky purpose",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "decision-task-open",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "name": "Webhook decision-task-open",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "webhookId": "0d016e3a-8c69-5b1e-82a1-0628a4f2dd30"
+    },
+    {
+      "parameters": {
+        "functionCode": "const crypto = require('crypto');\nconst item = $input.first();\nconst raw = item.binary?.data ? Buffer.from(item.binary.data.data, 'base64') : Buffer.from(JSON.stringify(item.json.body));\nconst sig = (item.json.headers['x-n8n-signature'] || '').replace('sha256=', '');\nconst exp = crypto.createHmac('sha256', $env.INS_N8N_WEBHOOK_SECRET).update(raw).digest('hex');\nconst ok = sig.length === exp.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(exp));\nreturn [{ json: { ok, body: item.json.body, event_id: item.json.headers['x-event-id'] } }];"
+      },
+      "name": "Verify signature",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.ok }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF signature ok",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"code\":\"invalid_signature\"}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        960,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"accepted\":true}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "name": "Respond 202",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/events",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST event approval.requested').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({type:\"approval.requested\", case_id:$(\"Verify signature\").first().json.body.case_id, data:$(\"Verify signature\").first().json.body}) }}"
+      },
+      "name": "POST event approval.requested",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1440,
+        0
+      ],
+      "continueOnFail": false
+    }
+  ],
+  "connections": {
+    "Webhook decision-task-open": {
+      "main": [
+        [
+          {
+            "node": "Verify signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify signature": {
+      "main": [
+        [
+          {
+            "node": "IF signature ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF signature ok": {
+      "main": [
+        [
+          {
+            "node": "Respond 202",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond 202": {
+      "main": [
+        [
+          {
+            "node": "POST event approval.requested",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "errorWorkflow": "00_common_error_handler"
+  },
+  "tags": [
+    {
+      "id": "insurerTag00001",
+      "name": "insurer"
+    }
+  ]
+}

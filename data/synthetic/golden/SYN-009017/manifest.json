@@ -1,0 +1,12 @@
+{
+ "files": {
+  "case.json": "d2dcebd76a91d83a26537d8a0cbab66eb3eb5da2363897bdcb4520962c20747c",
+  "docs/claim_form_ce4d.pdf": "4873c2a7f3e063bdd78935d982bc73d93cbe9dca97914accc7aea71d1f784a96",
+  "docs/discharge_summary_ce4a.pdf": "598908bc5121aff8b1fe02f381b5ffc6176c8ddb385d5652a22c106ea35fb135",
+  "docs/final_bill_ce4b.pdf": "8c9619f361b16f975cd64137c522b9b05e8dba08252ba83e9b7aa7727531681b",
+  "docs/id_proof_ce4e.pdf": "50d8635fdcb0b9098587d14cc712f71512db7d11be67828a9369745fd14bc454",
+  "docs/itemised_bill_ce4c.pdf": "18568034f3f3ece72e5e1bb6eba1cea0db196b6193c70096aac7232bfef9112b",
+  "docs/policy_card_ce4f.pdf": "cda17de402c070954347cb8cf33dd19793cd54abc799678e9bd07d922b11f9f4"
+ },
+ "generator_version": "1.0.0"
+}

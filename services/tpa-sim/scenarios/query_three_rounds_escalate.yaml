@@ -1,0 +1,13 @@
+id: query_three_rounds_escalate
+name: Three query rounds then escalation
+description: Rounds 1-2 are answered; round 3 is unanswered until due, then the claim is escalated; a manual /fire sends the human-style decision.
+steps:
+  - {id: verifying, kind: status, status: verifying, after: 2s}
+  - {id: q1, kind: query, category: missing_document, requested_doc_types: [discharge_summary], text: "Please upload the discharge summary for this admission.", after: 2s}
+  - {id: w1, kind: wait_response}
+  - {id: q2, kind: query, category: medical_clarification, text: "Please explain the diagnosis change between admission and discharge.", after: 2s}
+  - {id: w2, kind: wait_response}
+  - {id: q3, kind: query, category: medical_clarification, text: "Please provide the treating doctor's justification for the ICU stay.", after: 2s, due_in: 1h}
+  - {id: w3, kind: wait_response, on_timeout: 1h}
+  - {id: esc, kind: status, status: escalated, note: "Round 3 unanswered; escalated to senior reviewer", after: 1s}
+  - {id: human, kind: decision, outcome: partial, approved_ratio: 0.8, reason_codes: [SIM_ESCALATED], manual: true}

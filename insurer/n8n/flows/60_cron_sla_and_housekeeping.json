@@ -1,0 +1,260 @@
+{
+  "id": "60_cron_sla_and_housekeeping",
+  "name": "60_cron_sla_and_housekeeping",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Every 5 min: query reminders/timeouts, stuck runs, outbox kick. Nightly 02:00 IST: audit verification, config cache refresh, idempotency purge. SLA 50/80% nudges were removed by decision; round-3 escalation stays in the API.",
+        "height": 120,
+        "width": 420
+      },
+      "name": "Sticky purpose",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 5,
+              "unit": "minutes"
+            }
+          ]
+        }
+      },
+      "name": "Cron every 5 min",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.INS_API_URL }}/internal/queries/due?within=PT10M",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        }
+      },
+      "name": "GET queries due",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        480,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/outbox/kick",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST outbox kick').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}"
+      },
+      "name": "POST outbox kick",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        720,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 2,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "name": "Cron nightly 02:00",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/audit/verify-all",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST audit verify-all').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}"
+      },
+      "name": "POST audit verify-all",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1200,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/housekeeping/idempotency-purge",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST idempotency purge').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}"
+      },
+      "name": "POST idempotency purge",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1440,
+        0
+      ],
+      "continueOnFail": false
+    }
+  ],
+  "connections": {
+    "Cron every 5 min": {
+      "main": [
+        [
+          {
+            "node": "GET queries due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET queries due": {
+      "main": [
+        [
+          {
+            "node": "POST outbox kick",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron nightly 02:00": {
+      "main": [
+        [
+          {
+            "node": "POST audit verify-all",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST audit verify-all": {
+      "main": [
+        [
+          {
+            "node": "POST idempotency purge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "errorWorkflow": "00_common_error_handler"
+  },
+  "tags": [
+    {
+      "id": "insurerTag00001",
+      "name": "insurer"
+    }
+  ]
+}

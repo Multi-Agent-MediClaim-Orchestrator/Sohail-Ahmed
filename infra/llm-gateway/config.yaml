@@ -1,0 +1,67 @@
+# LiteLLM gateway config (04-04 §4.2). Vendor model names appear ONLY in this file and config.local.yaml.
+model_list:
+  # ---------- local (Ollama) ----------
+  - model_name: cleanup-local
+    litellm_params: {model: "ollama/llama3.2:3b", api_base: "http://ollama:11434", timeout: 120, keep_alive: 10m, max_tokens: 2048}
+    model_info: {id: cleanup-local-3b}
+  - model_name: cleanup-local-fallback
+    litellm_params: {model: "ollama/llama3.1:8b", api_base: "http://ollama:11434", timeout: 180, keep_alive: 10m, max_tokens: 2048}
+    model_info: {id: cleanup-local-8b}
+  - model_name: reason-local
+    litellm_params: {model: "ollama/llama3.1:8b", api_base: "http://ollama:11434", timeout: 180, keep_alive: 10m, max_tokens: 2048}
+    model_info: {id: reason-local-8b}
+  - model_name: embed
+    litellm_params: {model: "ollama/nomic-embed-text", api_base: "http://ollama:11434", timeout: 60}
+    model_info: {id: embed-nomic, mode: embedding}
+
+  # ---------- cloud (Gemini, free tier; the key lives only here) ----------
+  - model_name: reason-cloud
+    litellm_params: {model: "gemini/gemini-flash-latest", api_key: "os.environ/GEMINI_API_KEY", rpm: 10, tpm: 200000, timeout: 60, max_tokens: 2048}
+    model_info: {id: reason-cloud-flash}
+  - model_name: cleanup-cloud
+    litellm_params: {model: "gemini/gemini-flash-lite-latest", api_key: "os.environ/GEMINI_API_KEY", rpm: 15, tpm: 250000, timeout: 45, max_tokens: 2048}
+    model_info: {id: cleanup-cloud-lite}
+  - model_name: vision-cloud
+    litellm_params: {model: "gemini/gemini-flash-latest", api_key: "os.environ/GEMINI_API_KEY", rpm: 5, tpm: 100000, timeout: 90}
+    model_info: {id: vision-cloud-flash, supports_vision: true}
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 2
+  retry_after: 2
+  allowed_fails: 3
+  cooldown_time: 30
+  timeout: 60
+  redis_host: redis
+  redis_port: 6379
+  redis_password: "os.environ/LLM_REDIS_PW"
+  fallbacks:
+    - {"reason-cloud": ["reason-local"]}
+    - {"cleanup-cloud": ["cleanup-local"]}
+    - {"cleanup-local": ["cleanup-local-fallback"]}
+  context_window_fallbacks:
+    - {"cleanup-local": ["cleanup-local-fallback"]}
+    - {"reason-local": ["reason-cloud"]}   # stripped by config.local.yaml
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  json_logs: true
+  cache: true
+  cache_params: {type: redis, host: redis, port: 6379, password: "os.environ/LLM_REDIS_PW", namespace: llmcache, ttl: 86400, supported_call_types: [acompletion, completion, embedding, aembedding]}
+  success_callback: [langfuse, prometheus]
+  failure_callback: [langfuse, prometheus]
+  # pii_guard also runs metadata validation, the per-key allow-list and the daily token budget (single hook = fixed order)
+  callbacks: ["callbacks.pii_guard.proxy_handler_instance", "callbacks.fallback_header.proxy_handler_instance", "callbacks.embed_header.proxy_handler_instance"]
+  langfuse_default_tags: [gateway]
+  turn_off_message_logging: false   # prompts are masked upstream; Langfuse is local-only
+  request_timeout: 120
+
+general_settings:
+  master_key: "os.environ/LITELLM_MASTER_KEY"
+  database_url: "os.environ/LITELLM_DB_URL"
+  allow_requests_on_db_unavailable: true
+  alerting: []
+  max_parallel_requests: 40
+  global_max_parallel_requests: 60
+  disable_spend_logs: false

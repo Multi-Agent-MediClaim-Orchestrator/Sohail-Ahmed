@@ -1,0 +1,114 @@
+{
+  "id": "03_call_crew",
+  "name": "03_call_crew",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Crew wrapper: 100 s timeout, 429 busy waits Retry-After (cap 60 s, max 3), 422 returns invalid_output, 5xx returns unavailable.",
+        "height": 120,
+        "width": 420
+      },
+      "name": "Sticky purpose",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_CREW_URL + $json.path }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Service-Token",
+              "value": "={{ $env.INS_CREW_SERVICE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 100000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "name": "HTTP request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        480,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "functionCode": "const r = $input.first().json; const s = r.statusCode; if (s === 200) return [{json:{ok:true, output:r.body}}]; if (s === 429) return [{json:{ok:false, reason:'busy', retry_after:Math.min(60, Number(r.headers['retry-after']||5))}}]; if (s === 422) return [{json:{ok:false, reason:'invalid_output'}}]; return [{json:{ok:false, reason:'unavailable'}}];"
+      },
+      "name": "Classify crew result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        720,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP request": {
+      "main": [
+        [
+          {
+            "node": "Classify crew result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "errorWorkflow": "00_common_error_handler"
+  },
+  "tags": [
+    {
+      "id": "insurerTag00001",
+      "name": "insurer"
+    }
+  ]
+}

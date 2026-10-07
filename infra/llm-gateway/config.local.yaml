@@ -1,0 +1,59 @@
+# LLM_MODE=local overlay (04-04 §7.4): no outbound provider traffic. Every *-cloud alias maps to a local model;
+# vision-cloud is removed (vision-service degrades to needs_human); fallbacks that would leave the machine are dropped.
+model_list:
+  - model_name: cleanup-local
+    litellm_params: {model: "ollama/llama3.2:3b", api_base: "http://ollama:11434", timeout: 120, keep_alive: 10m, max_tokens: 2048}
+    model_info: {id: cleanup-local-3b}
+  - model_name: cleanup-local-fallback
+    litellm_params: {model: "ollama/llama3.1:8b", api_base: "http://ollama:11434", timeout: 180, keep_alive: 10m, max_tokens: 2048}
+    model_info: {id: cleanup-local-8b}
+  - model_name: reason-local
+    litellm_params: {model: "ollama/llama3.1:8b", api_base: "http://ollama:11434", timeout: 180, keep_alive: 10m, max_tokens: 2048}
+    model_info: {id: reason-local-8b}
+  - model_name: embed
+    litellm_params: {model: "ollama/nomic-embed-text", api_base: "http://ollama:11434", timeout: 60}
+    model_info: {id: embed-nomic, mode: embedding}
+  - model_name: reason-cloud
+    litellm_params: {model: "ollama/llama3.1:8b", api_base: "http://ollama:11434", timeout: 180, keep_alive: 10m, max_tokens: 2048}
+    model_info: {id: reason-cloud-as-local-8b}
+  - model_name: cleanup-cloud
+    litellm_params: {model: "ollama/llama3.2:3b", api_base: "http://ollama:11434", timeout: 120, keep_alive: 10m, max_tokens: 2048}
+    model_info: {id: cleanup-cloud-as-local-3b}
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 2
+  retry_after: 2
+  allowed_fails: 3
+  cooldown_time: 30
+  timeout: 180
+  redis_host: redis
+  redis_port: 6379
+  redis_password: "os.environ/LLM_REDIS_PW"
+  fallbacks:
+    - {"cleanup-local": ["cleanup-local-fallback"]}
+    - {"cleanup-cloud": ["cleanup-local-fallback"]}
+  context_window_fallbacks:
+    - {"cleanup-local": ["cleanup-local-fallback"]}
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  json_logs: true
+  cache: true
+  cache_params: {type: redis, host: redis, port: 6379, password: "os.environ/LLM_REDIS_PW", namespace: llmcache-local, ttl: 86400, supported_call_types: [acompletion, completion, embedding, aembedding]}
+  success_callback: [langfuse, prometheus]
+  failure_callback: [langfuse, prometheus]
+  callbacks: ["callbacks.pii_guard.proxy_handler_instance", "callbacks.fallback_header.proxy_handler_instance", "callbacks.embed_header.proxy_handler_instance"]
+  langfuse_default_tags: [gateway, llm-mode-local]
+  turn_off_message_logging: false
+  request_timeout: 180
+
+general_settings:
+  master_key: "os.environ/LITELLM_MASTER_KEY"
+  database_url: "os.environ/LITELLM_DB_URL"
+  allow_requests_on_db_unavailable: true
+  alerting: []
+  max_parallel_requests: 40
+  global_max_parallel_requests: 60
+  disable_spend_logs: false

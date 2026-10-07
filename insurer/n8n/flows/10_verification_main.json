@@ -1,0 +1,681 @@
+{
+  "id": "10_verification_main",
+  "name": "10_verification_main",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Trigger verification-start. Create run (idempotent by case_id+client_token) -> steps -> finalize -> follow API next. No business rules; the API decides skip logic via next_step.",
+        "height": 120,
+        "width": 420
+      },
+      "name": "Sticky purpose",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "verification-start",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "name": "Webhook verification-start",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "webhookId": "07d2ec1a-8c24-5cf0-bfee-ff9b636da0f6"
+    },
+    {
+      "parameters": {
+        "functionCode": "const crypto = require('crypto');\nconst item = $input.first();\nconst raw = item.binary?.data ? Buffer.from(item.binary.data.data, 'base64') : Buffer.from(JSON.stringify(item.json.body));\nconst sig = (item.json.headers['x-n8n-signature'] || '').replace('sha256=', '');\nconst exp = crypto.createHmac('sha256', $env.INS_N8N_WEBHOOK_SECRET).update(raw).digest('hex');\nconst ok = sig.length === exp.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(exp));\nreturn [{ json: { ok, body: item.json.body, event_id: item.json.headers['x-event-id'] } }];"
+      },
+      "name": "Verify signature",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.ok }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF signature ok",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"code\":\"invalid_signature\"}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        960,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"accepted\":true}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "name": "Respond 202",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/cases/{{ $('Verify signature').first().json.body.case_id }}/runs",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST run create').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({trigger:$('Verify signature').first().json.body.trigger, steps:$('Verify signature').first().json.body.steps, client_token:$('Verify signature').first().json.body.client_token}) }}"
+      },
+      "name": "POST run create",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1440,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.existing }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF run already exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Exit duplicate delivery",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "case_id",
+              "value": "={{ $('Verify signature').first().json.body.case_id }}"
+            }
+          ]
+        }
+      },
+      "name": "Set run vars",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "11_step_document_fetch",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "name": "Step document_fetch",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        2400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "12_step_completeness",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "name": "Step completeness",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        2640,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "13_step_identity",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "name": "Step identity",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "14_step_authenticity",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "name": "Step authenticity",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "15_step_coverage",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "name": "Step coverage",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "16_step_calculation",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "name": "Step calculation",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $json.run_id }}/finalize",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST run finalize').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}"
+      },
+      "name": "POST run finalize",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        3840,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "dataPropertyName": "next",
+        "rules": {
+          "rules": [
+            {
+              "value2": "needs_info"
+            },
+            {
+              "value2": "ready_for_decision"
+            },
+            {
+              "value2": "manual_review"
+            },
+            {
+              "value2": "failed"
+            }
+          ]
+        }
+      },
+      "name": "Switch on next",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        4080,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Query draft is created by the API (reviewer sends)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/events",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST event decision.ready').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({type:\"decision.ready\", case_id:$json.case_id}) }}"
+      },
+      "name": "POST event decision.ready",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        4560,
+        200
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/events",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST event case.manual_review').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({type:\"case.manual_review\", case_id:$json.case_id}) }}"
+      },
+      "name": "POST event case.manual_review",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        4800,
+        400
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/alerts",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST alert failed run').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({severity:\"high\", source:\"n8n\", message:\"run failed\", case_id:$json.case_id}) }}"
+      },
+      "name": "POST alert failed run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        5040,
+        600
+      ],
+      "continueOnFail": false
+    }
+  ],
+  "connections": {
+    "Webhook verification-start": {
+      "main": [
+        [
+          {
+            "node": "Verify signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify signature": {
+      "main": [
+        [
+          {
+            "node": "IF signature ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF signature ok": {
+      "main": [
+        [
+          {
+            "node": "Respond 202",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond 202": {
+      "main": [
+        [
+          {
+            "node": "POST run create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST run create": {
+      "main": [
+        [
+          {
+            "node": "IF run already exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF run already exists": {
+      "main": [
+        [
+          {
+            "node": "Exit duplicate delivery",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set run vars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set run vars": {
+      "main": [
+        [
+          {
+            "node": "Step document_fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step document_fetch": {
+      "main": [
+        [
+          {
+            "node": "Step completeness",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step completeness": {
+      "main": [
+        [
+          {
+            "node": "Step identity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step identity": {
+      "main": [
+        [
+          {
+            "node": "Step authenticity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step authenticity": {
+      "main": [
+        [
+          {
+            "node": "Step coverage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step coverage": {
+      "main": [
+        [
+          {
+            "node": "Step calculation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step calculation": {
+      "main": [
+        [
+          {
+            "node": "POST run finalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST run finalize": {
+      "main": [
+        [
+          {
+            "node": "Switch on next",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch on next": {
+      "main": [
+        [
+          {
+            "node": "Query draft is created by the API (reviewer sends)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "POST event decision.ready",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "POST event case.manual_review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "POST alert failed run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "errorWorkflow": "00_common_error_handler"
+  },
+  "tags": [
+    {
+      "id": "insurerTag00001",
+      "name": "insurer"
+    }
+  ]
+}

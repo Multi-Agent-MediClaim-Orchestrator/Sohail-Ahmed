@@ -1,0 +1,146 @@
+{
+  "id": "00_common_error_handler",
+  "name": "00_common_error_handler",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Error Trigger -> strip context/body -> raise alert -> mark run failed (if known).",
+        "height": 120,
+        "width": 420
+      },
+      "name": "Sticky purpose",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const j = $input.first().json; delete j.context; delete j.body; delete j.payload; return [{ json: j }];"
+      },
+      "name": "Strip payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/alerts",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST alert').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({severity:\"high\", source:\"n8n\", workflow:$json.workflow?.name, node:$json.execution?.lastNodeExecuted, message:$json.execution?.error?.message, execution_id:$json.execution?.id}) }}"
+      },
+      "name": "POST alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        720,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "operation": "publish",
+        "channel": "alert:n8n",
+        "messageData": "={{ JSON.stringify($json) }}"
+      },
+      "name": "Redis publish alert",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ],
+      "credentials": {
+        "redis": {
+          "id": "",
+          "name": "insurer-redis"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Strip payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strip payload": {
+      "main": [
+        [
+          {
+            "node": "POST alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST alert": {
+      "main": [
+        [
+          {
+            "node": "Redis publish alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all"
+  },
+  "tags": [
+    {
+      "id": "insurerTag00001",
+      "name": "insurer"
+    }
+  ]
+}

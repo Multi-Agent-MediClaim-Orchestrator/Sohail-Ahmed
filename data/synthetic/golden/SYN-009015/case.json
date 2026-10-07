@@ -1,0 +1,284 @@
+{
+ "applies_to": [
+  "insurer"
+ ],
+ "archetype": "S15",
+ "archetype_name": "policy_expired",
+ "case_id": "SYN-009015",
+ "documents": [
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cdca",
+   "doc_type": "discharge_summary",
+   "sha256": "67435c29332e5e3e8551002a55fe62e0ea97978015fc805fdaddfd4fb78b78b5",
+   "size_bytes": 1010
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cdcb",
+   "doc_type": "final_bill",
+   "sha256": "fd97f90888de090fad7d9d33b70190b362bf723f17da5fcd53c789ff06aba86b",
+   "size_bytes": 1214
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cdcc",
+   "doc_type": "itemised_bill",
+   "sha256": "9500d9398115cc82b2668fc001da8cee9952e1c88829870c53d2ea0efdabeb5a",
+   "size_bytes": 1221
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cdcd",
+   "doc_type": "claim_form",
+   "sha256": "6ea901be2974fad316a749d782bc6ba1a578cc7779792128f59259828151d9cd",
+   "size_bytes": 907
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cdce",
+   "doc_type": "id_proof",
+   "sha256": "3b974d09d238734d5778c014954f8285d053873a326d64db4d60c7b7af309c75",
+   "size_bytes": 903
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cdcf",
+   "doc_type": "policy_card",
+   "sha256": "9c100cc3323c48f7807e00cf3bae51988c00d504cb2781290c9e7b592c244951",
+   "size_bytes": 909
+  }
+ ],
+ "expected": {
+  "hospital": {
+   "complete": true,
+   "missing": []
+  },
+  "insurer": {
+   "blocked": "OUTSIDE_COVER",
+   "finding_codes_include": [
+    "coverage.outside_period"
+   ],
+   "gate_amount": "20700.00",
+   "payable": "0.00",
+   "reference_flags": [],
+   "rejected_at_door": false,
+   "route": "reviewer",
+   "status": "ready_for_decision"
+  }
+ },
+ "labels": {
+  "degrade": null,
+  "expected_quality_class": "good",
+  "handwritten": false,
+  "late_filing": false,
+  "pii_in_free_text": false,
+  "stamp_present": true,
+  "tamper": null
+ },
+ "member": {
+  "cover_start": "2026-05-06",
+  "dob": "1978-04-14",
+  "full_name": "Rahul Bose",
+  "gender": "F",
+  "member_id": "MEM-70000075",
+  "relationship": "self"
+ },
+ "policy": {
+  "end_date": "2027-05-05",
+  "policy_number": "POL-NIV-2025-000125",
+  "premium_paid_until": "2027-05-05",
+  "start_date": "2026-05-06",
+  "sum_insured": 2500000
+ },
+ "procedure_group": null,
+ "product": "HEALTH-PLUS-GOLD",
+ "scenario": "happy_path",
+ "schema_version": "1.0",
+ "seed": 42,
+ "submission": {
+  "admission": {
+   "admission_type": "planned",
+   "admitted_on": "2026-04-16",
+   "diagnosis_codes": [
+    "A90"
+   ],
+   "discharged_on": "2026-04-18",
+   "hospital_id": "HOSP-0008",
+   "preauth_ref": "PA-2026-09015",
+   "procedure_codes": [],
+   "treating_doctor": "Dr. R. Menon"
+  },
+  "bill_lines": [
+   {
+    "amount": {
+     "amount": "6000.00",
+     "currency": "INR"
+    },
+    "category": "room",
+    "code": "ITM-0001",
+    "description": "Room rent (semi-private)",
+    "line_id": "L001",
+    "qty": "2",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cdcb",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "3000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "8400.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0002",
+    "description": "Medicines",
+    "line_id": "L002",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cdcb",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "8400.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "4300.00",
+     "currency": "INR"
+    },
+    "category": "investigation",
+    "code": "ITM-0003",
+    "description": "Investigations",
+    "line_id": "L003",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cdcb",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "4300.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "2000.00",
+     "currency": "INR"
+    },
+    "category": "consultation",
+    "code": "ITM-0004",
+    "description": "Consultation",
+    "line_id": "L004",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cdcb",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "2000.00",
+     "currency": "INR"
+    }
+   }
+  ],
+  "claim_ref": "HC-2026-009015",
+  "claim_type": "cashless",
+  "config_versions": {
+   "confidence_gates": 1,
+   "deadlines": 2,
+   "doc_requirements": 4,
+   "router_rules": 3
+  },
+  "contract_version": "1.0",
+  "documents": [
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cdca",
+    "doc_type": "discharge_summary",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cdca/discharge_summary.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "discharge_summary.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "67435c29332e5e3e8551002a55fe62e0ea97978015fc805fdaddfd4fb78b78b5",
+    "size_bytes": 1010
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cdcb",
+    "doc_type": "final_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cdcb/final_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "final_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "fd97f90888de090fad7d9d33b70190b362bf723f17da5fcd53c789ff06aba86b",
+    "size_bytes": 1214
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cdcc",
+    "doc_type": "itemised_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cdcc/itemised_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "itemised_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "9500d9398115cc82b2668fc001da8cee9952e1c88829870c53d2ea0efdabeb5a",
+    "size_bytes": 1221
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cdcd",
+    "doc_type": "claim_form",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cdcd/claim_form.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "claim_form.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "6ea901be2974fad316a749d782bc6ba1a578cc7779792128f59259828151d9cd",
+    "size_bytes": 907
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cdce",
+    "doc_type": "id_proof",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cdce/id_proof.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "id_proof.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "3b974d09d238734d5778c014954f8285d053873a326d64db4d60c7b7af309c75",
+    "size_bytes": 903
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cdcf",
+    "doc_type": "policy_card",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cdcf/policy_card.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "policy_card.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "9c100cc3323c48f7807e00cf3bae51988c00d504cb2781290c9e7b592c244951",
+    "size_bytes": 909
+   }
+  ],
+  "patient": {
+   "dob": "1978-04-14",
+   "full_name": "Rahul Bose",
+   "gender": "F",
+   "id_proof_hash": "6556d9804c1ce79c4cda20cea5ee940204282855a0bcf5686bd83020ad051cf7",
+   "member_id": "MEM-70000075",
+   "policy_number": "POL-NIV-2025-000125"
+  },
+  "submitted_at": "2026-04-18T16:42:10Z",
+  "totals": {
+   "claimed": {
+    "amount": "20700.00",
+    "currency": "INR"
+   },
+   "discounts": {
+    "amount": "0.00",
+    "currency": "INR"
+   },
+   "gross": {
+    "amount": "20700.00",
+    "currency": "INR"
+   }
+  }
+ },
+ "utilised_prior": "0.00"
+}

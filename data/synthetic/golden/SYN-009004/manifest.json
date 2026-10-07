@@ -1,0 +1,14 @@
+{
+ "files": {
+  "case.json": "6ba347e51db1d2a15ca51f786ffc55bc640971dd10a060d954267e0feb13b585",
+  "docs/cancelled_cheque_cb11.pdf": "b823208994d32689e310935021658aa96c90c38f60e19d1d00fd56dc07bc18bc",
+  "docs/claim_form_cb0d.pdf": "ec5c8f12eb46a10f33d3ef64624f788db0c3d6790226e90c38c6aa442887acfa",
+  "docs/discharge_summary_cb0a.pdf": "49eeb34b46be75de1169092ef09615ce153e78d808dbc9b47b1b9488b4e380d4",
+  "docs/final_bill_cb0b.pdf": "22fad4a3ae28ca99b7badb0c0356159fb179b18bf5b3965783694b99b854492b",
+  "docs/id_proof_cb0e.pdf": "027dd4e9bdb1e18e0780d026411238f04f289250511ea60ceeca176078df89ce",
+  "docs/itemised_bill_cb0c.pdf": "e3d7016242aaab9c849b97f3295aa2e6ee20a31c521c2cff4f6509416c58f827",
+  "docs/payment_receipt_cb10.pdf": "7cd4b78c22fcb82e62efab4a2f1229128d7db61815eb1b962fd6713264943e47",
+  "docs/policy_card_cb0f.pdf": "de95d6edd117c71e5e5b02076a058c0dbba4eb8078d5f1de42b2b37474e5fbb6"
+ },
+ "generator_version": "1.0.0"
+}

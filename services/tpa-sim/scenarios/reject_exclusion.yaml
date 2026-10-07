@@ -1,0 +1,6 @@
+id: reject_exclusion
+name: Rejection - pre-existing exclusion
+description: Rejection with reason code EXCL_PREEXISTING.
+steps:
+  - {id: verifying, kind: status, status: verifying, after: 2s}
+  - {id: decision, kind: decision, outcome: reject, reason_codes: [EXCL_PREEXISTING], after: 5s}

@@ -1,0 +1,330 @@
+{
+  "id": "31_query_response",
+  "name": "31_query_response",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Trigger query-response: context -> crew triage -> API triage-result (deterministic rules decide) -> optional re-verify via own webhook.",
+        "height": 120,
+        "width": 420
+      },
+      "name": "Sticky purpose",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "query-response",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "name": "Webhook query-response",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "webhookId": "11e3fed7-334d-533d-a825-1059325e2e58"
+    },
+    {
+      "parameters": {
+        "functionCode": "const crypto = require('crypto');\nconst item = $input.first();\nconst raw = item.binary?.data ? Buffer.from(item.binary.data.data, 'base64') : Buffer.from(JSON.stringify(item.json.body));\nconst sig = (item.json.headers['x-n8n-signature'] || '').replace('sha256=', '');\nconst exp = crypto.createHmac('sha256', $env.INS_N8N_WEBHOOK_SECRET).update(raw).digest('hex');\nconst ok = sig.length === exp.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(exp));\nreturn [{ json: { ok, body: item.json.body, event_id: item.json.headers['x-event-id'] } }];"
+      },
+      "name": "Verify signature",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.ok }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF signature ok",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"code\":\"invalid_signature\"}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        960,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"accepted\":true}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "name": "Respond 202",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.INS_API_URL }}/internal/cases/{{ $('Verify signature').first().json.body.case_id }}/context?for=query_triage",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        }
+      },
+      "name": "GET context query_triage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1440,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "workflowId": "03_call_crew",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "name": "Call crew triage",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INS_API_URL }}/internal/queries/{{ $('Verify signature').first().json.body.query_id }}/triage-result",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST triage-result').digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.ok ? {agent_output:$json.output} : {agent_output:null}) }}"
+      },
+      "name": "POST triage-result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1920,
+        0
+      ],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.rerun }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF rerun",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WEBHOOK_URL + 'webhook/verification-start' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({case_id:$('Verify signature').first().json.body.case_id, trigger:'query_response', steps:$json.steps, client_token:$execution.id}) }}",
+        "options": {}
+      },
+      "name": "POST own verification-start",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        2400,
+        0
+      ],
+      "continueOnFail": false
+    }
+  ],
+  "connections": {
+    "Webhook query-response": {
+      "main": [
+        [
+          {
+            "node": "Verify signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify signature": {
+      "main": [
+        [
+          {
+            "node": "IF signature ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF signature ok": {
+      "main": [
+        [
+          {
+            "node": "Respond 202",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond 202": {
+      "main": [
+        [
+          {
+            "node": "GET context query_triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET context query_triage": {
+      "main": [
+        [
+          {
+            "node": "Call crew triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call crew triage": {
+      "main": [
+        [
+          {
+            "node": "POST triage-result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST triage-result": {
+      "main": [
+        [
+          {
+            "node": "IF rerun",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF rerun": {
+      "main": [
+        [
+          {
+            "node": "POST own verification-start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "errorWorkflow": "00_common_error_handler"
+  },
+  "tags": [
+    {
+      "id": "insurerTag00001",
+      "name": "insurer"
+    }
+  ]
+}

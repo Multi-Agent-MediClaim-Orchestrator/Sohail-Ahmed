@@ -1,0 +1,9 @@
+id: slow_insurer
+name: Slow insurer
+description: Long delays between callbacks (use TPA_SIM_TIME_SCALE to compress).
+steps:
+  - {id: verifying, kind: status, status: verifying, after: 5m}
+  - {id: q1, kind: query, category: clarification, text: "Please confirm the date of first symptoms for this claim.", after: 20m}
+  - {id: w1, kind: wait_response}
+  - {id: decision, kind: decision, outcome: approve, after: 30m}
+  - {id: paid, kind: settlement, settle: paid, after: 1h}

@@ -1,0 +1,303 @@
+{
+ "applies_to": [
+  "insurer"
+ ],
+ "archetype": "S12",
+ "archetype_name": "copay_and_deductible",
+ "case_id": "SYN-009012",
+ "documents": [
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cd0a",
+   "doc_type": "discharge_summary",
+   "sha256": "dbca7351019ba08fbd8d30017ad88abe9697016ad388b77547a29147600b9992",
+   "size_bytes": 1010
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cd0b",
+   "doc_type": "final_bill",
+   "sha256": "db5a890a79532777da0ca4fd138091cd653543fe92e49cb4566752dece720711",
+   "size_bytes": 1269
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cd0c",
+   "doc_type": "itemised_bill",
+   "sha256": "31356d8777be9ea42de34f011db9414c7f80f1d1db503b64ecaa9b22374a7e34",
+   "size_bytes": 1275
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cd0d",
+   "doc_type": "claim_form",
+   "sha256": "9ea48f6619c374bb191aa94f3830c82ff0c23200f6b5cf29996020957afc5edd",
+   "size_bytes": 905
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cd0e",
+   "doc_type": "id_proof",
+   "sha256": "e508bf256d20177bf59aaf4d83efd16ee0ee1ada86ec271529b28223cba640ea",
+   "size_bytes": 901
+  },
+  {
+   "doc_id": "0199a1b2-0000-7000-8000-00000008cd0f",
+   "doc_type": "policy_card",
+   "sha256": "f0ede6857b789b3ef5ea5d7109cb09468cd8ffaaf67277482cfd857e2f7a68bd",
+   "size_bytes": 907
+  }
+ ],
+ "expected": {
+  "hospital": {
+   "complete": true,
+   "missing": []
+  },
+  "insurer": {
+   "blocked": null,
+   "finding_codes_include": [],
+   "gate_amount": "88700.00",
+   "payable": "70960.00",
+   "reference_flags": [
+    "CO_PAY_SELECTED"
+   ],
+   "rejected_at_door": false,
+   "route": "single_approver",
+   "status": "ready_for_decision"
+  }
+ },
+ "labels": {
+  "degrade": null,
+  "expected_quality_class": "good",
+  "handwritten": false,
+  "late_filing": false,
+  "pii_in_free_text": false,
+  "stamp_present": true,
+  "tamper": null
+ },
+ "member": {
+  "cover_start": "2026-03-07",
+  "dob": "1941-12-19",
+  "full_name": "Anil Rao",
+  "gender": "M",
+  "member_id": "MEM-70000159",
+  "relationship": "self"
+ },
+ "policy": {
+  "end_date": "2027-03-06",
+  "policy_number": "POL-NIV-2025-000153",
+  "premium_paid_until": "2027-03-06",
+  "start_date": "2026-03-07",
+  "sum_insured": 1000000
+ },
+ "procedure_group": "urology",
+ "product": "SENIOR-SHIELD",
+ "scenario": "happy_path",
+ "schema_version": "1.0",
+ "seed": 42,
+ "submission": {
+  "admission": {
+   "admission_type": "planned",
+   "admitted_on": "2026-09-13",
+   "diagnosis_codes": [
+    "N20.0"
+   ],
+   "discharged_on": "2026-09-16",
+   "hospital_id": "HOSP-0005",
+   "preauth_ref": "PA-2026-09012",
+   "procedure_codes": [
+    "0TC30ZZ"
+   ],
+   "treating_doctor": "Dr. R. Menon"
+  },
+  "bill_lines": [
+   {
+    "amount": {
+     "amount": "12000.00",
+     "currency": "INR"
+    },
+    "category": "room",
+    "code": "ITM-0001",
+    "description": "Room rent (semi-private)",
+    "line_id": "L001",
+    "qty": "3",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cd0b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "4000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "40000.00",
+     "currency": "INR"
+    },
+    "category": "surgery",
+    "code": "ITM-0002",
+    "description": "Surgeon fee",
+    "line_id": "L002",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cd0b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "40000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "18000.00",
+     "currency": "INR"
+    },
+    "category": "medicine",
+    "code": "ITM-0003",
+    "description": "Medicines",
+    "line_id": "L003",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cd0b",
+    "source_page": 1,
+    "unit_price": {
+     "amount": "18000.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "6700.00",
+     "currency": "INR"
+    },
+    "category": "investigation",
+    "code": "ITM-0004",
+    "description": "Investigations",
+    "line_id": "L004",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cd0b",
+    "source_page": 2,
+    "unit_price": {
+     "amount": "6700.00",
+     "currency": "INR"
+    }
+   },
+   {
+    "amount": {
+     "amount": "12000.00",
+     "currency": "INR"
+    },
+    "category": "other",
+    "code": "ITM-0005",
+    "description": "OT charges",
+    "line_id": "L005",
+    "qty": "1",
+    "source_doc_id": "0199a1b2-0000-7000-8000-00000008cd0b",
+    "source_page": 3,
+    "unit_price": {
+     "amount": "12000.00",
+     "currency": "INR"
+    }
+   }
+  ],
+  "claim_ref": "HC-2026-009012",
+  "claim_type": "cashless",
+  "config_versions": {
+   "confidence_gates": 1,
+   "deadlines": 2,
+   "doc_requirements": 4,
+   "router_rules": 3
+  },
+  "contract_version": "1.0",
+  "documents": [
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cd0a",
+    "doc_type": "discharge_summary",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cd0a/discharge_summary.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "discharge_summary.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "dbca7351019ba08fbd8d30017ad88abe9697016ad388b77547a29147600b9992",
+    "size_bytes": 1010
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cd0b",
+    "doc_type": "final_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cd0b/final_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "final_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "db5a890a79532777da0ca4fd138091cd653543fe92e49cb4566752dece720711",
+    "size_bytes": 1269
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cd0c",
+    "doc_type": "itemised_bill",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cd0c/itemised_bill.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "itemised_bill.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "31356d8777be9ea42de34f011db9414c7f80f1d1db503b64ecaa9b22374a7e34",
+    "size_bytes": 1275
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cd0d",
+    "doc_type": "claim_form",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cd0d/claim_form.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "claim_form.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "9ea48f6619c374bb191aa94f3830c82ff0c23200f6b5cf29996020957afc5edd",
+    "size_bytes": 905
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cd0e",
+    "doc_type": "id_proof",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cd0e/id_proof.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "id_proof.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "e508bf256d20177bf59aaf4d83efd16ee0ee1ada86ec271529b28223cba640ea",
+    "size_bytes": 901
+   },
+   {
+    "doc_id": "0199a1b2-0000-7000-8000-00000008cd0f",
+    "doc_type": "policy_card",
+    "download_url": "http://minio:9000/hospital-docs/0199a1b2-0000-7000-8000-00000008cd0f/policy_card.pdf?X-Amz-Expires=86400&X-Amz-Signature=abc123",
+    "filename": "policy_card.pdf",
+    "mime_type": "application/pdf",
+    "pages": 3,
+    "parse_confidence": 0.93,
+    "received_via": "upload",
+    "sha256": "f0ede6857b789b3ef5ea5d7109cb09468cd8ffaaf67277482cfd857e2f7a68bd",
+    "size_bytes": 907
+   }
+  ],
+  "patient": {
+   "dob": "1941-12-19",
+   "full_name": "Anil Rao",
+   "gender": "M",
+   "id_proof_hash": "b4cf339b755bdc3eb6a3a950f1a20e7f9ea63d2ea654c09b6202349fbfe94a7f",
+   "member_id": "MEM-70000159",
+   "policy_number": "POL-NIV-2025-000153"
+  },
+  "submitted_at": "2026-09-16T16:42:10Z",
+  "totals": {
+   "claimed": {
+    "amount": "88700.00",
+    "currency": "INR"
+   },
+   "discounts": {
+    "amount": "0.00",
+    "currency": "INR"
+   },
+   "gross": {
+    "amount": "88700.00",
+    "currency": "INR"
+   }
+  }
+ },
+ "utilised_prior": "0.00"
+}
