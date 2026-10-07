@@ -1,6 +1,25 @@
 # Decisions log
 Format: decision, reason, date. Newest first. Spec fixes are proven by a test.
 
+## 2026-10-07 — doc-pipeline and vision-service: what was built instead of the spec's stack
+
+- **Packages are `docpipe` and `vision`**, not `app` (two workspace members called `app` shadow each other in one venv).
+- **doc-pipeline:** text layer (`pdftotext`) then tesseract; MinerU is wired as an optional backend and used when its
+  CLI is installed, but it is NOT installed here (several GB of models, weak GPU) so that path is untested. Presidio +
+  spaCy `en_core_web_sm` for PERSON, plus own recognizers (Aadhaar with Verhoeff, PAN, phone, IFSC, account, policy,
+  member, DOB) and a labelled-name rule because the small spaCy model misses "Patient Name: X". Results are unmasked
+  locally before going to hospital-api (same trust zone) because completeness compares patient names; only masked text
+  reaches the cloud model, and identity documents never reach it. `/v1/unmask` and the MinIO-stored `pii_map.enc` are
+  not built (the API receives real values directly). Jobs are in memory. Returned shape is the `passes` list the API's
+  parse callback takes (the doc's `ParsedDocument` is not exposed).
+- **vision-service:** classical detector only (no trained YOLO/ONNX model: there is no labelled data or GPU),
+  tesseract instead of PaddleOCR, escalation through the LOCAL vision model (not a cloud alias), in-memory budgets.
+  `has_required_stamp` from `/v1/quality` means "a hospital stamp or seal was seen"; whether the doc type needs one is
+  the API's rule. Absence on an unreadable page is reported as unknown (null), not False.
+- New API endpoint `GET /v1/internal/hospitals` (stamp-text registry).
+- `make test` runs the services in separate pytest invocations; `-m llm` / `-m n8n` tests are opt-in (`make test-llm`,
+  `make n8n-test`).
+
 ## 2026-10-07 — UI (doc 10): lean Next.js app, deviations
 
 - **npm, not pnpm** (pnpm is not installed). No shadcn/NextAuth/Monaco/PDF.js/MSW/Playwright: plain Tailwind

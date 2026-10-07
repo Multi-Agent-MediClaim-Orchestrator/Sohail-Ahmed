@@ -4,7 +4,7 @@ version = "0.0.0"
 requires-python = ">=3.12"
 
 [tool.uv.workspace]
-members = ["contract/python", "hospital/api", "hospital/crew"]
+members = ["contract/python", "hospital/api", "hospital/crew", "services/doc-pipeline", "services/vision-service"]
 
 [tool.ruff]
 extend-exclude = ["docs"]
@@ -21,6 +21,7 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "hospital/n8n/tests/*" = ["S101", "S105", "S106", "S310", "S603", "S607", "E501"]
 "hospital/api/app/**" = ["B008"]  # FastAPI Depends() defaults
 "hospital/api/app/services/cases.py" = ["S608"]
+"services/**" = ["S101", "B008", "S105", "S106", "E501", "S603", "S607"]
 "hospital/crew/**" = ["S105", "S106", "E501"]
 "hospital/api/app/services/queries.py" = ["S608"]
 "hospital/api/app/routers/dashboard.py" = ["S608"]
@@ -30,6 +31,7 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 
 [tool.pytest.ini_options]
 markers = ["unit", "integration", "contract", "e2e", "slow", "llm", "n8n"]
+addopts = "-m 'not llm and not n8n'"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"

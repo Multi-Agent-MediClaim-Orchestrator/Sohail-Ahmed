@@ -1,5 +1,5 @@
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -23,7 +23,7 @@ up-n8n:
 	$(COMPOSE) --profile hospital up -d --wait hospital-n8n
 
 n8n-test:
-	uv run pytest hospital/n8n -q
+	uv run pytest hospital/n8n -q -m n8n
 
 run-api:
 	cd hospital/api && uv run uvicorn app.asgi:app --port 8100
@@ -33,6 +33,15 @@ run-ui:
 
 run-crew:
 	set -a && . ./.env && set +a && uv run uvicorn crew.main:app_factory --factory --app-dir hospital/crew --host 127.0.0.1 --port 8010
+
+test-llm:
+	uv run pytest hospital/crew services/doc-pipeline -q -m llm -s
+
+run-vision:
+	set -a && . ./.env && set +a && cd services/vision-service && uv run uvicorn vision.main:app_factory --factory --host 127.0.0.1 --port 8300
+
+run-docpipe:
+	set -a && . ./.env && set +a && cd services/doc-pipeline && uv run uvicorn docpipe.main:app_factory --factory --host 127.0.0.1 --port 8200
 
 down:
 	$(COMPOSE) --profile infra down
@@ -53,7 +62,9 @@ test-infra:
 	uv run pytest infra/tests -q -m integration
 
 test:
-	uv run pytest contract/tests hospital/api/tests infra/tests -q
+	uv run pytest contract/tests hospital/api/tests hospital/crew infra/tests -q
+	uv run pytest services/doc-pipeline -q
+	uv run pytest services/vision-service -q
 
 lint:
 	uv run ruff check .
