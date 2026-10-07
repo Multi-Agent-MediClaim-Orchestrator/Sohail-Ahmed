@@ -269,8 +269,8 @@ def diagnose(c: httpx.Client, desk: Any, s: dict[str, Any]) -> None:
     try:
         for j in httpx.get(CREW + "/v1/jobs", timeout=3).json()["items"]:
             print(f"  crew job {j['type']}: {j['state']} {j['error'] or ''}")
-    except Exception:  # noqa: BLE001  (the crew may already be stopped)
-        pass
+    except Exception as e:  # noqa: BLE001
+        print(f"  (crew job list unavailable: {type(e).__name__})")
     for name in ("api", "docpipe", "vision", "crew"):
         f = LOGS / f"{name}.log"
         if f.exists():
@@ -481,7 +481,7 @@ async def scenario(sim: Any, case: dict[str, Any], out: Path, stack: Stack) -> i
             assert r.status_code == 202, r.text
             wait(
                 lambda: c.get(f"/v1/queries/{s['qid']}", headers=officer).json()["responses"],
-                300,
+                60 if FAST else 480,
                 "draft from the crew",
                 5,
             )

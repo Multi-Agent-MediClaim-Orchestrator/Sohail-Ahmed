@@ -44,6 +44,17 @@ risky query categories; all data synthetic.
 - Test-harness fixes: no background outbox workers in tests (they raced the manual runs), small DB pools, crew PII
   guard ignores UUIDs. Postgres `max_connections=60` is tight if several apps share it.
 
+## Verification status (2026-10-07)
+- `make e2e-hospital` (deterministic extractors, about 20 s): passes, 11 steps from case creation to settlement and audit,
+  against the real stack and the insurer simulator.
+- `E2E_LLM=ollama make e2e-hospital` (real local `gemma4:latest`, thinking off, cloud off): passed once in about 7 minutes
+  (parsing 72 s, query draft about 5 minutes). An earlier real-model run failed once at the draft step with an API 422 whose
+  cause was not captured (job errors now carry the response body); it did not recur. The real-model runs also found and
+  fixed five defects (see DECISIONS.md). Do not run the test suites while the real-model e2e is running: contention
+  made one suite run fail 88 tests (not reproducible alone).
+- Suites: ruff clean, mypy (contract) clean, contract+infra+hospital 461 passed repeatedly, doc-pipeline, vision-service,
+  data (synthetic + eval) and 13 n8n flow tests (real n8n container) green; `openapi.json` current; doc-column check clean.
+
 ## Known gaps / not verified
 - **UI never checked in a browser** (the Chrome extension was not connected): verified by typecheck, lint, unit tests,
   production build and curl through the running server only.
