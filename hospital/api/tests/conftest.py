@@ -74,7 +74,7 @@ ENVV = _env()
 
 
 @pytest.fixture(scope="session")
-def settings(migrated: str) -> Settings:
+def settings(migrated: str):  # type: ignore[no-untyped-def]
     import redis as sync_redis
 
     # high per-minute upload limit: tests share one real Redis counter; the limiter has its own test
@@ -86,11 +86,16 @@ def settings(migrated: str) -> Settings:
         db_pool_size=3,  # several apps share one Postgres with max_connections=60
         db_max_overflow=3,
     )
-    r = sync_redis.Redis.from_url(s.redis_url)  # cached user ids belong to a previous test database
-    for k in r.scan_iter("cache:hosp:*"):
-        r.delete(k)
-    r.close()
-    return s
+
+    def clear_cache() -> None:  # cached user ids belong to whichever database wrote them
+        r = sync_redis.Redis.from_url(s.redis_url)
+        for k in r.scan_iter("cache:hosp:*"):
+            r.delete(k)
+        r.close()
+
+    clear_cache()
+    yield s
+    clear_cache()  # do not leave ids of the throwaway test database for the dev API
 
 
 async def start_app(app: Any) -> AsyncIterator[httpx.AsyncClient]:

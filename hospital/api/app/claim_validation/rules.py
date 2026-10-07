@@ -227,6 +227,17 @@ def v06(d: ClaimDraftIn, ctx: ValidationContext) -> list[Finding]:
 
 def v07(d: ClaimDraftIn, ctx: ValidationContext) -> list[Finding]:
     out = []
+    if (
+        not d.admission.diagnosis_codes
+    ):  # the insurer contract needs at least one: say so now, not as a 422 at sign-off
+        out.append(
+            Finding(
+                "V07",
+                "error",
+                "admission.diagnosis_codes",
+                "At least one diagnosis (ICD-10) code is required. Add it from the discharge summary.",
+            )
+        )
     for i, code in enumerate(d.admission.diagnosis_codes):
         if not ICD10.match(code):
             out.append(

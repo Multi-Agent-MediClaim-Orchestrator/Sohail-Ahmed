@@ -49,3 +49,23 @@ def test_nested_braces_are_rejected() -> None:
     except ValueError:
         return
     raise AssertionError("expected ValueError")
+
+
+def test_flow_reads_only_keys_the_pipeline_returns() -> None:
+    """Regression: F1 read `classify_confidence` while the service returned `doc_type_conf`; the document was stored with
+    confidence 0 and nobody noticed until an end-to-end run."""
+    import re
+
+    from docpipe.pipeline import RESULT_KEYS
+
+    flow = json.loads((ROOT / "hospital/n8n/flows/hosp_f1_intake.json").read_text())
+    used: set[str] = set()
+    for n in flow["nodes"]:
+        blob = json.dumps(n["parameters"])
+        for m in re.finditer(r"const r = \$json\.result[^;]*;(.*?)(?:return|$)", blob):
+            used |= set(re.findall(r"\br\.(\w+)", m.group(0)))
+        used |= set(re.findall(r"\.result\.(\w+)", blob))
+    assert used, "the check found nothing to compare: the flow changed shape"
+    assert used <= RESULT_KEYS, (
+        f"flow reads keys the pipeline does not return: {sorted(used - RESULT_KEYS)}"
+    )

@@ -57,7 +57,7 @@ async def run_job(app: Any, kind: str, body: dict[str, Any]) -> dict[str, Any]:
 async def test_claim_build_by_the_real_crew_passes_the_api_validators(
     cclient, tok, capp, crew_app, settings
 ):  # type: ignore[no-untyped-def]
-    case = await ready_case(cclient, tok, pharmacy_total="1000.00")
+    case = await ready_case(cclient, tok, pharmacy_total="1000.00", diagnosis_codes=["K80.2"])
     r = await cclient.post(f"/v1/cases/{case['id']}/claim/build", headers=tok("desk1"))
     assert r.status_code == 202
     sent = capp.state.crew.jobs[-1]

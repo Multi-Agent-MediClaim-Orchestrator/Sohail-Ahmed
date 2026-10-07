@@ -277,3 +277,11 @@ def test_money_never_floats_and_extra_fields_rejected() -> None:
         }
     )
     assert ok.provenance["patient.dob"].confidence == 0.97
+
+
+def test_v07_requires_a_diagnosis_code_before_sign_off() -> None:
+    """The insurer contract needs one; without this validator the officer only learned at sign-off (a 422)."""
+    r = run(lambda b: b["admission"].update(diagnosis_codes=[]))
+    assert [(f.code, f.field) for f in r.errors] == [
+        ("V07", "admission.diagnosis_codes")
+    ] and r.has_errors
