@@ -1,0 +1,41 @@
+flowchart TB
+  subgraph HOST["Developer laptop (macOS / Linux)"]
+    direction TB
+    subgraph PROC["Host processes started by make demo (uv run / uvicorn)"]
+      direction LR
+      HAPI["hospital-api :8100"]
+      HCREW["hospital crew :8010<br/>CrewAI"]
+      DOC["doc-pipeline :8200"]
+      VIS["vision-service :8300"]
+      RAG["rag-service :8400"]
+      TPA["tpa-sim :8500"]
+      IAPI["insurer-api :8600<br/>+ calc-engine in process"]
+      ICREW["insurer crew :8610<br/>CrewAI"]
+    end
+    OLL["Ollama :11434<br/>gemma4 · nomic-embed-text"]
+    TOOLS["Poppler · Tesseract<br/>(PDF render, OCR)"]
+    subgraph DOCKER["Docker Compose (project 'claims')"]
+      direction LR
+      subgraph HN["hospital_net"]
+        HDB[("hospital-db<br/>Postgres 16 :5432")]
+      end
+      subgraph INN["insurer_net"]
+        IDB[("insurer-db<br/>Postgres 16 :5453")]
+      end
+      subgraph SN["shared_net (also on hospital_net + insurer_net)"]
+        REDIS[("redis 7 :6379")]
+        MINIO[("minio :9000/9001<br/>built from source")]
+        KC["keycloak 25 :8080"]
+        CLAM["clamav :3310"]
+      end
+      subgraph HNET["host network"]
+        HN8N["hospital-n8n :5688"]
+        IN8N["insurer-n8n :5689<br/>(DEMO_ORCH=n8n)"]
+      end
+      QD[("qdrant 1.12 :6333<br/>(make demo only)")]
+    end
+  end
+  PROC --> DOCKER
+  PROC --> OLL
+  DOC --> TOOLS
+  VIS --> TOOLS

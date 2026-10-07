@@ -99,6 +99,10 @@ Each side owns its API, database, workflows, agents and UI; they talk only throu
 with idempotency keys. Shared services are stateless or namespaced per side (for example, the hospital's knowledge-base
 token cannot read the insurer's collections).
 
+How it is deployed: containers (Docker Compose) for the stateful and third-party parts, host processes for our services.
+
+![Deployment view](docs/images/07-deployment.png)
+
 ## 5. How a claim flows
 
 ![Claim lifecycle](docs/images/02-claim-lifecycle.png)
@@ -154,6 +158,11 @@ Run them alone, no Docker needed: `make crew-demo`, `make ins-crew-demo`; draw t
 
 Flows are generated from code (`hospital/n8n/build_flows.py`, `insurer/n8n/build_flows.py`) and linted; the hospital
 flows are tested against a real n8n container and run in every demo. The insurer flows run when `DEMO_ORCH=n8n`.
+
+The real workflows in the n8n editor (all of them are in [`docs/images/n8n/`](docs/images/n8n/)):
+
+![Hospital claim-build workflow](docs/images/n8n/n8n_hosp_f3_build.png)
+![Insurer decision gate workflow](docs/images/n8n/n8n_20_decision_gate.png)
 
 ## 8. Tech stack and why
 
@@ -267,6 +276,8 @@ uv run python eval/run_eval.py --n 300        # evaluation report
 
 | Document | What it covers |
 |---|---|
+| [`docs/report/MediClaim_Project_Report.pdf`](docs/report/MediClaim_Project_Report.pdf) ([docx](docs/report/MediClaim_Project_Report.docx)) | Full project report: problem, design, workflows, results, roadmap, references, appendices |
+| [`docs/report/MediClaim_Tech_Stack.pdf`](docs/report/MediClaim_Tech_Stack.pdf) ([docx](docs/report/MediClaim_Tech_Stack.docx)) | Each technology, why it is used, its parameters, and every `make` command |
 | [`docs/demo/01-RUNBOOK.md`](docs/demo/01-RUNBOOK.md) | Every command, what it runs, where to look |
 | [`docs/demo/02-HOW-IT-WORKS.md`](docs/demo/02-HOW-IT-WORKS.md) | Which file does what, end to end |
 | [`docs/demo/03-WORKFLOW.md`](docs/demo/03-WORKFLOW.md) | A claim's journey step by step |
