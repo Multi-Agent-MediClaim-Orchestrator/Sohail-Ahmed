@@ -181,7 +181,7 @@ def main() -> int:
     for need, url in (
         ("n8n", N8N + "/healthz"),
         ("keycloak", "http://localhost:8080/realms/hospital"),
-        ("ollama", "http://localhost:11434/api/tags"),
+        *([] if FAST else [("ollama", "http://localhost:11434/api/tags")]),
     ):
         try:
             httpx.get(url, timeout=3).raise_for_status()
@@ -249,12 +249,64 @@ def main() -> int:
             {"HOSP_LLM_MODEL": local, "CREW_LLM": "rules" if FAST else "ollama"},
             CREW + "/v1/health",
         )
+        if "--serve" in sys.argv:  # keep the stack (and the UI) up for the browser tests
+            stack.start(
+                "ui",
+                ["npx", "next", "start", "-p", "3100"],
+                ROOT / "hospital/ui",
+                3100,
+                {"HOSP_API_URL": API},
+                "http://localhost:3100/login",
+            )
+            return asyncio.run(serve(sim))
         return asyncio.run(scenario(sim, case_json, out, stack))
     finally:
         stack.stop()
         (LOGS / "summary.txt").write_text(
             "\n".join(f"{'ok ' if o else 'FAIL'} {n} ({d:.1f}s) {m}" for n, o, d, m in steps)
         )
+
+
+async def serve(sim: Any) -> int:
+    """Control API for browser tests (the insurer simulator lives in this process): POST /control/push sends a signed
+    callback to the hospital, GET /control/state shows what the simulator has received. Stops on SIGTERM."""
+    from fastapi import FastAPI
+
+    app = FastAPI()
+
+    @app.post("/control/push")
+    async def push(body: dict[str, Any]) -> dict[str, Any]:
+        r = await sim.push(
+            body["claim_ref"], body["kind"], body["payload"], sequence=body.get("sequence")
+        )
+        return {"status": r.status_code, "body": r.text[:300]}
+
+    @app.get("/control/state")
+    async def state() -> dict[str, Any]:
+        return {
+            "claims": list(sim.claims),
+            "responses": len(sim.responses),
+            "received": len(sim.received),
+        }
+
+    @app.post("/control/fail_next")
+    async def fail_next(body: dict[str, Any]) -> dict[str, Any]:
+        sim.fail_next = int(body.get("n", 1))
+        return {"fail_next": sim.fail_next}
+
+    srv = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=8501, log_level="warning"))
+    task = asyncio.create_task(srv.serve())
+    stop = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, stop.set)
+    while not srv.started:
+        await asyncio.sleep(0.1)
+    print("READY", flush=True)
+    await stop.wait()
+    srv.should_exit = True
+    await task
+    return 0
 
 
 def diagnose(c: httpx.Client, desk: Any, s: dict[str, Any]) -> None:
