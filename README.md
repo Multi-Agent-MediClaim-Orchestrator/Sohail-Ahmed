@@ -277,6 +277,8 @@ uv run python eval/run_eval.py --n 300        # evaluation report
 | Document | What it covers |
 |---|---|
 | [`docs/report/MediClaim_Project_Report.pdf`](docs/report/MediClaim_Project_Report.pdf) ([docx](docs/report/MediClaim_Project_Report.docx)) | Full project report: problem, design, workflows, results, roadmap, references, appendices |
+| [`docs/guide/MediClaim_Explained_Simply.pdf`](docs/guide/MediClaim_Explained_Simply.pdf) | The project in plain English: problem, choices, every tool, parameters, likely viva questions |
+| [`docs/guide/MediClaim_Workflows_Explained.pdf`](docs/guide/MediClaim_Workflows_Explained.pdf) | Every n8n workflow in plain English: trigger, steps, why, with screenshots |
 | [`docs/report/MediClaim_Tech_Stack.pdf`](docs/report/MediClaim_Tech_Stack.pdf) ([docx](docs/report/MediClaim_Tech_Stack.docx)) | Each technology, why it is used, its parameters, and every `make` command |
 | [`docs/demo/01-RUNBOOK.md`](docs/demo/01-RUNBOOK.md) | Every command, what it runs, where to look |
 | [`docs/demo/02-HOW-IT-WORKS.md`](docs/demo/02-HOW-IT-WORKS.md) | Which file does what, end to end |
