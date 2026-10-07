@@ -8,7 +8,7 @@ import pytest
 from calc_engine.engine import run
 from calc_engine.models import CalcInput
 from calc_engine.money import allocate_cents, q
-from hypothesis import HealthCheck, given, settings
+from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 from reference_calc import reference
 from strategies import calc_inputs
@@ -97,13 +97,15 @@ def test_p8_raising_si_never_lowers_payable_and_copay_deductible_never_raise(d):
 def test_p9_excluding_more_lines_never_raises_payable(d, data):
     base = res(d)
     i = data.draw(st.integers(0, len(d["lines"]) - 1))
+    # With proportionate deduction on, a room/ICU line over its cap shrinks every other line; excluding that whole line removes
+    # the penalty, so the total can legitimately rise. The property only holds when that mechanism cannot apply.
+    assume(not (d["rules"]["proportionate_deduction"] and d["lines"][i]["mapped_group"] in ("room_rent", "icu")))
     d2 = copy.deepcopy(d)
     d2["lines"][i]["exclusion_tags"] = ["cosmetic"]
     d2["rules"]["exclusions"]["tags"] = sorted(set(d2["rules"]["exclusions"]["tags"]) | {"cosmetic"})
     d["rules"]["exclusions"]["tags"] = d2["rules"]["exclusions"]["tags"]
     base = res(d)
-    # each line can gain or lose a paisa in each rounding stage (sub-limit share, line cap, deductible, co-pay)
-    assert res(d2).payable_total <= base.payable_total + Decimal("0.01") * (4 * len(d["lines"]) + 5)
+    assert res(d2).payable_total <= base.payable_total + Decimal("0.01") * (2 * len(d["lines"]) + 5)
 
 
 @S
