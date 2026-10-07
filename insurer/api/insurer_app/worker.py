@@ -1,4 +1,4 @@
-"""Arq worker entrypoint (03-02 §5 task 17): ``arq app.worker.WorkerSettings``.
+"""Arq worker entrypoint (03-02 §5 task 17): ``arq insurer_app.worker.WorkerSettings``.
 
 Functions: fetch_documents, start_verification, triage_response, improve_query_draft, initiate_settlement. Cron: sla_tick,
 purge_ops, settlement_autoclose; a background dispatcher loop delivers callbacks every second."""

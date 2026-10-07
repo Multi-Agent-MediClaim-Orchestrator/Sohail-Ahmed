@@ -478,13 +478,18 @@ components:
             type: integer
           title: Document Ingest
           type: object
+        contract_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Contract Version
       required:
       - claim_ref
       - insurer_claim_no
       - status
       - received_at
       - sequence
-      - document_ingest
       title: Acknowledgement
       type: object
     Admission:
@@ -567,10 +572,13 @@ components:
       additionalProperties: false
       properties:
         line_id:
-          maxLength: 16
-          minLength: 1
+          anyOf:
+          - maxLength: 16
+            minLength: 1
+            type: string
+          - type: 'null'
+          default: null
           title: Line Id
-          type: string
         code:
           anyOf:
           - type: string
@@ -611,7 +619,6 @@ components:
           default: null
           title: Source Page
       required:
-      - line_id
       - description
       - category
       - qty
@@ -785,7 +792,7 @@ components:
         reviewer_ids:
           items:
             type: string
-          maxItems: 2
+          maxItems: 3
           minItems: 1
           title: Reviewer Ids
           type: array
@@ -973,13 +980,16 @@ components:
           title: Size Bytes
           type: integer
         mime_type:
-          enum:
-          - application/pdf
-          - image/jpeg
-          - image/png
-          - image/tiff
+          anyOf:
+          - enum:
+            - application/pdf
+            - image/jpeg
+            - image/png
+            - image/tiff
+            type: string
+          - type: 'null'
+          default: null
           title: Mime Type
-          type: string
         download_url:
           format: uri
           maxLength: 2083
@@ -987,9 +997,12 @@ components:
           title: Download Url
           type: string
         url_expires_at:
-          format: date-time
+          anyOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+          default: null
           title: Url Expires At
-          type: string
         parse_confidence:
           anyOf:
           - maximum: 1
@@ -1018,9 +1031,7 @@ components:
       - filename
       - sha256
       - size_bytes
-      - mime_type
       - download_url
-      - url_expires_at
       - pages
       title: DocumentRef
       type: object
@@ -1298,7 +1309,7 @@ components:
         amount:
           $ref: '#/components/schemas/Money'
         utr:
-          maxLength: 40
+          maxLength: 64
           minLength: 6
           title: Utr
           type: string
@@ -1310,6 +1321,13 @@ components:
           $ref: '#/components/schemas/SettlementMode'
         tds:
           $ref: '#/components/schemas/Money'
+        status:
+          default: paid
+          enum:
+          - paid
+          - reversed
+          title: Status
+          type: string
       required:
       - settlement_id
       - amount
@@ -1447,10 +1465,10 @@ components:
   responses:
     Problem:
       description: RFC 7807 problem (code in bad_request, doc_unavailable, duplicate_claim, forbidden,
-        hospital_blacklisted, hospital_mismatch, idempotency_conflict, idempotency_in_progress, internal_error,
-        invalid_signature, invalid_transition, not_your_claim, payload_too_large, rate_limited, service_unavailable,
-        stale_request, totals_mismatch, unknown_claim, unknown_document, unknown_query, unsupported_version,
-        validation_error)
+        forbidden_role, hospital_blacklisted, hospital_mismatch, idempotency_conflict, idempotency_in_progress,
+        internal_error, invalid_signature, invalid_transition, not_found, not_your_claim, payload_too_large,
+        query_closed, rate_limited, request_in_progress, service_unavailable, stale_etag, stale_request,
+        totals_mismatch, unknown_claim, unknown_document, unknown_query, unsupported_version, validation_error)
       content:
         application/problem+json:
           schema:

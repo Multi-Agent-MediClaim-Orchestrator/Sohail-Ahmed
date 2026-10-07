@@ -5,6 +5,18 @@
       "title": "Claim Ref",
       "type": "string"
     },
+    "contract_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contract Version"
+    },
     "document_ingest": {
       "additionalProperties": {
         "type": "integer"
@@ -36,8 +48,7 @@
     "insurer_claim_no",
     "status",
     "received_at",
-    "sequence",
-    "document_ingest"
+    "sequence"
   ],
   "title": "Acknowledgement",
   "type": "object"

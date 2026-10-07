@@ -20,7 +20,15 @@ OPEN_BY_DESIGN = {"/v1/client-errors"}  # error sink; rate limited, never return
 
 
 def all_routes() -> list[APIRoute]:
-    from app.routers import admin, decisions, events, internal, queries, reviewer, settlement
+    from insurer_app.routers import (
+        admin,
+        decisions,
+        events,
+        internal,
+        queries,
+        reviewer,
+        settlement,
+    )
 
     routers = [reviewer.router, decisions.router, events.router, internal.router, queries.router, queries.internal, settlement.router, admin.router]
     return [r for rt in routers for r in rt.routes if isinstance(r, APIRoute)]
@@ -87,9 +95,9 @@ async def test_matrix_is_enforced_for_every_route_and_role(env):
 
 
 async def test_idor_other_hospitals_claim_is_not_visible(env):
-    from app.services import jobs
-    from claim_contract.samples import make_submission
+    from claim_contract.insurer_side.samples import make_submission
     from ins_helpers import register_claim_docs, unique_member
+    from insurer_app.services import jobs
 
     c = make_submission(claim_ref=f"HC-2026-{uuid.uuid4().int % 900000 + 100000}", hospital_id="HOSP-0001", doc_base=(uuid.uuid4().int % 0xFFFFFFFFF) << 8, **unique_member())
     register_claim_docs(env, c)

@@ -5,7 +5,7 @@ Revises: 0001
 """
 
 from alembic import op
-from app.migration_helpers import add_updated_at_trigger
+from insurer_app.migration_helpers import add_updated_at_trigger
 
 revision = "0002"
 down_revision = "0001"

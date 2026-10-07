@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from datetime import UTC, date, datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 from uuid import UUID
 
 from pydantic import (
@@ -45,6 +45,14 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 class ContractModel(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    @classmethod
+    def from_json_dict(cls, data: dict[str, Any]) -> Self:
+        """Build from a JSON-shaped dict (strings for dates, UUIDs and decimals)."""
+        return cls.model_validate(data, strict=False)
+
+    def to_json_dict(self) -> dict[str, Any]:
+        return self.model_dump(mode="json", exclude_none=False)
 
 
 def _to_decimal(v: Any) -> Decimal:
@@ -151,7 +159,9 @@ class Admission(ContractModel):
 
 
 class BillLine(ContractModel):
-    line_id: str = Field(min_length=1, max_length=16)
+    line_id: str | None = Field(
+        default=None, min_length=1, max_length=16
+    )  # receiver assigns L001.. when absent
     code: str | None = None
     description: str = Field(min_length=2, max_length=200)
     category: BillCategory
@@ -191,9 +201,9 @@ class DocumentRef(ContractModel):
     filename: str = Field(min_length=1, max_length=200, pattern=r"^[^/\\]+$")
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     size_bytes: int = Field(ge=1, le=25_000_000)
-    mime_type: Literal["application/pdf", "image/jpeg", "image/png", "image/tiff"]
+    mime_type: Literal["application/pdf", "image/jpeg", "image/png", "image/tiff"] | None = None
     download_url: HttpUrl
-    url_expires_at: datetime
+    url_expires_at: datetime | None = None
     parse_confidence: float | None = Field(default=None, ge=0, le=1)  # not money
     pages: int = Field(ge=1, le=300)
     received_via: Literal["upload", "scan", "email", "supplement"] = "upload"
@@ -225,7 +235,7 @@ class Decision(ContractModel):
     approved_amount: Money
     deductions: list[Deduction] = Field(default_factory=list)
     reason_codes: list[str] = Field(default_factory=list)
-    reviewer_ids: list[str] = Field(min_length=1, max_length=2)
+    reviewer_ids: list[str] = Field(min_length=1, max_length=3)
     calc_trace_id: UUID
     policy_version: int = Field(ge=1)
     decided_at: datetime
@@ -250,10 +260,11 @@ class Decision(ContractModel):
 class SettlementNotice(ContractModel):
     settlement_id: UUID
     amount: Money
-    utr: str = Field(min_length=6, max_length=40)
+    utr: str = Field(min_length=6, max_length=64)
     paid_on: date
     mode: SettlementMode
     tds: Money
+    status: Literal["paid", "reversed"] = "paid"  # 1.1: a reversal notice (insurer 03-06)
 
 
 class ClaimSubmission(ContractModel):
@@ -277,7 +288,7 @@ class ClaimSubmission(ContractModel):
         total = sum((ln.amount.amount for ln in self.bill_lines), Decimal("0.00"))
         if total != self.totals.gross.amount:
             raise ValueError("totals_mismatch: sum(bill_lines) != totals.gross (V-01)")
-        ids = [ln.line_id for ln in self.bill_lines]
+        ids = [ln.line_id for ln in self.bill_lines if ln.line_id is not None]
         if len(set(ids)) != len(ids):
             raise ValueError("duplicate line_id (V-07)")
         doc_ids = {d.doc_id for d in self.documents}
@@ -302,7 +313,8 @@ class Acknowledgement(ContractModel):
     status: InsurerCaseStatus
     received_at: datetime
     sequence: int = Field(ge=0)
-    document_ingest: dict[str, int]
+    document_ingest: dict[str, int] = Field(default_factory=lambda: {"queued": 0, "failed": 0})
+    contract_version: str | None = None
 
 
 class StatusUpdate(ContractModel):
@@ -365,6 +377,36 @@ class DocRefreshResponse(ContractModel):
     expires_at: datetime
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     size_bytes: int = Field(ge=1)
+
+
+class QueryCallback(ContractModel):
+    claim_ref: str = Field(pattern=r"^HC-\d{4}-\d{6}$")
+    sequence: int = Field(ge=0)
+    query: Query
+
+
+class DecisionCallback(ContractModel):
+    claim_ref: str = Field(pattern=r"^HC-\d{4}-\d{6}$")
+    sequence: int = Field(ge=0)
+    decision: Decision
+
+
+class SettlementCallback(ContractModel):
+    claim_ref: str = Field(pattern=r"^HC-\d{4}-\d{6}$")
+    sequence: int = Field(ge=0)
+    settlement: SettlementNotice
+
+
+class HealthResponse(ContractModel):
+    status: Literal["ok", "degraded"]
+    version: str
+    time: datetime
+
+
+class ContractInfo(ContractModel):
+    supported: list[str]
+    default: str
+    deprecated: list[str] = Field(default_factory=list)
 
 
 def error_code_for(message: str) -> str:

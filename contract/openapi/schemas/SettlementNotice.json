@@ -17,11 +17,20 @@
       "title": "Settlement Id",
       "type": "string"
     },
+    "status": {
+      "default": "paid",
+      "enum": [
+        "paid",
+        "reversed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
     "tds": {
       "$ref": "#/components/schemas/Money"
     },
     "utr": {
-      "maxLength": 40,
+      "maxLength": 64,
       "minLength": 6,
       "title": "Utr",
       "type": "string"

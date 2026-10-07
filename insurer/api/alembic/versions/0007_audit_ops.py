@@ -5,7 +5,7 @@ Revises: 0006
 """
 
 from alembic import op
-from claim_contract.audit_ddl import audit_ddl_pg
+from claim_contract.insurer_side.audit_ddl import audit_ddl_pg
 
 revision = "0007"
 down_revision = "0006"

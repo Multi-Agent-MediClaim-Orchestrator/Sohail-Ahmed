@@ -1,4 +1,4 @@
-"""Door validators V1-V14 (03-02 §4.6) beyond the shared Pydantic/``claim_contract.validation`` rules."""
+"""Door validators V1-V14 (03-02 §4.6) beyond the shared Pydantic/``claim_contract.insurer_side.validation`` rules."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 from claim_contract.errors import FieldError, ProblemError
+from claim_contract.insurer_side.validation import ValidationReport, check_submission
 from claim_contract.models import ClaimSubmission
-from claim_contract.validation import ValidationReport, check_submission
 from pydantic import ValidationError
 
 from .models.core import NetworkHospital
@@ -35,6 +35,11 @@ def parse_submission(raw: bytes) -> ClaimSubmission:
     except ValidationError as exc:
         errs = [FieldError(field=".".join(str(p) for p in e["loc"]), message=e["msg"]) for e in exc.errors()]
         code = "validation_error"
+        if any("totals_mismatch" in e["msg"] for e in exc.errors()):  # raised by the shared model's cross-field check (V-01)
+            code = "totals_mismatch"
+            errs = [FieldError(field="totals.gross", message=e["msg"]) for e in exc.errors() if "totals_mismatch" in e["msg"]] + [
+                e for e in errs if "totals_mismatch" not in e.message
+            ]
         raise ProblemError(code, "request body failed validation", errors=errs) from exc
 
 

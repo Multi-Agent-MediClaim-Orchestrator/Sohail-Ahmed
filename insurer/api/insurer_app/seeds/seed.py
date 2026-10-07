@@ -1,6 +1,6 @@
 """Deterministic, idempotent seed of master data + config + users (01-insurer-db §6.6).
 
-    python -m seeds.seed            # uses INS_OWNER_DATABASE_URL (or INS_DATABASE_URL)
+    python -m insurer_app.seeds.seed            # uses INS_OWNER_DATABASE_URL (or INS_DATABASE_URL)
 Re-running never changes counts: natural-key upserts (policy_number, member_id, hospital_code, code)."""
 
 from __future__ import annotations
@@ -14,12 +14,19 @@ import uuid
 from datetime import date, timedelta
 from pathlib import Path
 
-from app.config.defaults import DOC_REQUIREMENTS, PRODUCTS, QUERY_POLICY, THRESHOLDS, policy_rules
-from app.config.schemas import DOMAIN_SCHEMA, SCHEMAS
-from app.config.service import checksum_of
-from app.verification.names import normalise_name
-from claim_contract import audit
+from claim_contract.insurer_side import audit
 from sqlalchemy import create_engine, text
+
+from insurer_app.config.defaults import (
+    DOC_REQUIREMENTS,
+    PRODUCTS,
+    QUERY_POLICY,
+    THRESHOLDS,
+    policy_rules,
+)
+from insurer_app.config.schemas import DOMAIN_SCHEMA, SCHEMAS
+from insurer_app.config.service import checksum_of
+from insurer_app.verification.names import normalise_name
 
 SEED = 42
 ID_SALT = "synthetic-salt"

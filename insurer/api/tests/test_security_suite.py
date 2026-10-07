@@ -11,10 +11,10 @@ import uuid
 
 import jwt
 import pytest
-from app.settings import get_settings
-from claim_contract import audit as caudit
-from claim_contract.samples import make_submission
+from claim_contract.insurer_side import audit as caudit
+from claim_contract.insurer_side.samples import make_submission
 from ins_helpers import register_claim_docs, unique_member
+from insurer_app.settings import get_settings
 from sqlalchemy import text
 
 pytestmark = pytest.mark.integration
@@ -91,7 +91,7 @@ async def test_sec_t1_signature_tamper_matrix(env):
 
 async def test_sec_t9_no_raw_pii_in_logs_audit_or_outbox(env, caplog):
     """A claim whose free text carries Aadhaar/PAN/phone/email must not leak them into logs, audit payloads or callbacks."""
-    from app.services import jobs
+    from insurer_app.services import jobs
 
     caplog.set_level(logging.DEBUG)
     claim = make_submission(claim_ref=f"HC-2026-{uuid.uuid4().int % 900000 + 100000}", doc_base=(uuid.uuid4().int % 0xFFFFFFFFF) << 8, **unique_member())
@@ -113,7 +113,7 @@ async def test_sec_t9_no_raw_pii_in_logs_audit_or_outbox(env, caplog):
 
 
 async def test_sec_t10_separation_of_duties_is_enforced_by_api_and_db(env):
-    from app.services.gate import Thresholds  # noqa: F401  (import check only)
+    from insurer_app.services.gate import Thresholds  # noqa: F401  (import check only)
 
     async with env.sm() as s:
         # DB constraint: an approval row where approver == reviewer must be refused regardless of the API

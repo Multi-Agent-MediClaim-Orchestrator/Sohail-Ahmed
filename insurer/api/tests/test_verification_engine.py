@@ -3,12 +3,12 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-from app.verification import engine
-from app.verification.context import HospitalInfo, Overlap
-from app.verification.outcome import decide_run, outcome_from, step_status
-from app.verification.schemas import Finding, finding_key
 from hypothesis import given
 from hypothesis import strategies as st
+from insurer_app.verification import engine
+from insurer_app.verification.context import HospitalInfo, Overlap
+from insurer_app.verification.outcome import decide_run, outcome_from, step_status
+from insurer_app.verification.schemas import Finding, finding_key
 from vbuilders import REQUIRED, doc, make_ctx, with_member, with_patient, with_policy
 
 

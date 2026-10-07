@@ -1,9 +1,9 @@
 import uuid
 
 import pytest
-from app.services import jobs
-from claim_contract.samples import make_line, make_submission
+from claim_contract.insurer_side.samples import make_line, make_submission
 from ins_helpers import register_claim_docs, unique_stay
+from insurer_app.services import jobs
 from sqlalchemy import text
 
 pytestmark = pytest.mark.integration
@@ -43,7 +43,7 @@ async def test_clean_claim_reaches_ready_for_decision_with_full_recommendation(e
     assert {k: v.status for k, v in st.items()} == {"document_fetch": "passed", "completeness": "passed", "identity": "passed", "authenticity": "passed",
                                                      "coverage": "passed", "calculation": "passed"}
     # audit chain contains run + every step and verifies
-    from app.services import audit
+    from insurer_app.services import audit
 
     async with env.sm() as s:
         assert (await audit.verify(s, c.id)).ok
@@ -114,9 +114,9 @@ async def test_waiting_period_group_block_results_in_partial_recommendation(env)
 
 
 async def test_start_run_is_idempotent_by_client_token_and_one_run_at_a_time(env):
-    from app.services import verification
-    from app.verification.schemas import RunStart
     from claim_contract.errors import ProblemError
+    from insurer_app.services import verification
+    from insurer_app.verification.schemas import RunStart
 
     claim = fresh()
     register_claim_docs(env, claim)

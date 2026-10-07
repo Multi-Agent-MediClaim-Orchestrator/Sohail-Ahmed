@@ -7,11 +7,11 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
-from app import jobs_cron
-from app.routers import events as ev_router
-from app.services import audit, events, jobs, outbox
-from claim_contract.samples import make_line, make_submission, money
+from claim_contract.insurer_side.samples import make_line, make_submission, money
 from ins_helpers import register_claim_docs, unique_member
+from insurer_app import jobs_cron
+from insurer_app.routers import events as ev_router
+from insurer_app.services import audit, events, jobs, outbox
 from sqlalchemy import text
 
 pytestmark = pytest.mark.integration
@@ -188,7 +188,7 @@ async def _collect(gen, n, timeout=3.0):
 
 
 async def test_sse_audience_filter_replay_resync_and_heartbeat(env):
-    from app.security.auth import Principal
+    from insurer_app.security.auth import Principal
 
     ev_router.reset_connections()
     bus = events.MemoryEventBus(maxlen=4)
@@ -316,7 +316,7 @@ async def test_dispatch_once_delivers_and_dead_letters_surface_for_admin(env):
     # force a dead letter: hospital permanently rejects
     bad = HospitalRejecting = httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(422, json={"code": "validation_error"})))
     async with env.sm() as s, s.begin():
-        await outbox.enqueue_status(s, await s.get(__import__("app.models.core", fromlist=["ClaimCase"]).ClaimCase, cid))
+        await outbox.enqueue_status(s, await s.get(__import__("insurer_app.models.core", fromlist=["ClaimCase"]).ClaimCase, cid))
     sender = outbox.make_sender(env.sm, bad, env.settings, backoff_scale=0.0)
     r = await sender.run_once()
     assert r.dead >= 1

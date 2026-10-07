@@ -1,9 +1,14 @@
 import uuid
 
 import pytest
-from app.services import audit, jobs, outbox, queries
-from claim_contract.samples import DEFAULT_DOC_TYPES, doc_content, make_document, make_submission
+from claim_contract.insurer_side.samples import (
+    DEFAULT_DOC_TYPES,
+    doc_content,
+    make_document,
+    make_submission,
+)
 from ins_helpers import register_claim_docs, unique_member
+from insurer_app.services import audit, jobs, outbox, queries
 from sqlalchemy import text
 
 pytestmark = pytest.mark.integration
@@ -301,7 +306,7 @@ async def test_reminders_and_due_items(env):
 
 async def test_crew_down_falls_back_to_template_and_degraded_flag_is_not_required(env):
     import httpx
-    from app.clients import crew
+    from insurer_app.clients import crew
 
     crew.set_transport(httpx.MockTransport(lambda r: httpx.Response(503)))
     try:

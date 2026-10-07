@@ -270,7 +270,7 @@ async def download(case_id: UUID, doc_id: UUID, p: Principal = Depends(view)) ->
 
 @router.get("/cases/{case_id}/audit")
 async def audit_log(case_id: UUID, after_seq: int = 0, limit: int = Query(default=100, ge=1, le=500), p: Principal = Depends(view)) -> dict[str, Any]:
-    from claim_contract import audit as caudit
+    from claim_contract.insurer_side import audit as caudit
 
     async with sessionmaker()() as s:
         await _case(s, case_id)

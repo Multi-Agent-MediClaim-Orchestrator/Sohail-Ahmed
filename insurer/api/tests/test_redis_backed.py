@@ -6,7 +6,7 @@ import uuid
 
 import pytest
 import redis.asyncio as aredis
-from claim_contract.samples import make_submission
+from claim_contract.insurer_side.samples import make_submission
 from ins_helpers import register_claim_docs, unique_member
 
 pytestmark = pytest.mark.integration
@@ -21,10 +21,10 @@ async def rcl(redis_url):
 
 
 async def swap_in_redis(env, client):
-    from app.main import create_app
-    from app.services import events
-    from app.settings import get_settings
     from hospital_sim import HospitalSim
+    from insurer_app.main import create_app
+    from insurer_app.services import events
+    from insurer_app.settings import get_settings
 
     app = create_app(get_settings(), redis=client)
     app.state.redis = client
@@ -39,7 +39,7 @@ def claim():
 
 
 async def test_idempotency_rate_limit_and_events_use_redis(env, rcl):
-    from app.services import jobs
+    from insurer_app.services import jobs
 
     await swap_in_redis(env, rcl)
     c = claim()

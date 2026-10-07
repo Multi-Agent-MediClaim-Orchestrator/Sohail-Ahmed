@@ -3,10 +3,10 @@ import uuid
 from decimal import Decimal
 
 import pytest
-from app.services import audit, jobs, outbox
+from claim_contract.insurer_side.samples import make_line, make_submission
 from claim_contract.models import Decision as ContractDecision
-from claim_contract.samples import make_line, make_submission
 from ins_helpers import register_claim_docs, unique_member
+from insurer_app.services import audit, jobs, outbox
 from sqlalchemy import text
 
 pytestmark = pytest.mark.integration
@@ -18,7 +18,7 @@ def claim_of(total_lines, min_si=500_000, **kw):
     c = make_submission(claim_ref=ref, doc_base=(uuid.uuid4().int % 0xFFFFFFFFF) << 8, **{**unique_member(min_si), **kw})
     src = c["documents"][1]["doc_id"]
     c["bill_lines"] = [make_line(i, category=cat, desc=desc, qty="1", unit=amt, doc_id=src) for i, (cat, desc, amt) in enumerate(total_lines, start=1)]
-    from claim_contract.samples import money
+    from claim_contract.insurer_side.samples import money
 
     gross = sum(Decimal(a) for _, _, a in total_lines)
     c["totals"] = {"gross": money(gross), "discounts": money("0"), "claimed": money(gross)}

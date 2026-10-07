@@ -9,6 +9,7 @@ from uuid import UUID
 
 import httpx
 from claim_contract import signing  # noqa: F401
+from claim_contract.insurer_side.outbox import OutboxItem, OutboxSender
 from claim_contract.models import (
     DecisionCallback,
     Query,
@@ -16,7 +17,6 @@ from claim_contract.models import (
     SettlementCallback,
     StatusUpdate,
 )
-from claim_contract.outbox import OutboxItem, OutboxSender
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 

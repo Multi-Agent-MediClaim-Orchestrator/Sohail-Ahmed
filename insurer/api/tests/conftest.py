@@ -27,7 +27,7 @@ def migrated_db(pg_server):
 
 @pytest.fixture(scope="module")
 def seeded_db(migrated_db):
-    from seeds.seed import seed
+    from insurer_app.seeds.seed import seed
 
     seed(migrated_db)
     from ins_helpers import reset_members
@@ -45,13 +45,13 @@ class Env:
 
     def client(self, sub: str = "reviewer1", roles: list[str] | None = None) -> httpx.AsyncClient:
         """httpx client against the insurer app authenticated as a staff user (dev HS256 token)."""
-        from app.security.auth import make_dev_token
+        from insurer_app.security.auth import make_dev_token
 
         tok = make_dev_token(sub, roles or ["reviewer"])
         return httpx.AsyncClient(transport=httpx.ASGITransport(app=self.app), base_url="http://insurer", headers={"Authorization": f"Bearer {tok}"})
 
     def svc(self) -> httpx.AsyncClient:
-        from app.security.auth import make_dev_token
+        from insurer_app.security.auth import make_dev_token
 
         tok = make_dev_token("svc-n8n-insurer", ["n8n-service"])
         return httpx.AsyncClient(transport=httpx.ASGITransport(app=self.app), base_url="http://insurer", headers={"Authorization": f"Bearer {tok}"})
@@ -59,12 +59,12 @@ class Env:
 
 @pytest.fixture
 async def env(seeded_db):
-    from app import clock, db
-    from app.config.service import ConfigService
-    from app.main import create_app
-    from app.services import docs_fetch, events, jobs
-    from app.settings import get_settings
     from hospital_sim import HospitalSim
+    from insurer_app import clock, db
+    from insurer_app.config.service import ConfigService
+    from insurer_app.main import create_app
+    from insurer_app.services import docs_fetch, events, jobs
+    from insurer_app.settings import get_settings
 
     get_settings.cache_clear()
     import json as _json

@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir /app/contract/python /app/insurer/calc_engine /ap
 WORKDIR /app/insurer/api
 USER api
 EXPOSE 8100
-CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100"]
+CMD ["uvicorn", "insurer_app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100"]

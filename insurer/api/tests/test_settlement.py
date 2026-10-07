@@ -1,15 +1,16 @@
+import asyncio
 import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import httpx
 import pytest
-from app.clients import bank_sim
-from app.services import audit, jobs, outbox, settlement
-from app.services.settlement import net_amount, retry_delay, valid_utr
+from claim_contract.insurer_side.samples import make_line, make_submission, money
 from claim_contract.models import SettlementNotice
-from claim_contract.samples import make_line, make_submission, money
 from ins_helpers import register_claim_docs, unique_member
+from insurer_app.clients import bank_sim
+from insurer_app.services import audit, jobs, outbox, settlement
+from insurer_app.services.settlement import net_amount, retry_delay, valid_utr
 from sqlalchemy import text
 from tpa_sim.bank import BankSim
 from tpa_sim.bank_api import build_bank_app, make_callback_sender
@@ -80,7 +81,7 @@ def test_net_amount_examples():
 
 
 def test_live_mode_refuses_to_start():
-    from app.settings import Settings
+    from insurer_app.settings import Settings
 
     with pytest.raises(ValueError):
         Settings(settlement_mode="live")
@@ -289,10 +290,15 @@ async def test_reimbursement_pays_the_member_and_missing_hospital_account_opens_
 
 
 async def test_reconciliation_report_and_endpoints(env, bank):
-    t0 = datetime.now(UTC)
+    t0 = datetime.now(UTC).replace(microsecond=0)  # bank paid_at is truncated to whole seconds
     cid, _ = await approved_case(env)
     await run_settlement(env, bank, cid)
-    assert (await settlement.reconcile(since=t0))["diffs"] == []
+    for _ in range(50):  # the bank callback marks the row paid asynchronously
+        if (await st(env, cid)).status == "paid":
+            break
+        await asyncio.sleep(0.1)
+    mine = (await st(env, cid)).utr  # other tests' settlements from the same second may share the window
+    assert [d for d in (await settlement.reconcile(since=t0))["diffs"] if d["utr"] == mine] == []
     bank.ledger_rows.append({"utr": "SIMUTR20261006999999", "settlement_id": str(uuid.uuid4()), "amount": "1.00", "status": "paid"})
     bank.ledger_rows[0]["amount"] = "1.00"
     kinds = {d["kind"] for d in (await settlement.reconcile(since=t0))["diffs"]}

@@ -24,14 +24,22 @@
       "type": "string"
     },
     "mime_type": {
-      "enum": [
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/tiff"
+      "anyOf": [
+        {
+          "enum": [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/tiff"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
       ],
-      "title": "Mime Type",
-      "type": "string"
+      "default": null,
+      "title": "Mime Type"
     },
     "pages": {
       "maximum": 300,
@@ -76,9 +84,17 @@
       "type": "integer"
     },
     "url_expires_at": {
-      "format": "date-time",
-      "title": "Url Expires At",
-      "type": "string"
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Url Expires At"
     }
   },
   "required": [
@@ -87,9 +103,7 @@
     "filename",
     "sha256",
     "size_bytes",
-    "mime_type",
     "download_url",
-    "url_expires_at",
     "pages"
   ],
   "title": "DocumentRef",

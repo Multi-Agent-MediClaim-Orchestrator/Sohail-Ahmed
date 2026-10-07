@@ -11,10 +11,10 @@ from typing import Any
 
 import httpx
 from claim_contract.errors import ProblemError, install_handlers
-from claim_contract.idempotency import MemoryIdempotencyStore
-from claim_contract.middleware import ContractAuthMiddleware, MemoryRateLimiter
+from claim_contract.insurer_side.idempotency import MemoryIdempotencyStore
+from claim_contract.insurer_side.middleware import ContractAuthMiddleware, MemoryRateLimiter
+from claim_contract.insurer_side.validation import validate_submission
 from claim_contract.models import ClaimSubmission, QueryResponse, WithdrawRequest
-from claim_contract.validation import validate_submission
 from fastapi import Depends, FastAPI, Header, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import ValidationError

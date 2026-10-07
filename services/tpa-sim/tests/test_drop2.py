@@ -127,7 +127,7 @@ async def test_chaos_flaky_is_reproducible_and_converges(sim, receiver):
 
 async def test_chaos_fail_status_on_sim_endpoints(sim):
     await sim.client.post("/sim/chaos", content=json.dumps({"fail_status": 503, "fail_count": 2}))
-    from claim_contract.samples import make_submission
+    from claim_contract.insurer_side.samples import make_submission
 
     sub = make_submission()
     assert (await sim.post("/v1/hospital-api/claims", sub)).status_code == 503

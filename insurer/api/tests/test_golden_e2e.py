@@ -14,8 +14,8 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-from app.services import jobs
-from app.services.utilisation import policy_year
+from insurer_app.services import jobs
+from insurer_app.services.utilisation import policy_year
 from sqlalchemy import text
 
 pytestmark = pytest.mark.integration

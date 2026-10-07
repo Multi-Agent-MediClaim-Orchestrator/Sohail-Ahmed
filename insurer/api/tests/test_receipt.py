@@ -4,11 +4,11 @@ import uuid
 
 import httpx
 import pytest
-from app.services import audit, docs_fetch, jobs, outbox
-from app.services.docs_fetch import EICAR
-from claim_contract import audit as caudit
-from claim_contract.samples import clone, make_line, make_submission
+from claim_contract.insurer_side import audit as caudit
+from claim_contract.insurer_side.samples import clone, make_line, make_submission
 from ins_helpers import register_claim_docs
+from insurer_app.services import audit, docs_fetch, jobs, outbox
+from insurer_app.services.docs_fetch import EICAR
 from sqlalchemy import text
 
 pytestmark = pytest.mark.integration
@@ -165,9 +165,9 @@ async def test_r26_oversize_body_413(env):
 
 
 async def test_rate_limit_429(env):
-    from app.main import create_app
-    from app.settings import Settings
     from hospital_sim import HospitalSim
+    from insurer_app.main import create_app
+    from insurer_app.settings import Settings
 
     app = create_app(Settings(rate_limit_per_min=3), use_redis=False)
     sim = HospitalSim(app)
@@ -261,7 +261,7 @@ async def test_status_hides_internal_states_and_other_hospital_gets_404(env):
 async def test_r19_r20_supplement_rules(env):
     c = fresh()
     await env.sim.submit(c)
-    from claim_contract.samples import make_document
+    from claim_contract.insurer_side.samples import make_document
 
     doc = make_document(50, "lab_report", base=(uuid.uuid4().int % 0xFFFFFFFFF) << 8)
     ok = await env.sim.supplement(c["claim_ref"], {"reason": "voluntary", "documents": [doc]})

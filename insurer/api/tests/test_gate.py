@@ -1,13 +1,19 @@
 from decimal import Decimal as D
 
 import pytest
-from app.services import approval_rules as ar
-from app.services.approval_rules import ApprovalError, Vote
-from app.services.flags import ALL_FLAGS, FlagInputs, collect_review_flags
-from app.services.gate import AutoFacts, Thresholds, auto_eligible, compute_gate, explain_gate
-from app.verification import engine
 from hypothesis import given
 from hypothesis import strategies as st
+from insurer_app.services import approval_rules as ar
+from insurer_app.services.approval_rules import ApprovalError, Vote
+from insurer_app.services.flags import ALL_FLAGS, FlagInputs, collect_review_flags
+from insurer_app.services.gate import (
+    AutoFacts,
+    Thresholds,
+    auto_eligible,
+    compute_gate,
+    explain_gate,
+)
+from insurer_app.verification import engine
 
 TH = Thresholds(D("50000"), D("500000"), allow_auto=False)  # classic doc matrix: auto tier off, reviewer tier on
 TH_AUTO = Thresholds(D("50000"), D("500000"), allow_auto=True)

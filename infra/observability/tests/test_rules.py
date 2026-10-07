@@ -16,11 +16,11 @@ FUNCS = {"rate", "increase", "sum", "avg", "max", "min", "irate", "by", "without
 
 def exported_names() -> set[str]:
     sys.path.insert(0, str(ROOT / "insurer" / "api"))
-    from app import metrics as api_metrics
+    from insurer_app import metrics as api_metrics
 
     names = set(re.findall(r"^# TYPE (\w+) ", api_metrics.render().decode(), re.M))
     # crew + rag metrics are per-app registries created inside create_app(); read the metric names from their source
-    for src in (ROOT / "insurer" / "crew" / "insurer_crew" / "app.py", ROOT / "services" / "rag-service" / "rag_service" / "app.py"):
+    for src in (ROOT / "insurer" / "crew" / "insurer_crew" / "insurer_app.py", ROOT / "services" / "rag-service" / "rag_service" / "insurer_app.py"):
         names |= set(re.findall(r'(?:Counter|Gauge|Histogram)\(\s*"(\w+)"', src.read_text(encoding="utf-8")))
     return names
 

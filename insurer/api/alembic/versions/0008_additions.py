@@ -5,7 +5,10 @@ Revises: 0007
 """
 
 from alembic import op
-from app.migration_helpers import add_updated_at_trigger, drop_updated_at_trigger  # noqa: F401
+from insurer_app.migration_helpers import (  # noqa: F401
+    add_updated_at_trigger,
+    drop_updated_at_trigger,
+)
 
 revision = "0008"
 down_revision = "0007"

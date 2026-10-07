@@ -1,9 +1,9 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from app.config.schemas import QueryPolicy
-from app.services import query_logic as ql
-from app.verification import engine as veng
+from insurer_app.config.schemas import QueryPolicy
+from insurer_app.services import query_logic as ql
+from insurer_app.verification import engine as veng
 
 NOW = datetime(2026, 10, 6, 10, 0, tzinfo=UTC)  # a Tuesday
 POL = QueryPolicy()
@@ -121,6 +121,6 @@ def test_no_retired_crew_paths_anywhere_in_the_code():
     root = Path(__file__).resolve().parents[1] / "app"
     bad = [str(p) for p in root.rglob("*.py") if "/draft-query" in p.read_text(encoding="utf-8") or "/triage-response" in p.read_text(encoding="utf-8")]
     assert bad == []
-    from app.clients import crew
+    from insurer_app.clients import crew
 
     assert crew.PATH_QUERY_DRAFT == "/v1/query/draft" and crew.PATH_QUERY_TRIAGE == "/v1/query/triage"

@@ -9,9 +9,9 @@ from datetime import timedelta
 from decimal import Decimal
 from typing import Any
 
-from claim_contract.audit import canonical_json
 from claim_contract.enums import InsurerCaseStatus
 from claim_contract.errors import ProblemError
+from claim_contract.insurer_side.audit import canonical_json
 from claim_contract.models import Acknowledgement, ClaimSubmission
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError

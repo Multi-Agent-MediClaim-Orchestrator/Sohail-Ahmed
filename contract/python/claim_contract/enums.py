@@ -1,14 +1,25 @@
 """Enums shared by hospital and insurer (01-02 section 4). Values are lower-snake strings."""
 
-from enum import StrEnum
+from enum import EnumType, StrEnum
 
 
-class ClaimType(StrEnum):
+class _LowerAttr(EnumType):
+    """`ClaimType.cashless` resolves to `ClaimType.CASHLESS` (Dev B's insurer code uses lower-case member names).
+    A lookup fallback rather than real aliases, so schema generation still sees each value once."""
+
+    def __getattr__(cls, name: str):  # type: ignore[no-untyped-def]
+        try:
+            return cls._member_map_[name.upper()]
+        except KeyError:
+            raise AttributeError(name) from None
+
+
+class ClaimType(StrEnum, metaclass=_LowerAttr):
     CASHLESS = "cashless"
     REIMBURSEMENT = "reimbursement"
 
 
-class AdmissionType(StrEnum):
+class AdmissionType(StrEnum, metaclass=_LowerAttr):
     PLANNED = "planned"
     EMERGENCY = "emergency"
 
@@ -19,7 +30,7 @@ class Gender(StrEnum):
     O = "O"  # noqa: E741
 
 
-class DocType(StrEnum):
+class DocType(StrEnum, metaclass=_LowerAttr):
     PRESCRIPTION = "prescription"
     PROCEDURE_BILL = "procedure_bill"
     DISCHARGE_SUMMARY = "discharge_summary"
@@ -41,7 +52,7 @@ class DocType(StrEnum):
     OTHER = "other"
 
 
-class BillCategory(StrEnum):
+class BillCategory(StrEnum, metaclass=_LowerAttr):
     ROOM = "room"
     ICU = "icu"
     SURGERY = "surgery"
@@ -54,7 +65,7 @@ class BillCategory(StrEnum):
     OTHER = "other"
 
 
-class HospitalCaseStatus(StrEnum):
+class HospitalCaseStatus(StrEnum, metaclass=_LowerAttr):
     DRAFT = "draft"
     DOCS_PENDING = "docs_pending"
     DOCS_COMPLETE = "docs_complete"
@@ -70,7 +81,7 @@ class HospitalCaseStatus(StrEnum):
     CLOSED = "closed"
 
 
-class InsurerCaseStatus(StrEnum):
+class InsurerCaseStatus(StrEnum, metaclass=_LowerAttr):
     RECEIVED = "received"
     VERIFYING = "verifying"
     NEEDS_INFO = "needs_info"
@@ -84,7 +95,7 @@ class InsurerCaseStatus(StrEnum):
     CLOSED = "closed"
 
 
-class QueryStatus(StrEnum):
+class QueryStatus(StrEnum, metaclass=_LowerAttr):
     OPEN = "open"
     DRAFT_READY = "draft_ready"
     ANSWERED = "answered"
@@ -92,7 +103,7 @@ class QueryStatus(StrEnum):
     ESCALATED = "escalated"
 
 
-class QueryCategory(StrEnum):
+class QueryCategory(StrEnum, metaclass=_LowerAttr):
     MISSING_DOCUMENT = "missing_document"
     ILLEGIBLE_DOCUMENT = "illegible_document"
     IDENTITY_MISMATCH = "identity_mismatch"
@@ -102,20 +113,20 @@ class QueryCategory(StrEnum):
     OTHER = "other"
 
 
-class DecisionOutcome(StrEnum):
+class DecisionOutcome(StrEnum, metaclass=_LowerAttr):
     APPROVE = "approve"
     PARTIAL = "partial"
     REJECT = "reject"
     NEEDS_INFO = "needs_info"
 
 
-class Severity(StrEnum):
+class Severity(StrEnum, metaclass=_LowerAttr):
     INFO = "info"
     WARNING = "warning"
     BLOCKER = "blocker"
 
 
-class ActorType(StrEnum):
+class ActorType(StrEnum, metaclass=_LowerAttr):
     AGENT = "agent"
     HUMAN = "human"
     SYSTEM = "system"
@@ -129,14 +140,41 @@ class SettlementMode(StrEnum):
     CHEQUE = "CHEQUE"
 
 
-class WithdrawReason(StrEnum):
+class WithdrawReason(StrEnum, metaclass=_LowerAttr):
     PATIENT_REQUESTED = "patient_requested"
     DUPLICATE = "duplicate"
     HOSPITAL_ERROR = "hospital_error"
     OTHER = "other"
 
 
-class DocSupplementReason(StrEnum):
+class DocSupplementReason(StrEnum, metaclass=_LowerAttr):
     QUERY_RESPONSE = "query_response"
     VOLUNTARY = "voluntary"
     CORRECTION = "correction"
+
+
+class StepName(StrEnum):
+    """Insurer verification steps (03-03)."""
+
+    document_fetch = "document_fetch"
+    completeness = "completeness"
+    identity = "identity"
+    authenticity = "authenticity"
+    coverage = "coverage"
+    calculation = "calculation"
+
+
+# Cross-side mapping (01-02 section 8.4). Hospital-visible status for each insurer status.
+INSURER_TO_HOSPITAL: dict[InsurerCaseStatus, HospitalCaseStatus] = {
+    InsurerCaseStatus.RECEIVED: HospitalCaseStatus.ACKNOWLEDGED,
+    InsurerCaseStatus.VERIFYING: HospitalCaseStatus.ACKNOWLEDGED,
+    InsurerCaseStatus.READY_FOR_DECISION: HospitalCaseStatus.ACKNOWLEDGED,
+    InsurerCaseStatus.AWAITING_APPROVAL: HospitalCaseStatus.ACKNOWLEDGED,
+    InsurerCaseStatus.NEEDS_INFO: HospitalCaseStatus.UNDER_QUERY,
+    InsurerCaseStatus.ESCALATED: HospitalCaseStatus.UNDER_QUERY,
+    InsurerCaseStatus.APPROVED: HospitalCaseStatus.APPROVED,
+    InsurerCaseStatus.PARTIALLY_APPROVED: HospitalCaseStatus.PARTIALLY_APPROVED,
+    InsurerCaseStatus.REJECTED: HospitalCaseStatus.REJECTED,
+    InsurerCaseStatus.SETTLED: HospitalCaseStatus.SETTLED,
+    InsurerCaseStatus.CLOSED: HospitalCaseStatus.CLOSED,
+}

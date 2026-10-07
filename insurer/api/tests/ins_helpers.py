@@ -36,7 +36,7 @@ def app_url(owner_url: str) -> str:
 def register_claim_docs(e: Any, claim: dict[str, Any]) -> None:
     """Serve the bytes whose sha256/size the claim declares (the sample builder derives them from a known string)."""
     for d in claim["documents"]:
-        from claim_contract.samples import doc_content
+        from claim_contract.insurer_side.samples import doc_content
 
         e.docs[d["doc_id"]] = doc_content(d["doc_id"], d["doc_type"])
 
@@ -60,7 +60,7 @@ _used_members: set[str] = set()
 def unique_member(min_si: int = 500_000) -> dict[str, Any]:
     """A seeded, active, never-used member (its own sum insured) + a fixed stay inside its policy period.
     Gives each test an isolated policy so utilisation and duplicate-claim detection never leak between tests."""
-    from seeds.seed import build_master
+    from insurer_app.seeds.seed import build_master
 
     data = build_master()
     gold = next(pr["id"] for pr in data["products"] if pr["code"] == "HEALTH-PLUS-GOLD")  # no co-pay: payable == claimed for clean claims

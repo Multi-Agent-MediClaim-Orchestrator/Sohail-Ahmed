@@ -1,4 +1,4 @@
-"""Thin wrapper over ``claim_contract.audit.append`` bound to the insurer's tables (``audit.*``)."""
+"""Thin wrapper over ``claim_contract.insurer_side.audit.append`` bound to the insurer's tables (``audit.*``)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 from uuid import UUID
 
-from claim_contract import audit as _audit
+from claim_contract.insurer_side import audit as _audit
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import clock

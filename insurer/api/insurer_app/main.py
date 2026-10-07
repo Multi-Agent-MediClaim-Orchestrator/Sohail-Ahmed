@@ -10,12 +10,16 @@ from typing import Any
 
 from claim_contract import CONTRACT_VERSION, SUPPORTED_VERSIONS
 from claim_contract.errors import install_handlers
-from claim_contract.idempotency import (
+from claim_contract.insurer_side.idempotency import (
     ChainedIdempotencyStore,
     RedisIdempotencyStore,
     SqlIdempotencyStore,
 )
-from claim_contract.middleware import ContractAuthMiddleware, MemoryRateLimiter, RedisRateLimiter
+from claim_contract.insurer_side.middleware import (
+    ContractAuthMiddleware,
+    MemoryRateLimiter,
+    RedisRateLimiter,
+)
 from fastapi import FastAPI
 from sqlalchemy import text
 

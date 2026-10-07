@@ -39,6 +39,8 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "hospital/api/seed/*" = ["S311", "E501"]  # seeded fake data, not security-sensitive
 "**/tests/**" = ["S101"]
 "insurer/**" = ["S", "B008", "ASYNC109", "UP047", "UP042", "B904"]  # Dev B code, imported as received
+"contract/python/claim_contract/insurer_side/*" = ["S", "UP", "B", "ASYNC", "SIM", "E", "F401", "I", "N"]  # Dev B runtime, imported as received
+"data/synthetic/synth/generate.py" = ["S", "B", "UP", "I", "E", "F"]
 "eval/**" = ["S", "B008"]
 "security/**" = ["S"]
 "tests/**" = ["S", "B008"]
@@ -51,7 +53,7 @@ addopts = "-m 'not llm and not n8n'"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
-pythonpath = ["contract/python", "hospital/crew"]
+pythonpath = ["contract/python", "hospital/crew", "tests", "insurer/api/tests", "insurer/calc_engine/tests"]
 
 [dependency-groups]
 dev = [

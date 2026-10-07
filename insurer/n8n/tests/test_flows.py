@@ -77,7 +77,7 @@ def test_signature_code_matches_api_signing_scheme():
     js = bf.VERIFY_JS
     assert "createHmac('sha256', $env.INS_N8N_WEBHOOK_SECRET)" in js and "timingSafeEqual" in js and "replace('sha256=', '')" in js
     sys.path.insert(0, str(ROOT / "insurer" / "api"))
-    from app.services import orchestrator
+    from insurer_app.services import orchestrator
 
     body = b'{"case_id":"x"}'
     expected = "sha256=" + hmac.new(orchestrator.get_settings().n8n_webhook_secret.encode(), body, hashlib.sha256).hexdigest()

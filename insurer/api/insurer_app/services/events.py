@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 from uuid import UUID
 
-from claim_contract.audit import redact
+from claim_contract.insurer_side.audit import redact
 
 from .. import clock
 

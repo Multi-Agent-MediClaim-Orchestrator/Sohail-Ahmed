@@ -7,9 +7,9 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from app.config.defaults import DOC_REQUIREMENTS, THRESHOLDS, policy_rules
-from app.config.schemas import DocRequirements, PolicyRulesPayload, Thresholds
-from app.verification.context import (
+from insurer_app.config.defaults import DOC_REQUIREMENTS, THRESHOLDS, policy_rules
+from insurer_app.config.schemas import DocRequirements, PolicyRulesPayload, Thresholds
+from insurer_app.verification.context import (
     DocInfo,
     HospitalInfo,
     MemberInfo,

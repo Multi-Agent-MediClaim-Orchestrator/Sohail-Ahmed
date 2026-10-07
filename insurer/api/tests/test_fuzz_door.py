@@ -8,7 +8,7 @@ import random
 import uuid
 
 import pytest
-from claim_contract.samples import make_submission
+from claim_contract.insurer_side.samples import make_submission
 from ins_helpers import unique_member
 from sqlalchemy import text
 

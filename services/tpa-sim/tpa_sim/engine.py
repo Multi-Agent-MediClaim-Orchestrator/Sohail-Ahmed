@@ -11,7 +11,7 @@ from typing import Any
 import httpx
 from claim_contract import signing
 from claim_contract.enums import INSURER_TO_HOSPITAL, InsurerCaseStatus
-from claim_contract.outbox import BACKOFF, MAX_ATTEMPTS, canonical_bytes
+from claim_contract.insurer_side.outbox import BACKOFF, MAX_ATTEMPTS, canonical_bytes
 
 from . import dsl
 from .chaos import Chaos

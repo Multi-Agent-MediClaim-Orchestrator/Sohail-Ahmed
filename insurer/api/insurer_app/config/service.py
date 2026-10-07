@@ -12,8 +12,8 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from claim_contract import audit
 from claim_contract.errors import ProblemError
+from claim_contract.insurer_side import audit
 from pydantic import BaseModel, ValidationError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession

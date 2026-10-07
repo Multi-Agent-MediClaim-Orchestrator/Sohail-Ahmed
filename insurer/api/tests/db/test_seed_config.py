@@ -2,9 +2,9 @@ from datetime import UTC, datetime
 
 import psycopg2
 import pytest
-from app.config.service import ConfigNotFound, ConfigService
-from app.verification.names import name_similarity, normalise_name
-from seeds.seed import build_master, seed
+from insurer_app.config.service import ConfigNotFound, ConfigService
+from insurer_app.seeds.seed import build_master, seed
+from insurer_app.verification.names import name_similarity, normalise_name
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 pytestmark = pytest.mark.integration

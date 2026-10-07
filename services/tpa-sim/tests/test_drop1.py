@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 
 import pytest
-from claim_contract.samples import make_submission
+from claim_contract.insurer_side.samples import make_submission
 from tpa_sim import dsl
 
 

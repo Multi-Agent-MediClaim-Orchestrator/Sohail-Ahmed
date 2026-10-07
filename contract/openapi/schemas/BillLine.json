@@ -26,10 +26,18 @@
       "type": "string"
     },
     "line_id": {
-      "maxLength": 16,
-      "minLength": 1,
-      "title": "Line Id",
-      "type": "string"
+      "anyOf": [
+        {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Line Id"
     },
     "qty": {
       "decimal_places": 3,
@@ -72,7 +80,6 @@
     }
   },
   "required": [
-    "line_id",
     "description",
     "category",
     "qty",

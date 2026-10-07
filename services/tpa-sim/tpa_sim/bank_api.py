@@ -9,8 +9,8 @@ from typing import Any
 import httpx
 from claim_contract import signing
 from claim_contract.errors import install_handlers
-from claim_contract.idempotency import MemoryIdempotencyStore
-from claim_contract.middleware import ContractAuthMiddleware
+from claim_contract.insurer_side.idempotency import MemoryIdempotencyStore
+from claim_contract.insurer_side.middleware import ContractAuthMiddleware
 from fastapi import APIRouter, FastAPI, Header, Query, Request
 
 from .bank import BankSim

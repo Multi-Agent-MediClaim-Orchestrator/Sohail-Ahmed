@@ -81,7 +81,7 @@ def suite_calc(cases: list[dict[str, Any]], gen: Any) -> tuple[list[dict[str, An
 
 
 def suite_gate(cases: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    from app.services.gate import AutoFacts, Thresholds, compute_gate
+    from insurer_app.services.gate import AutoFacts, Thresholds, compute_gate
 
     th = Thresholds(t_auto=Decimal("50000"), t_four=Decimal("500000"))
     ok = n = wrongful = 0

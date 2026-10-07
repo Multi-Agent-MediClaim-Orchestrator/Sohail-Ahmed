@@ -8,7 +8,7 @@ from __future__ import annotations
 import sys
 
 sys.path.insert(0, "insurer/api")
-from app.security.auth import make_dev_token  # noqa: E402
+from insurer_app.security.auth import make_dev_token  # noqa: E402
 
 if __name__ == "__main__":
     roles = sys.argv[1:] or ["reviewer"]
