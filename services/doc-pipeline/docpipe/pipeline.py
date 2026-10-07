@@ -8,7 +8,7 @@ import time
 from typing import Any
 
 from docpipe.llm import LLM, LLMUnavailable
-from docpipe.schemas.fields import FIELDS, HIGH_VALUE, LINE_DOCS, LOCAL_ONLY
+from docpipe.schemas.fields import FIELDS, LINE_DOCS, LOCAL_ONLY
 from docpipe.settings import PIPELINE_VERSION, Settings
 from docpipe.stages import classify, extract, guard, mask, render, tables, validate
 from docpipe.stages.numbers import norm, parse_amount, parse_date
@@ -88,25 +88,26 @@ async def run(
 
     b: extract.Extracted | None = None
     crit = CRITICAL.get(dt, set())
-    want_b = (
-        bool(crit)
-        and (force_second_pass or dt in HIGH_VALUE or parser_conf < 0.9)
-        and a is not None
-    )
-    if want_b and dt in LOCAL_ONLY:
-        reasons.append(
-            "masking_guard_tripped"
-        )  # informational: identity documents never go to a cloud model
-    elif want_b and not s.allow_cloud:
-        reasons.append("masking_guard_tripped")
-    elif want_b:
+    # hospital-api needs two passes to compute agreement (and leaves a document "processing" with one), so a second
+    # pass always runs when the first produced values: the cloud model on masked text when allowed and safe, else the
+    # LOCAL model again with an independent re-reading prompt (weaker independence, recorded in the engine name).
+    want_b = bool(crit) and a is not None
+    model_b = s.model_local
+    cloud_ok = s.allow_cloud and dt not in LOCAL_ONLY
+    if want_b and cloud_ok:
         try:
             guard.assert_safe(m.text, m.pii_map)
-            t2 = time.monotonic()
-            b = await extract.run(llm, s.model_cloud, dt, m.text, only=crit)
-            timings["llm_b"] = int((time.monotonic() - t2) * 1000)
         except guard.GuardTripped:
+            cloud_ok = False
             reasons.append("masking_guard_tripped")
+    if want_b:
+        model_b = s.model_cloud if cloud_ok else s.model_local
+        if not cloud_ok:
+            reasons.append("second_pass_local")  # informational
+        try:
+            t2 = time.monotonic()
+            b = await extract.run(llm, model_b, dt, m.text, variant=True)
+            timings["llm_b"] = int((time.monotonic() - t2) * 1000)
         except LLMUnavailable:
             reasons.append("llm_unavailable")
 
@@ -173,7 +174,7 @@ async def run(
         passes.append(
             {
                 "pass_no": 2,
-                "engine": f"{rend.engine}+{s.model_cloud}",
+                "engine": f"{rend.engine}+{model_b}",
                 "typed_json": {**typed_b},
                 "confidence": parser_conf,
                 "entities": ent,
@@ -207,7 +208,7 @@ def _result(
 ) -> dict[str, Any]:
     return {
         "doc_type": dt, "doc_type_conf": dconf, "pages": len(rend.pages), "parser": rend.engine, "overall_conf": parser_conf,
-        "needs_review": bool(set(reasons) - {"masking_guard_tripped"}), "review_reasons": reasons, "issues": issues,
+        "needs_review": bool(set(reasons) - {"masking_guard_tripped", "second_pass_local"}), "review_reasons": reasons, "issues": issues,
         "passes": passes, "entities_masked": [{"type": t.strip("<>").split("_")[0], "count": 1} for t in m.pii_map],
         "pipeline_version": PIPELINE_VERSION, "timings_ms": timings, "source_sha256": sha,
     }  # fmt: skip

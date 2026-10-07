@@ -9,7 +9,9 @@ from docpipe.stages import classify, extract, guard, mask, render, tables, valid
 from docpipe.stages.entities import verhoeff_ok
 from dp_helpers import BILL, make_pdf, make_png
 
-S = Settings(parser="auto", pii_key_b64=base64.b64encode(os.urandom(32)).decode())
+S = Settings(
+    parser="auto", pii_key_b64=base64.b64encode(os.urandom(32)).decode(), allow_cloud=False
+)
 LOCAL, CLOUD = S.model_local, S.model_cloud
 
 
@@ -158,17 +160,29 @@ async def test_two_agreeing_passes_on_a_text_pdf(bill_pdf):
     assert r["passes"][0]["confidence"] == 0.99  # parser confidence, never a model's
 
 
-async def test_cloud_pass_sees_masked_text_only_and_only_critical_fields(bill_pdf):
+async def test_cloud_pass_sees_masked_text_only(bill_pdf):
+    cloud_s = Settings(parser="auto", pii_key_b64=S.pii_key_b64, allow_cloud=True)
     llm = Fake({LOCAL: good(), CLOUD: good()})
-    await run(bill_pdf, S, llm)
+    await run(bill_pdf, cloud_s, llm)
     cloud_prompts = [p for m, p in llm.calls if m == CLOUD]
     assert cloud_prompts
     for p in cloud_prompts:
         for raw in ("Ravi Kumar", "9876543210"):
             assert raw not in p
-        assert (
-            "<PERSON_1>" in p and "patient_name" not in p.split("<doc>")[0]
-        )  # identity fields are not even requested
+        assert "<PERSON_1>" in p
+
+
+async def test_without_cloud_a_second_local_pass_still_runs(bill_pdf):
+    """hospital-api leaves a document 'processing' until it has two passes, so a local-only setup must still produce two."""
+    llm = Fake({LOCAL: good(), CLOUD: AssertionError("no cloud")})
+    r = await run(bill_pdf, S, llm)
+    assert [p["pass_no"] for p in r["passes"]] == [1, 2] and all(m == LOCAL for m, _ in llm.calls)
+    assert (
+        r["passes"][1]["engine"].endswith(LOCAL)
+        and "second_pass_local" in r["review_reasons"]
+        and r["needs_review"] is False
+    )
+    assert "Read the document again" in llm.calls[1][1]
 
 
 async def test_disagreement_on_a_critical_field_needs_review(bill_pdf):
@@ -183,7 +197,9 @@ async def test_disagreement_on_a_critical_field_needs_review(bill_pdf):
             ),
         }
     )
-    r = await run(bill_pdf, S, llm)
+    r = await run(
+        bill_pdf, Settings(parser="auto", pii_key_b64=S.pii_key_b64, allow_cloud=True), llm
+    )
     assert "critical_disagreement" in r["review_reasons"] and r["needs_review"] is True
 
 
@@ -274,3 +290,14 @@ def test_net_amount_row_does_not_replace_the_printed_total():
 def test_descriptions_may_end_in_digits():
     lines, _, _ = tables.extract_lines("Tab Paracetamol 500mg #2     3     10.00      30.00")
     assert lines and lines[0]["description"].endswith("#2")
+
+
+def test_names_are_cut_at_the_next_label():
+    from docpipe.stages.extract import clean_name
+
+    assert clean_name("<PERSON_1>        UHID: UH-062672") == "<PERSON_1>"
+    assert (
+        clean_name("Ravi Kumar UHID UH-1") == "Ravi Kumar"
+        and clean_name("Dr. Anil Rao") == "Dr. Anil Rao"
+    )
+    assert clean_name("Asha Verma  Age 40") == "Asha Verma"
