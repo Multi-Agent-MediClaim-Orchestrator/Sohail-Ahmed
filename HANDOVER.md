@@ -37,12 +37,12 @@ risky query categories; all data synthetic.
 - CrewAI package not used (plain agents, same HTTP surface); no LLM `classify-extract`/`supervise` jobs.
 - doc-pipeline: MinerU is an opt-in backend (`DOCPIPE_PARSER=mineru`, local `mineru-kit`; measured 7x slower than tesseract, no classification gain); text layer + tesseract by
   default; values are unmasked locally before reaching hospital-api; no `/v1/unmask`; jobs in memory.
-- vision-service: classical detector only (no trained model), tesseract OCR, local-model escalation.
+- vision-service: learned stamp detector (random forest on candidate regions, numpy inference, trained on synthetic stamps only; held-out P/R 0.99/0.97 vs classical 0.74/0.56 on the same set), tesseract OCR, local-model escalation.
 - n8n: thin flows over what the API already does; one process on the host network; in-app reminders only (no SMTP).
-- UI: npm, cookie-session proxy with password grant against the dev Keycloak client (not PKCE); no audit explorer,
-  PDF viewer, saved views or version diff.
+- UI: npm, cookie-session proxy with password grant against the dev Keycloak client (not PKCE); has audit explorer with chain
+  verification and a page-image document viewer; no saved views or version diff.
 - Test-harness fixes: no background outbox workers in tests (they raced the manual runs), small DB pools, crew PII
-  guard ignores UUIDs. Postgres `max_connections=60` is tight if several apps share it.
+  guard ignores UUIDs. Postgres `max_connections` is now 100; `make test`/`make e2e-*` queue through `scripts/run_exclusive.sh`.
 
 ## Verification status (2026-10-07)
 - `make e2e-hospital` (deterministic extractors, about 20 s): passes, 11 steps from case creation to settlement and audit,
@@ -56,8 +56,8 @@ risky query categories; all data synthetic.
   data (synthetic + eval) and 13 n8n flow tests (real n8n container) green; `openapi.json` current; doc-column check clean.
 
 ## Known gaps / not verified
-- **UI never checked in a browser** (the Chrome extension was not connected): verified by typecheck, lint, unit tests,
-  production build and curl through the running server only.
+- UI is now browser-tested (`make ui-e2e`: 10 Playwright tests in system Chrome, axe serious/critical zero), but only on Chrome and synthetic data.
+- Stamp detector and MinerU numbers are synthetic-only; real scans are untested.
 - Insurer side: only `synth/reference_calc.py` (hand-checked) and `evalh/tune_t_auto.py` exist. Dev B must supply decision
   rows (`payable`, `gates_pass`, `correct`) from the real engine to tune `T_auto` (stays 50,000 INR, target false-approve
   below 1%); archetypes S11-S16/S21/S22/S26 and tpa-sim scripts S19/S20 are not built.
