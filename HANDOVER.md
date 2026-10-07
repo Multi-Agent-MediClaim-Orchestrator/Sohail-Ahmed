@@ -58,8 +58,9 @@ risky query categories; all data synthetic.
 ## Known gaps / not verified
 - **UI never checked in a browser** (the Chrome extension was not connected): verified by typecheck, lint, unit tests,
   production build and curl through the running server only.
-- Insurer-side synthetic data (calculator, tampering, KB, query scripts), loaders, and `T_auto` tuning (needs the
-  insurer's decision logic; start value 50,000 INR, target false-approve rate below 1%).
+- Insurer side: only `synth/reference_calc.py` (hand-checked) and `evalh/tune_t_auto.py` exist. Dev B must supply decision
+  rows (`payable`, `gates_pass`, `correct`) from the real engine to tune `T_auto` (stays 50,000 INR, target false-approve
+  below 1%); archetypes S11-S16/S21/S22/S26 and tpa-sim scripts S19/S20 are not built.
 - Dockerfiles exist for every service but only `hospital-api` was build-tested; the demo runs on the host.
 - Keycloak password-grant client and `.env` secrets are for localhost only.
 

@@ -164,3 +164,13 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
 - Synthetic corpus, 10 cases / 39 documents, rules-only extraction: classification 0.974 for both; line/total exactness
   0.12 (MinerU) vs 0.00 (tesseract, rules-only cannot read OCR table rows); seconds per document 3.1 vs 0.46.
   MinerU is about 7x slower on CPU with no classification gain, so it is opt-in. Real scans not tested (all data synthetic).
+
+## Insurer-side data and T_auto: harness only (provisional)
+- `data/synthetic/synth/reference_calc.py`: independent payable calculator (in-force and waiting-period gates, exclusions,
+  room-rent cap, deductible, co-pay, sum insured, routing auto / one / two humans) with 25 hand-worked payable rows plus
+  gate and routing-boundary tests. Order of operations is my assumption; Dev B's engine is the authority.
+- `data/eval/evalh/tune_t_auto.py`: sweeps thresholds over decision rows (`gates_pass`, `payable`, `correct`) and
+  recommends the largest below 1% false-approve. `simulate` mode is a placeholder whose errors do not depend on amount, so
+  its output (it recommends 500,000) says nothing about the real value. T_auto stays 50,000 until real engine rows exist.
+- Not built: archetypes S11-S16, S21, S22, S26 and tpa-sim query scripts S19/S20 (they need Dev B's engine and tpa-sim,
+  both empty here).
