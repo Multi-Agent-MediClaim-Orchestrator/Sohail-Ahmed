@@ -1,5 +1,6 @@
+LOCK = scripts/run_exclusive.sh
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -23,7 +24,7 @@ up-n8n:
 	$(COMPOSE) --profile hospital up -d --wait hospital-n8n
 
 n8n-test:
-	uv run pytest hospital/n8n -q -m n8n
+	$(LOCK) uv run pytest hospital/n8n -q -m n8n
 
 run-api:
 	cd hospital/api && uv run uvicorn app.asgi:app --port 8100
@@ -35,7 +36,7 @@ run-crew:
 	set -a && . ./.env && set +a && uv run uvicorn crew.main:app_factory --factory --app-dir hospital/crew --host 127.0.0.1 --port 8010
 
 test-llm:
-	uv run pytest hospital/crew services/doc-pipeline -q -m llm -s
+	$(LOCK) uv run pytest hospital/crew services/doc-pipeline -q -m llm -s
 
 run-vision:
 	set -a && . ./.env && set +a && cd services/vision-service && uv run uvicorn vision.main:app_factory --factory --host 127.0.0.1 --port 8300
@@ -53,7 +54,10 @@ eval-hospital:
 	uv run python -m evalh.run --corpus data/synthetic/out --out data/eval/report.json
 
 e2e-hospital:
-	uv run python scripts/e2e_hospital.py
+	$(LOCK) uv run python scripts/e2e_hospital.py
+
+ui-e2e:
+	$(LOCK) scripts/ui_e2e.sh
 
 down:
 	$(COMPOSE) --profile infra down
@@ -71,13 +75,13 @@ kc-reset:
 	$(COMPOSE) --profile infra up -d --force-recreate keycloak
 
 test-infra:
-	uv run pytest infra/tests -q -m integration
+	$(LOCK) uv run pytest infra/tests -q -m integration
 
 test:
-	uv run pytest contract/tests hospital/api/tests hospital/crew infra/tests -q
-	uv run pytest services/doc-pipeline -q
-	uv run pytest services/vision-service -q
-	uv run pytest data/synthetic data/eval -q
+	$(LOCK) uv run pytest contract/tests hospital/api/tests hospital/crew infra/tests -q
+	$(LOCK) uv run pytest services/doc-pipeline -q
+	$(LOCK) uv run pytest services/vision-service -q
+	$(LOCK) uv run pytest data/synthetic data/eval -q
 
 lint:
 	uv run ruff check .
@@ -116,4 +120,4 @@ db-restore:
 	set -a && . ./.env && set +a && docker exec -i -e PGPASSWORD=$$HOSP_OWNER_PW claims-hospital-db-1 pg_restore -U hosp_owner -d hospital --clean --if-exists --no-owner < $(FILE)
 
 test-db:
-	uv run pytest hospital/api/tests -q
+	$(LOCK) uv run pytest hospital/api/tests -q

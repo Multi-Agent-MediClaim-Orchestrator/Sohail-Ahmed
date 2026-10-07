@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     mem_limit: 512m
     shm_size: 128m
-    command: ["postgres", "-c", "shared_buffers=128MB", "-c", "max_connections=60", "-c", "log_min_duration_statement=250", "-c", "idle_in_transaction_session_timeout=30000"]
+    command: ["postgres", "-c", "shared_buffers=128MB", "-c", "max_connections=100", "-c", "log_min_duration_statement=250", "-c", "idle_in_transaction_session_timeout=30000"]
     environment:
       POSTGRES_USER: ${HOSP_DB_USER}
       POSTGRES_PASSWORD: ${HOSP_DB_PASSWORD}

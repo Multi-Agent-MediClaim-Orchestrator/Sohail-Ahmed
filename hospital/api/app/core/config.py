@@ -41,7 +41,7 @@ class Settings(BaseModel):
     name_match_min: int = 90
     completeness_debounce_s: float = 5.0
     outbox_enabled: bool = True
-    db_pool_size: int = 10  # per process; Postgres max_connections is 60 in the dev compose
+    db_pool_size: int = 10  # per process; Postgres max_connections is 100 in the dev compose
     db_max_overflow: int = 5
     sse_heartbeat_s: float = 15.0
     sse_stream_maxlen: int = 10000
