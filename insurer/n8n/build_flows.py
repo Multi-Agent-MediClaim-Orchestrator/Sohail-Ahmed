@@ -109,7 +109,7 @@ def build() -> dict[str, dict[str, Any]]:
     f = Flow("00_common_error_handler", "Error Trigger -> strip context/body -> raise alert -> mark run failed (if known).")
     t = f.add("Error Trigger", "n8n-nodes-base.errorTrigger", {})
     s = f.add("Strip payload", "n8n-nodes-base.code", {"mode": "runOnceForAllItems", "language": "javaScript", "jsCode": STRIP_JS}, after=t)
-    a = http(f, "POST alert", "POST", "/internal/alerts", '={{ JSON.stringify({severity:"high", source:"n8n", workflow:$json.workflow?.name, node:$json.execution?.lastNodeExecuted, message:$json.execution?.error?.message, execution_id:$json.execution?.id}) }}', after=s)
+    http(f, "POST alert", "POST", "/internal/alerts", '={{ JSON.stringify({severity:"high", source:"n8n", workflow:$json.workflow?.name, node:$json.execution?.lastNodeExecuted, message:$json.execution?.error?.message, execution_id:$json.execution?.id}) }}', after=s)
     flows["00_common_error_handler"] = f.json(error_workflow=False)
 
     f = Flow("01_get_token", "Keycloak client-credentials token, cached in workflow static data for 4 minutes.")
