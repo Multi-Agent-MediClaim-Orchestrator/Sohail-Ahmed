@@ -31,6 +31,10 @@ LOGS = ROOT / ".e2e-logs"
 API, CREW, DOCP, VISION, SIM, N8N = (
     f"http://localhost:{p}" for p in (8100, 8010, 8200, 8300, 8500, 5688)
 )
+FAST = (
+    os.environ.get("E2E_LLM", "rules") == "rules"
+)  # rules: deterministic extractors, no model (about 2 min); ollama: real local model
+PARSE_TIMEOUT = 120 if FAST else 600
 KC = "http://localhost:8080/realms/hospital/protocol/openid-connect/token"
 steps: list[tuple[str, bool, float, str]] = []
 
@@ -186,7 +190,16 @@ def main() -> int:
                 f"{need} is not reachable ({url}). Run `make up-infra` / `make up-n8n` and start Ollama first."
             )
             return 2
+    print("- migrating the dev database to head ...", flush=True)
+    m = subprocess.run(
+        ["make", "-s", "migrate"], cwd=ROOT, capture_output=True, text=True
+    )  # a stale schema fails late and obscurely
+    if m.returncode != 0:
+        print(m.stdout[-600:], m.stderr[-600:])
+        return 2
+    clear_user_cache()
     stack = Stack()
+    reload_n8n_flows()
     synth = build_case(
         int(os.environ.get("E2E_SEED", "42")), int(time.time()) % 100000, RECIPES["S01"]
     )
@@ -210,14 +223,14 @@ def main() -> int:
             ROOT / "hospital/api",
             8100,
             {"HOSP_INSURER_BASE_URL": SIM, "HOSP_N8N_WEBHOOK_BASE": N8N + "/webhook"},
-            API + "/v1/health",
+            API + "/v1/ready",
         )
         stack.start(
             "docpipe",
             ["uv", "run", "uvicorn", "docpipe.main:app_factory", "--factory", "--port", "8200"],
             ROOT / "services/doc-pipeline",
             8200,
-            {"DOCPIPE_ALLOW_CLOUD": "false"},
+            {"DOCPIPE_ALLOW_CLOUD": "false", "DOCPIPE_LLM": "rules" if FAST else "ollama"},
             DOCP + "/v1/health",
         )
         stack.start(
@@ -233,7 +246,7 @@ def main() -> int:
             ["uv", "run", "uvicorn", "crew.main:app_factory", "--factory", "--port", "8010"],
             ROOT / "hospital/crew",
             8010,
-            {"HOSP_LLM_MODEL": local},
+            {"HOSP_LLM_MODEL": local, "CREW_LLM": "rules" if FAST else "ollama"},
             CREW + "/v1/health",
         )
         return asyncio.run(scenario(sim, case_json, out, stack))
@@ -242,6 +255,65 @@ def main() -> int:
         (LOGS / "summary.txt").write_text(
             "\n".join(f"{'ok ' if o else 'FAIL'} {n} ({d:.1f}s) {m}" for n, o, d, m in steps)
         )
+
+
+def diagnose(c: httpx.Client, desk: Any, s: dict[str, Any]) -> None:
+    """What to look at first when a step fails: document states and the tail of every service log."""
+    try:
+        for d in c.get(f"/v1/cases/{s['id']}/documents", headers=desk).json()["documents"]:
+            print(
+                f"  doc {d['filename']}: type={d['doc_type']} parse={d['parse_status']} scan={d['scan_status']} conf={d['parse_confidence']}"
+            )
+    except Exception as e:  # noqa: BLE001
+        print(f"  (could not read documents: {e})")
+    for name in ("api", "docpipe", "vision", "crew"):
+        f = LOGS / f"{name}.log"
+        if f.exists():
+            lines = [
+                ln
+                for ln in f.read_text(errors="ignore").splitlines()
+                if "GET /v1/jobs" not in ln and '"GET"' not in ln
+            ][-8:]
+            print(f"  --- {name}.log (last {len(lines)} lines)")
+            for ln in lines:
+                print("   ", ln[:200])
+
+
+def clear_user_cache() -> None:
+    """Cached profiles hold app_user ids from whatever database the last process used (the test suite uses throwaway
+    ones); a stale id fails the created_by foreign key on the first write."""
+    sys.path.insert(0, str(ROOT / "hospital" / "api"))
+    import redis
+    from app.core.config import Settings
+
+    r = redis.Redis.from_url(Settings.from_env().redis_url)
+    for k in r.scan_iter("cache:hosp:*"):
+        r.delete(k)
+    r.close()
+
+
+def reload_n8n_flows() -> None:
+    """n8n imports flows only when the container boots: restart it when the committed flows changed."""
+    import hashlib
+
+    h = hashlib.sha256(
+        b"".join(p.read_bytes() for p in sorted((ROOT / "hospital/n8n/flows").glob("*.json")))
+    ).hexdigest()
+    stamp = LOGS / "flows.sha"
+    LOGS.mkdir(exist_ok=True)
+    if stamp.exists() and stamp.read_text() == h:
+        return
+    print("- flows changed: restarting n8n to re-import them ...", flush=True)
+    subprocess.run(["docker", "restart", "claims-hospital-n8n-1"], check=True, capture_output=True)
+    for _ in range(90):
+        try:
+            if httpx.get(N8N + "/healthz", timeout=2).status_code == 200:
+                break
+        except httpx.HTTPError:
+            pass
+        time.sleep(1)
+    time.sleep(3)
+    stamp.write_text(h)
 
 
 async def scenario(sim: Any, case: dict[str, Any], out: Path, stack: Stack) -> int:
@@ -268,16 +340,30 @@ async def scenario(sim: Any, case: dict[str, Any], out: Path, stack: Stack) -> i
             assert r.status_code == 202, r.text
             assert all(x["status"] == "accepted" for x in r.json()["documents"]), r.json()
         with step("n8n -> vision + doc-pipeline parse every document"):
+            typed_since: list[float] = []
 
             def parsed() -> bool:
                 docs = c.get(f"/v1/cases/{s['id']}/documents", headers=desk).json()["documents"]
                 s["docs"] = docs
+                if docs and all(
+                    d["doc_type"] for d in docs
+                ):  # classified but never finishing = a missing second pass
+                    typed_since.append(time.time())
+                    stuck = [
+                        d["filename"]
+                        for d in docs
+                        if d["parse_status"] in ("pending", "processing")
+                    ]
+                    if stuck and time.time() - typed_since[0] > 45:
+                        raise AssertionError(
+                            f"documents classified but still processing after 45s (second pass missing?): {stuck}"
+                        )
                 return all(
                     d["parse_status"] in ("parsed", "needs_review", "failed") and d["doc_type"]
                     for d in docs
                 )
 
-            wait(parsed, 900, "all documents parsed", 5)
+            wait(parsed, PARSE_TIMEOUT, "all documents parsed", 3)
             bad = [d["filename"] for d in s["docs"] if d["parse_status"] == "failed"]
             assert not bad, f"parse failed: {bad}"
         with step("completeness complete"):
@@ -467,7 +553,7 @@ async def scenario(sim: Any, case: dict[str, Any], out: Path, stack: Stack) -> i
             )
         with step("audit trail is complete"):
             ev = [
-                e["to"]
+                e.get("to")
                 for e in c.get(f"/v1/cases/{s['id']}/timeline?limit=100", headers=officer).json()[
                     "events"
                 ]
@@ -482,7 +568,8 @@ async def scenario(sim: Any, case: dict[str, Any], out: Path, stack: Stack) -> i
             } <= set(ev), ev
     except Exception as e:  # noqa: BLE001
         print(f"stopped: {type(e).__name__}: {e}")
-    ok = all(o for _, o, _, _ in steps) and len(steps) == 10
+        diagnose(c, desk, s)
+    ok = all(o for _, o, _, _ in steps) and len(steps) == 11
     print(
         "\n" + ("E2E PASSED" if ok else f"E2E FAILED (logs in {LOGS})") + f"  claim {s.get('ref')}"
     )
