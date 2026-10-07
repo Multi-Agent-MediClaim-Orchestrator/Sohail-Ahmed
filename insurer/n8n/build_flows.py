@@ -72,7 +72,7 @@ class Flow:
         self.conns[src]["main"][branch].append({"node": dst, "type": "main", "index": 0})
 
     def json(self, *, error_workflow: bool = True) -> dict[str, Any]:
-        settings: dict[str, Any] = {"executionOrder": "v1", "saveDataSuccessExecution": "none", "saveDataErrorExecution": "all"}
+        settings: dict[str, Any] = {"executionOrder": "v1", "saveDataSuccessExecution": "all", "saveDataErrorExecution": "all"}  # successful runs stay visible in Executions; pruned after 7 days (EXECUTIONS_DATA_MAX_AGE)
         if error_workflow:
             settings["errorWorkflow"] = "00_common_error_handler"
         return {"id": self.name, "name": self.name, "nodes": self.nodes, "connections": self.conns, "active": False, "settings": settings, "tags": [{"id": "insurerTag00001", "name": "insurer"}]}

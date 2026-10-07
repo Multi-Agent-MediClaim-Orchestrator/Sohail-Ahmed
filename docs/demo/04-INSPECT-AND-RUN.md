@@ -241,16 +241,14 @@ Both servers are bound to this laptop only.
    insurer `http://localhost:5689/webhook/verification-start`, `…/decision-final`, `…/settlement-initiate`. They require the secret header, so opening them in a browser gives an error — that is correct.
 5. The **error handler** flow (`hosp-global-error`, `00_common_error_handler`) fires when any flow fails.
 
-## 2.3 Important: what you will and will not see in *Executions*
+## 2.3 What you will see in *Executions*
 
-- **Hospital n8n** keeps every execution (cleaned after 14 days), so after a demo run you will see the intake runs and the 2-minute sweeper.
-- **Insurer n8n** is configured to store **only failed executions** (`saveDataSuccessExecution: none` in each flow, set in
-  `insurer/n8n/build_flows.py`) to keep payloads off disk. So a perfectly good verification run leaves **no** entry. To watch it live, either:
-  - open the workflow and use **Execute workflow** / watch the node colours while the demo runs, or
-  - for a demo only, change `"saveDataSuccessExecution": "none"` to `"all"` in `insurer/n8n/build_flows.py`, then
-    `uv run python insurer/n8n/build_flows.py && make up-insurer-n8n`, run the demo, and change it back.
-- The same story is always visible from the database: `core.verification_run` and `core.verification_step` (section 1.3) show every step the n8n
-  flow executed, because the API records each one.
+- **Both n8n servers keep every run** (successful and failed). Hospital runs are cleaned after 14 days, insurer runs after 7 days.
+  After a demo you will see, for the insurer, one `10_verification_main` run per claim and one sub-flow run for each of its six steps
+  (`11_step_document_fetch` … `16_step_calculation`), plus `03_call_crew` runs when the crew is on; click a run to see the data passing through each node.
+- The runs carry claim ids and masked data only (the flows strip payloads before raising alerts); everything is synthetic anyway.
+- The same story is always readable from the database: `core.verification_run` and `core.verification_step` (section 1.3) show every step the
+  n8n flow executed, because the API records each one.
 
 ## 2.4 Read the same thing without a browser
 

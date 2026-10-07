@@ -55,7 +55,7 @@ def test_no_wait_node_in_human_wait_flows_and_error_workflow_set(name):
         assert not [n for n in f["nodes"] if n["type"] == "n8n-nodes-base.wait"], "human waits must be DB rows + cron, not Wait nodes"
     if name != "00_common_error_handler":
         assert f["settings"]["errorWorkflow"] == "00_common_error_handler"
-    assert f["settings"]["saveDataSuccessExecution"] == "none"
+    assert f["settings"]["saveDataSuccessExecution"] == "all"  # runs are inspectable in n8n; flows carry ids and masked data only
 
 
 def test_webhook_flows_verify_signature_before_anything_else_and_respond_202():

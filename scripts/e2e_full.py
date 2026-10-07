@@ -483,6 +483,29 @@ def scenario_body(run: Run) -> None:  # noqa: C901
     run.audit()
 
 
+def close_round(run: Run, qid: str) -> None:
+    """The round closes when re-verification finds nothing fixable left. If the triage (rules or the crew) did not say the reply
+    is sufficient, the reviewer overrules it by hand, exactly as the UI allows (`triage/override`), and the round then closes."""
+    item = next(x for x in run.insurer_queries() if x["id"] == qid)
+    verdict = ((item.get("response") or {}).get("triage") or {}).get("verdict")
+    if item["status"] != "closed" and verdict not in ("sufficient", "partial"):
+        print(f"    triage said {verdict!r}; reviewer overrules: the reply explains the charge")
+        r = run.ic.post(
+            f"/v1/queries/{qid}/triage/override",
+            headers=ins_token("reviewer"),
+            json={
+                "verdict": "sufficient",
+                "note": "reviewed the hospital reply by hand: it explains the charge",
+            },
+        )
+        assert r.status_code == 200, f"override {r.status_code} {r.text}"
+    H.wait(
+        lambda: next(x for x in run.insurer_queries() if x["id"] == qid)["status"] == "closed",
+        90,
+        "round closed after re-verification",
+    )
+
+
 def queries_scenario(run: Run) -> None:
     s = run.s
     cid = s["ins"]["id"]
@@ -502,6 +525,7 @@ def queries_scenario(run: Run) -> None:
             60,
             "round 1 answered and triaged at the insurer",
         )
+        close_round(run, q1)
     with H.step("round 2: second question, answered"):
         q2 = run.raise_query("Please confirm the surgeon fee matches the procedure estimate.")
         run.hospital_answers(2)
@@ -517,6 +541,7 @@ def queries_scenario(run: Run) -> None:
             60,
             "round 2 answered and triaged at the insurer",
         )
+        close_round(run, q2)
     with H.step("round 3 is not answered in time: the claim escalates to a senior reviewer"):
         q3 = run.raise_query("Please provide the anaesthesia chart for the procedure.")
         H.wait(lambda: run.status() == "under_query", 30, "hospital under_query for round 3")

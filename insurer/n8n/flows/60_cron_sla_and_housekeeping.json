@@ -267,7 +267,7 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "saveDataSuccessExecution": "none",
+    "saveDataSuccessExecution": "all",
     "saveDataErrorExecution": "all",
     "errorWorkflow": "00_common_error_handler"
   },
