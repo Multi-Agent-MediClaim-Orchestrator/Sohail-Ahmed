@@ -122,6 +122,12 @@ def minimised_context(ctx: VCtx, step: str) -> dict[str, Any]:
         base["procedure_codes"] = ctx.procedure_codes
     elif step == "authenticity":
         base["documents"] = [{"doc_id": d.id, "doc_type": d.doc_type, "pages": d.pages, "vision": d.vision, "extract": d.extract} for d in ctx.fetched_docs]
+        # the same signals the API's own authenticity rules use, so the agent can explain them (it never recomputes them)
+        diffs = [d.extract["total"] for d in ctx.fetched_docs if d.doc_type in ("final_bill", "itemised_bill") and d.extract and d.extract.get("total") is not None
+                 and abs(Decimal(str(d.extract["total"])) - ctx.claimed_gross) > Decimal("1.00")]
+        base["arithmetic"] = {"claimed_gross": f"{ctx.claimed_gross:.2f}", "total_mismatch": bool(diffs),
+                              "total_diff": f"{Decimal(str(diffs[0])) - ctx.claimed_gross:.2f}" if diffs else "0.00", "line_mismatches": []}
+        base["duplicates"] = {"exact": list(ctx.shared_hash_docs), "near": [o.claim_no for o in ctx.overlapping]}
     return base
 
 

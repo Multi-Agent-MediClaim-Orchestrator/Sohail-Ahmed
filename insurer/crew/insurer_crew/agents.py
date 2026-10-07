@@ -212,18 +212,37 @@ async def identity(ctx: IdentityContext, r: Runner) -> dict[str, Any]:
 
 
 # ================================================================================================ authenticity
+_QUALITY_WORDS = {"good": 0.9, "acceptable": 0.6, "poor": 0.2, "unreadable": 0.0}
+
+
+def _num(v: Any) -> float | None:
+    """Vision reports carry a 0-1 score or a class label (good / acceptable / poor); anything else is simply not a signal."""
+    if v is None or isinstance(v, bool):
+        return None
+    if isinstance(v, int | float):
+        return float(v)
+    if isinstance(v, str):
+        try:
+            return float(v)
+        except ValueError:
+            return _QUALITY_WORDS.get(v.strip().lower())
+    return None
+
+
 def _signals(ctx: AuthenticityContext) -> list[dict[str, Any]]:
     sig: list[dict[str, Any]] = []
     reports = list(ctx.vision_reports) + [{**(d.get("vision") or {}), "doc_id": d.get("doc_id")} for d in ctx.documents if d.get("vision")]
     for v in reports:
         did = v.get("doc_id")
-        tamper = float(v.get("tamper_score", 0) or 0)
+        tamper = _num(v.get("tamper_score")) or 0.0
         if tamper >= 0.4:
             sig.append({"source": "vision", "code": "IMAGE_TAMPER_SUSPECTED", "doc_id": did, "max_severity": "blocker" if tamper >= 0.7 else "warning", "detail": f"tamper_score {tamper:.2f}"})
-        if v.get("font_consistency") is not None and float(v["font_consistency"]) < 0.6:
-            sig.append({"source": "vision", "code": "FONT_INCONSISTENCY", "doc_id": did, "max_severity": "warning", "detail": f"font_consistency {float(v['font_consistency']):.2f}"})
-        if v.get("quality") is not None and float(v["quality"]) < 0.5:
-            sig.append({"source": "vision", "code": "LOW_QUALITY", "doc_id": did, "max_severity": "info", "detail": f"quality {float(v['quality']):.2f}"})
+        font = _num(v.get("font_consistency"))
+        if font is not None and font < 0.6:
+            sig.append({"source": "vision", "code": "FONT_INCONSISTENCY", "doc_id": did, "max_severity": "warning", "detail": f"font_consistency {font:.2f}"})
+        quality = _num(v.get("quality"))
+        if quality is not None and quality < 0.5:
+            sig.append({"source": "vision", "code": "LOW_QUALITY", "doc_id": did, "max_severity": "info", "detail": f"quality {quality:.2f}"})
         if v.get("signature_present") is False:
             sig.append({"source": "vision", "code": "SIGNATURE_MISSING", "doc_id": did, "max_severity": "warning", "detail": "no signature detected"})
         if v.get("template_known") is False:

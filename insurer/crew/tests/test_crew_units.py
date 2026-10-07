@@ -228,3 +228,12 @@ def test_no_write_capability_in_tools():
             assert not any(b in name.lower() for b in banned), name
     assert [m for m, _ in inspect.getmembers(tools.RagClient, inspect.isfunction) if not m.startswith("_")] == ["search"]
     assert "httpx" in inspect.getsource(tools.RagClient) and ".post(" in inspect.getsource(tools.RagClient)  # search is a POST body but read-only on the server
+
+
+def test_crew_doc_types_cover_every_contract_doc_type():
+    """The crew drops a requested document type it does not know from the structured request, so the two lists must match."""
+    from claim_contract.enums import DocType as ContractDocType
+    from insurer_crew.schemas import DocType
+
+    missing = {d.value for d in ContractDocType} - {d.value for d in DocType}
+    assert not missing, f"crew DocType lacks {sorted(missing)}"

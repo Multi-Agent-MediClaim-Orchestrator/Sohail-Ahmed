@@ -39,6 +39,7 @@ def build_case(
     recipe: Recipe,
     identity: dict[str, Any] | None = None,
     discharged_on: dt.date | None = None,
+    price_scale: float = 1.0,
 ) -> dict[str, Any]:
     """`identity` (full_name, dob, gender, member_id, policy_number) and `discharged_on` let a caller tie the case to a
     member who exists in the insurer's data and to dates inside that member's policy; everything else stays seeded."""
@@ -72,6 +73,10 @@ def build_case(
         make_doctor(rng, seed),
     )
     case.bill_lines = bill.hospital_lines(rng, proc, admitted, discharged)
+    if price_scale != 1.0:  # bigger or smaller bill for the same stay (e.g. to cross the insurer's approval thresholds)
+        for ln in case.bill_lines:
+            ln["unit_price"] = bill.d(ln["unit_price"] * Decimal(str(price_scale)))
+            ln["amount"] = bill.d(ln["unit_price"] * ln["qty"])
     discount = Decimal(rng.choice([0, 0, 250, 500, 1000]))
     case.totals = {k: v for k, v in bill.totals(case.bill_lines, discount).items()}  # type: ignore[misc]
     ph_lines = bill.pharmacy_lines(rng, recipe.pharmacy_lines, admitted)

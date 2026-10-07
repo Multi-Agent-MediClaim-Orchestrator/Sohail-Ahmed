@@ -84,6 +84,15 @@ class DocType(StrEnum):
     implant_sticker = "implant_sticker"
     pre_auth_form = "pre_auth_form"
     cancelled_cheque = "cancelled_cheque"
+    # the rest of the shared contract's document types (the crew used to drop these from structured requests)
+    pharmacy_bill = "pharmacy_bill"
+    procedure_bill = "procedure_bill"
+    lab_report = "lab_report"
+    radiology_report = "radiology_report"
+    admission_note = "admission_note"
+    preauth_approval = "preauth_approval"
+    payment_receipt = "payment_receipt"
+    fir_mlc = "fir_mlc"
     other = "other"
 
 

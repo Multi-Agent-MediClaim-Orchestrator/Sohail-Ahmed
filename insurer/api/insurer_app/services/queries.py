@@ -41,7 +41,7 @@ from . import audit, cases, events, jobs, orchestrator, outbox, query_logic, ver
 from .query_logic import Triage
 
 log = logging.getLogger("queries")
-ALLOWED_DOCS = {d for d in ("discharge_summary", "final_bill", "itemised_bill", "pharmacy_bill", "lab_report", "radiology_report", "investigation_report", "admission_note",
+ALLOWED_DOCS = {d for d in ("prescription", "procedure_bill", "discharge_summary", "final_bill", "itemised_bill", "pharmacy_bill", "lab_report", "radiology_report", "investigation_report", "admission_note",
                             "preauth_approval", "claim_form", "id_proof", "policy_card", "cancelled_cheque", "implant_sticker", "payment_receipt", "fir_mlc", "other")}
 FINAL_STATES = ("approved", "partially_approved", "rejected", "settled", "closed")
 

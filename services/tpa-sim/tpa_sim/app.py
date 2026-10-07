@@ -244,6 +244,13 @@ def create_app(settings: SimSettings | None = None, *, clock: Clock | None = Non
         bank.ledger_rows.clear()
         return {"ok": True}
 
+    @app.post("/sim/bank/profile")
+    async def set_bank_profile(request: Request) -> dict[str, Any]:
+        """Bank behaviour for payouts that carry no X-Sim-Profile header: always_pay, fail_once_then_pay, always_fail[:reason], ..."""
+        profile = str(json.loads(await request.body() or b"{}").get("profile", "always_pay"))
+        bank.default_profile = profile
+        return {"profile": profile}
+
     @app.post("/sim/chaos")
     async def set_chaos(request: Request) -> dict[str, Any]:
         try:

@@ -1,6 +1,6 @@
 LOCK = scripts/run_exclusive.sh
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: up-insurer-n8n n8n-insurer-test db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: check-crew up-insurer-n8n n8n-insurer-test db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -173,3 +173,6 @@ db-reset-insurer:
 
 up-insurer-n8n: init-secrets
 	$(COMPOSE) -f infra/compose/insurer.yml --profile n8n up -d --force-recreate --wait insurer-n8n
+
+check-crew: ## known-answer check of the insurer crew on the real local model (needs Ollama)
+	uv run python scripts/check_insurer_crew.py
