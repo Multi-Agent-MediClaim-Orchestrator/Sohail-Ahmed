@@ -1,0 +1,6905 @@
+{
+ "components": {
+  "schemas": {
+   "AckBody": {
+    "additionalProperties": false,
+    "properties": {
+     "codes": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Codes"
+     }
+    },
+    "title": "AckBody",
+    "type": "object"
+   },
+   "AdmissionType": {
+    "enum": [
+     "planned",
+     "emergency"
+    ],
+    "title": "AdmissionType",
+    "type": "string"
+   },
+   "ApproveIn": {
+    "additionalProperties": false,
+    "properties": {
+     "override_note": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Override Note"
+     }
+    },
+    "title": "ApproveIn",
+    "type": "object"
+   },
+   "AssignBody": {
+    "additionalProperties": false,
+    "properties": {
+     "user_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "User Id"
+     }
+    },
+    "required": [
+     "user_id"
+    ],
+    "title": "AssignBody",
+    "type": "object"
+   },
+   "BillCategory": {
+    "enum": [
+     "room",
+     "icu",
+     "surgery",
+     "anaesthesia",
+     "medicine",
+     "consumable",
+     "implant",
+     "investigation",
+     "consultation",
+     "other"
+    ],
+    "title": "BillCategory",
+    "type": "string"
+   },
+   "Body_uploadDocuments": {
+    "properties": {
+     "doc_type_hint": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Doc Type Hint"
+     },
+     "files": {
+      "items": {
+       "contentMediaType": "application/octet-stream",
+       "type": "string"
+      },
+      "title": "Files",
+      "type": "array"
+     },
+     "supersedes_id": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Supersedes Id"
+     }
+    },
+    "required": [
+     "files"
+    ],
+    "title": "Body_uploadDocuments",
+    "type": "object"
+   },
+   "Body_uploadQueryDocuments": {
+    "properties": {
+     "files": {
+      "items": {
+       "contentMediaType": "application/octet-stream",
+       "type": "string"
+      },
+      "title": "Files",
+      "type": "array"
+     }
+    },
+    "required": [
+     "files"
+    ],
+    "title": "Body_uploadQueryDocuments",
+    "type": "object"
+   },
+   "CaseCreate": {
+    "additionalProperties": false,
+    "properties": {
+     "admission_source": {
+      "anyOf": [
+       {
+        "enum": [
+         "ER",
+         "OPD",
+         "referral"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Admission Source"
+     },
+     "admission_type": {
+      "$ref": "#/components/schemas/AdmissionType"
+     },
+     "admitted_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Admitted At"
+     },
+     "admitted_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Admitted On"
+     },
+     "claim_type": {
+      "$ref": "#/components/schemas/ClaimType"
+     },
+     "diagnosis_codes": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 10,
+      "title": "Diagnosis Codes",
+      "type": "array"
+     },
+     "discharged_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discharged At"
+     },
+     "discharged_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discharged On"
+     },
+     "patient": {
+      "$ref": "#/components/schemas/PatientIn"
+     },
+     "policy": {
+      "$ref": "#/components/schemas/PolicyIn"
+     },
+     "preauth_ref": {
+      "anyOf": [
+       {
+        "maxLength": 64,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Preauth Ref"
+     },
+     "procedure_codes": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 10,
+      "title": "Procedure Codes",
+      "type": "array"
+     },
+     "treating_doctor": {
+      "anyOf": [
+       {
+        "maxLength": 120,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Treating Doctor"
+     }
+    },
+    "required": [
+     "patient",
+     "policy",
+     "claim_type",
+     "admission_type"
+    ],
+    "title": "CaseCreate",
+    "type": "object"
+   },
+   "CasePatch": {
+    "additionalProperties": false,
+    "properties": {
+     "admission_source": {
+      "anyOf": [
+       {
+        "enum": [
+         "ER",
+         "OPD",
+         "referral"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Admission Source"
+     },
+     "admitted_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Admitted At"
+     },
+     "admitted_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Admitted On"
+     },
+     "claimed_amount": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Claimed Amount"
+     },
+     "diagnosis_codes": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "maxItems": 10,
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Diagnosis Codes"
+     },
+     "discharged_at": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discharged At"
+     },
+     "discharged_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discharged On"
+     },
+     "patient": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PatientPatch"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "policy": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PolicyPatch"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "preauth_ref": {
+      "anyOf": [
+       {
+        "maxLength": 64,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Preauth Ref"
+     },
+     "procedure_codes": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "maxItems": 10,
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Procedure Codes"
+     },
+     "treating_doctor": {
+      "anyOf": [
+       {
+        "maxLength": 120,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Treating Doctor"
+     }
+    },
+    "title": "CasePatch",
+    "type": "object"
+   },
+   "ClaimDraftIn": {
+    "additionalProperties": false,
+    "properties": {
+     "admission": {
+      "$ref": "#/components/schemas/DraftAdmission"
+     },
+     "bill_lines": {
+      "items": {
+       "$ref": "#/components/schemas/DraftLine"
+      },
+      "maxItems": 2000,
+      "minItems": 1,
+      "title": "Bill Lines",
+      "type": "array"
+     },
+     "documents": {
+      "items": {
+       "format": "uuid",
+       "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Documents",
+      "type": "array"
+     },
+     "patient": {
+      "$ref": "#/components/schemas/DraftPatient"
+     },
+     "totals": {
+      "$ref": "#/components/schemas/DraftTotals"
+     }
+    },
+    "required": [
+     "patient",
+     "admission",
+     "bill_lines",
+     "totals"
+    ],
+    "title": "ClaimDraftIn",
+    "type": "object"
+   },
+   "ClaimType": {
+    "enum": [
+     "cashless",
+     "reimbursement"
+    ],
+    "title": "ClaimType",
+    "type": "string"
+   },
+   "ClassifyIn": {
+    "additionalProperties": false,
+    "properties": {
+     "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+     },
+     "doc_type": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/DocType"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "source": {
+      "const": "auto",
+      "default": "auto",
+      "title": "Source",
+      "type": "string"
+     }
+    },
+    "required": [
+     "doc_type",
+     "confidence"
+    ],
+    "title": "ClassifyIn",
+    "type": "object"
+   },
+   "ConvertBody": {
+    "additionalProperties": false,
+    "properties": {
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     },
+     "to": {
+      "title": "To",
+      "type": "string"
+     }
+    },
+    "required": [
+     "to",
+     "reason"
+    ],
+    "title": "ConvertBody",
+    "type": "object"
+   },
+   "DocType": {
+    "enum": [
+     "prescription",
+     "procedure_bill",
+     "discharge_summary",
+     "final_bill",
+     "itemised_bill",
+     "pharmacy_bill",
+     "lab_report",
+     "radiology_report",
+     "investigation_report",
+     "admission_note",
+     "preauth_approval",
+     "claim_form",
+     "id_proof",
+     "policy_card",
+     "cancelled_cheque",
+     "implant_sticker",
+     "payment_receipt",
+     "fir_mlc",
+     "other"
+    ],
+    "title": "DocType",
+    "type": "string"
+   },
+   "DocTypePatch": {
+    "additionalProperties": false,
+    "properties": {
+     "doc_type": {
+      "$ref": "#/components/schemas/DocType"
+     }
+    },
+    "required": [
+     "doc_type"
+    ],
+    "title": "DocTypePatch",
+    "type": "object"
+   },
+   "DraftAdmission": {
+    "additionalProperties": false,
+    "properties": {
+     "admission_type": {
+      "$ref": "#/components/schemas/AdmissionType"
+     },
+     "admitted_on": {
+      "format": "date",
+      "title": "Admitted On",
+      "type": "string"
+     },
+     "diagnosis_codes": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 10,
+      "title": "Diagnosis Codes",
+      "type": "array"
+     },
+     "discharged_on": {
+      "format": "date",
+      "title": "Discharged On",
+      "type": "string"
+     },
+     "hospital_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Hospital Id"
+     },
+     "preauth_ref": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Preauth Ref"
+     },
+     "procedure_codes": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 10,
+      "title": "Procedure Codes",
+      "type": "array"
+     },
+     "treating_doctor": {
+      "default": "",
+      "maxLength": 120,
+      "title": "Treating Doctor",
+      "type": "string"
+     }
+    },
+    "required": [
+     "admission_type",
+     "admitted_on",
+     "discharged_on"
+    ],
+    "title": "DraftAdmission",
+    "type": "object"
+   },
+   "DraftBody": {
+    "additionalProperties": false,
+    "properties": {
+     "change_note": {
+      "maxLength": 500,
+      "minLength": 3,
+      "title": "Change Note",
+      "type": "string"
+     },
+     "name": {
+      "default": "default",
+      "title": "Name",
+      "type": "string"
+     },
+     "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+     }
+    },
+    "required": [
+     "payload",
+     "change_note"
+    ],
+    "title": "DraftBody",
+    "type": "object"
+   },
+   "DraftIn": {
+    "additionalProperties": false,
+    "properties": {
+     "attached_doc_ids": {
+      "items": {
+       "format": "uuid",
+       "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Attached Doc Ids",
+      "type": "array"
+     },
+     "citations": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "maxItems": 50,
+      "title": "Citations",
+      "type": "array"
+     },
+     "draft_text": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Draft Text",
+      "type": "string"
+     },
+     "model_info": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Info"
+     }
+    },
+    "required": [
+     "draft_text"
+    ],
+    "title": "DraftIn",
+    "type": "object"
+   },
+   "DraftLine": {
+    "additionalProperties": false,
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "type": "string"
+       }
+      ],
+      "ge": 0,
+      "max_digits": 14,
+      "title": "Amount"
+     },
+     "category": {
+      "$ref": "#/components/schemas/BillCategory"
+     },
+     "code": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Code"
+     },
+     "description": {
+      "maxLength": 200,
+      "minLength": 2,
+      "title": "Description",
+      "type": "string"
+     },
+     "line_no": {
+      "maximum": 2000.0,
+      "minimum": 1.0,
+      "title": "Line No",
+      "type": "integer"
+     },
+     "qty": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "type": "string"
+       }
+      ],
+      "decimal_places": 3,
+      "gt": 0,
+      "title": "Qty"
+     },
+     "service_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Service Date"
+     },
+     "source_doc_id": {
+      "format": "uuid",
+      "title": "Source Doc Id",
+      "type": "string"
+     },
+     "source_page": {
+      "anyOf": [
+       {
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Page"
+     },
+     "unit_price": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "type": "string"
+       }
+      ],
+      "ge": 0,
+      "max_digits": 14,
+      "title": "Unit Price"
+     }
+    },
+    "required": [
+     "line_no",
+     "description",
+     "category",
+     "qty",
+     "unit_price",
+     "amount",
+     "source_doc_id"
+    ],
+    "title": "DraftLine",
+    "type": "object"
+   },
+   "DraftPatient": {
+    "additionalProperties": false,
+    "properties": {
+     "dob": {
+      "format": "date",
+      "title": "Dob",
+      "type": "string"
+     },
+     "full_name": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Full Name",
+      "type": "string"
+     },
+     "gender": {
+      "enum": [
+       "M",
+       "F",
+       "O"
+      ],
+      "title": "Gender",
+      "type": "string"
+     },
+     "member_id": {
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Member Id",
+      "type": "string"
+     },
+     "policy_number": {
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Policy Number",
+      "type": "string"
+     }
+    },
+    "required": [
+     "full_name",
+     "dob",
+     "gender",
+     "member_id",
+     "policy_number"
+    ],
+    "title": "DraftPatient",
+    "type": "object"
+   },
+   "DraftResult": {
+    "additionalProperties": false,
+    "description": "Body of POST /v1/internal/cases/{id}/claim/draft.",
+    "properties": {
+     "job_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Job Id",
+      "type": "string"
+     },
+     "model_info": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Model Info",
+      "type": "object"
+     },
+     "payload": {
+      "$ref": "#/components/schemas/ClaimDraftIn"
+     },
+     "provenance": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/Provenance"
+      },
+      "title": "Provenance",
+      "type": "object"
+     },
+     "repair_round": {
+      "default": 0,
+      "maximum": 2.0,
+      "minimum": 0.0,
+      "title": "Repair Round",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "job_id",
+     "payload"
+    ],
+    "title": "DraftResult",
+    "type": "object"
+   },
+   "DraftTotals": {
+    "additionalProperties": false,
+    "properties": {
+     "claimed": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "type": "string"
+       }
+      ],
+      "ge": 0,
+      "max_digits": 14,
+      "title": "Claimed"
+     },
+     "discounts": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "type": "string"
+       }
+      ],
+      "ge": 0,
+      "max_digits": 14,
+      "title": "Discounts"
+     },
+     "gross": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "type": "string"
+       }
+      ],
+      "ge": 0,
+      "max_digits": 14,
+      "title": "Gross"
+     }
+    },
+    "required": [
+     "gross",
+     "discounts",
+     "claimed"
+    ],
+    "title": "DraftTotals",
+    "type": "object"
+   },
+   "DryRunBody": {
+    "additionalProperties": false,
+    "properties": {
+     "compare_to": {
+      "default": "published",
+      "title": "Compare To",
+      "type": "string"
+     },
+     "sample": {
+      "default": "last_100_cases",
+      "title": "Sample",
+      "type": "string"
+     }
+    },
+    "title": "DryRunBody",
+    "type": "object"
+   },
+   "EditIn": {
+    "additionalProperties": false,
+    "properties": {
+     "attached_doc_ids": {
+      "items": {
+       "format": "uuid",
+       "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Attached Doc Ids",
+      "type": "array"
+     },
+     "draft_text": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Draft Text",
+      "type": "string"
+     },
+     "expected_version": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expected Version"
+     }
+    },
+    "required": [
+     "draft_text"
+    ],
+    "title": "EditIn",
+    "type": "object"
+   },
+   "FiredIn": {
+    "additionalProperties": false,
+    "properties": {
+     "error": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "result": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Result"
+     }
+    },
+    "title": "FiredIn",
+    "type": "object"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "title": "Detail",
+      "type": "array"
+     }
+    },
+    "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "IdemIn": {
+    "additionalProperties": false,
+    "properties": {
+     "key": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Key",
+      "type": "string"
+     },
+     "ttl_s": {
+      "default": 3600,
+      "maximum": 86400.0,
+      "minimum": 1.0,
+      "title": "Ttl S",
+      "type": "integer"
+     },
+     "workflow": {
+      "pattern": "^[a-z0-9_-]{1,40}$",
+      "title": "Workflow",
+      "type": "string"
+     }
+    },
+    "required": [
+     "workflow",
+     "key"
+    ],
+    "title": "IdemIn",
+    "type": "object"
+   },
+   "NotifyIn": {
+    "additionalProperties": false,
+    "properties": {
+     "data": {
+      "additionalProperties": true,
+      "title": "Data",
+      "type": "object"
+     },
+     "event": {
+      "maxLength": 60,
+      "pattern": "^[a-z_]+\\.[a-z_.]+$",
+      "title": "Event",
+      "type": "string"
+     }
+    },
+    "required": [
+     "event"
+    ],
+    "title": "NotifyIn",
+    "type": "object"
+   },
+   "OpsEvent": {
+    "additionalProperties": true,
+    "properties": {
+     "correlation_id": {
+      "anyOf": [
+       {
+        "maxLength": 100,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Correlation Id"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "maxLength": 2000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "execution_id": {
+      "anyOf": [
+       {
+        "maxLength": 100,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Execution Id"
+     },
+     "node": {
+      "anyOf": [
+       {
+        "maxLength": 200,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Node"
+     },
+     "severity": {
+      "default": "medium",
+      "pattern": "^(low|medium|high)$",
+      "title": "Severity",
+      "type": "string"
+     },
+     "workflow": {
+      "maxLength": 100,
+      "title": "Workflow",
+      "type": "string"
+     }
+    },
+    "required": [
+     "workflow"
+    ],
+    "title": "OpsEvent",
+    "type": "object"
+   },
+   "OverrideBody": {
+    "additionalProperties": false,
+    "properties": {
+     "admission_type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Admission Type"
+     },
+     "claim_type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Claim Type"
+     },
+     "flags_add": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flags Add"
+     },
+     "flags_remove": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Flags Remove"
+     },
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     }
+    },
+    "required": [
+     "reason"
+    ],
+    "title": "OverrideBody",
+    "type": "object"
+   },
+   "ParseIn": {
+    "additionalProperties": false,
+    "properties": {
+     "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+     },
+     "duration_ms": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Duration Ms"
+     },
+     "engine": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Engine",
+      "type": "string"
+     },
+     "engine_version": {
+      "anyOf": [
+       {
+        "maxLength": 32,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Engine Version"
+     },
+     "entities": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "items": {},
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Entities"
+     },
+     "masked_text_key": {
+      "anyOf": [
+       {
+        "maxLength": 300,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Masked Text Key"
+     },
+     "pass_no": {
+      "maximum": 3.0,
+      "minimum": 1.0,
+      "title": "Pass No",
+      "type": "integer"
+     },
+     "raw_markdown_key": {
+      "anyOf": [
+       {
+        "maxLength": 300,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Raw Markdown Key"
+     },
+     "typed_json": {
+      "additionalProperties": true,
+      "title": "Typed Json",
+      "type": "object"
+     }
+    },
+    "required": [
+     "pass_no",
+     "engine",
+     "typed_json",
+     "confidence"
+    ],
+    "title": "ParseIn",
+    "type": "object"
+   },
+   "PatchOp": {
+    "additionalProperties": false,
+    "properties": {
+     "op": {
+      "title": "Op",
+      "type": "string"
+     },
+     "path": {
+      "title": "Path",
+      "type": "string"
+     },
+     "value": {
+      "title": "Value"
+     }
+    },
+    "required": [
+     "op",
+     "path"
+    ],
+    "title": "PatchOp",
+    "type": "object"
+   },
+   "PatientIn": {
+    "additionalProperties": false,
+    "properties": {
+     "dob": {
+      "format": "date",
+      "title": "Dob",
+      "type": "string"
+     },
+     "full_name": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Full Name",
+      "type": "string"
+     },
+     "gender": {
+      "enum": [
+       "M",
+       "F",
+       "O"
+      ],
+      "title": "Gender",
+      "type": "string"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "maxLength": 20,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "uhid": {
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Uhid",
+      "type": "string"
+     }
+    },
+    "required": [
+     "uhid",
+     "full_name",
+     "dob",
+     "gender"
+    ],
+    "title": "PatientIn",
+    "type": "object"
+   },
+   "PatientPatch": {
+    "additionalProperties": false,
+    "properties": {
+     "dob": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Dob"
+     },
+     "full_name": {
+      "anyOf": [
+       {
+        "maxLength": 120,
+        "minLength": 2,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Full Name"
+     },
+     "gender": {
+      "anyOf": [
+       {
+        "enum": [
+         "M",
+         "F",
+         "O"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gender"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "maxLength": 20,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     }
+    },
+    "title": "PatientPatch",
+    "type": "object"
+   },
+   "PolicyIn": {
+    "additionalProperties": false,
+    "properties": {
+     "insurer_name": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Insurer Name",
+      "type": "string"
+     },
+     "member_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Member Id",
+      "type": "string"
+     },
+     "policy_number": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Policy Number",
+      "type": "string"
+     }
+    },
+    "required": [
+     "insurer_name",
+     "policy_number",
+     "member_id"
+    ],
+    "title": "PolicyIn",
+    "type": "object"
+   },
+   "PolicyPatch": {
+    "additionalProperties": false,
+    "properties": {
+     "insurer_name": {
+      "anyOf": [
+       {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurer Name"
+     },
+     "member_id": {
+      "anyOf": [
+       {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Member Id"
+     },
+     "policy_number": {
+      "anyOf": [
+       {
+        "maxLength": 64,
+        "minLength": 1,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Policy Number"
+     }
+    },
+    "title": "PolicyPatch",
+    "type": "object"
+   },
+   "Provenance": {
+    "additionalProperties": false,
+    "properties": {
+     "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+     },
+     "doc_id": {
+      "format": "uuid",
+      "title": "Doc Id",
+      "type": "string"
+     },
+     "page": {
+      "anyOf": [
+       {
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Page"
+     }
+    },
+    "required": [
+     "doc_id",
+     "confidence"
+    ],
+    "title": "Provenance",
+    "type": "object"
+   },
+   "PublishBody": {
+    "additionalProperties": false,
+    "properties": {
+     "effective_from": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Effective From"
+     },
+     "name": {
+      "default": "default",
+      "title": "Name",
+      "type": "string"
+     }
+    },
+    "title": "PublishBody",
+    "type": "object"
+   },
+   "QualityIn": {
+    "additionalProperties": false,
+    "properties": {
+     "flags": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Flags",
+      "type": "array"
+     },
+     "has_required_stamp": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Has Required Stamp"
+     },
+     "quality_score": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Quality Score",
+      "type": "number"
+     }
+    },
+    "required": [
+     "quality_score"
+    ],
+    "title": "QualityIn",
+    "type": "object"
+   },
+   "ReevalBody": {
+    "additionalProperties": false,
+    "properties": {
+     "all_open": {
+      "default": false,
+      "title": "All Open",
+      "type": "boolean"
+     },
+     "case_ids": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Case Ids"
+     }
+    },
+    "title": "ReevalBody",
+    "type": "object"
+   },
+   "SignoffBody": {
+    "additionalProperties": false,
+    "properties": {
+     "acknowledged_warnings": {
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Acknowledged Warnings",
+      "type": "array"
+     },
+     "comment": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Comment"
+     },
+     "decision": {
+      "pattern": "^(approved|returned)$",
+      "title": "Decision",
+      "type": "string"
+     }
+    },
+    "required": [
+     "decision"
+    ],
+    "title": "SignoffBody",
+    "type": "object"
+   },
+   "SplitChild": {
+    "additionalProperties": false,
+    "properties": {
+     "doc_type_hint": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/DocType"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "page_from": {
+      "minimum": 1.0,
+      "title": "Page From",
+      "type": "integer"
+     },
+     "page_to": {
+      "minimum": 1.0,
+      "title": "Page To",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "page_from",
+     "page_to"
+    ],
+    "title": "SplitChild",
+    "type": "object"
+   },
+   "SplitIn": {
+    "additionalProperties": false,
+    "properties": {
+     "children": {
+      "items": {
+       "$ref": "#/components/schemas/SplitChild"
+      },
+      "maxItems": 20,
+      "minItems": 2,
+      "title": "Children",
+      "type": "array"
+     }
+    },
+    "required": [
+     "children"
+    ],
+    "title": "SplitIn",
+    "type": "object"
+   },
+   "StatusIn": {
+    "additionalProperties": false,
+    "properties": {
+     "error": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "parse_status": {
+      "enum": [
+       "processing",
+       "failed",
+       "needs_review"
+      ],
+      "title": "Parse Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "parse_status"
+    ],
+    "title": "StatusIn",
+    "type": "object"
+   },
+   "SubmitBody": {
+    "additionalProperties": false,
+    "properties": {
+     "late_filing_reason": {
+      "anyOf": [
+       {
+        "maxLength": 1500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Late Filing Reason"
+     }
+    },
+    "title": "SubmitBody",
+    "type": "object"
+   },
+   "TicketReq": {
+    "additionalProperties": false,
+    "properties": {
+     "case_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Case Id"
+     },
+     "scope": {
+      "default": "inbox",
+      "title": "Scope",
+      "type": "string"
+     }
+    },
+    "title": "TicketReq",
+    "type": "object"
+   },
+   "TransitionBody": {
+    "additionalProperties": false,
+    "properties": {
+     "reason": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason"
+     },
+     "to": {
+      "title": "To",
+      "type": "string"
+     }
+    },
+    "required": [
+     "to"
+    ],
+    "title": "TransitionBody",
+    "type": "object"
+   },
+   "TriageIn": {
+    "additionalProperties": false,
+    "properties": {
+     "action": {
+      "maxLength": 40,
+      "title": "Action",
+      "type": "string"
+     },
+     "escalation_risk": {
+      "default": false,
+      "title": "Escalation Risk",
+      "type": "boolean"
+     },
+     "needs_docs": {
+      "default": false,
+      "title": "Needs Docs",
+      "type": "boolean"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "required": [
+     "action"
+    ],
+    "title": "TriageIn",
+    "type": "object"
+   },
+   "UserPatch": {
+    "additionalProperties": false,
+    "properties": {
+     "active": {
+      "title": "Active",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "active"
+    ],
+    "title": "UserPatch",
+    "type": "object"
+   },
+   "ValidationError": {
+    "properties": {
+     "ctx": {
+      "title": "Context",
+      "type": "object"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "title": "Location",
+      "type": "array"
+     },
+     "msg": {
+      "title": "Message",
+      "type": "string"
+     },
+     "type": {
+      "title": "Error Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError",
+    "type": "object"
+   },
+   "WaiveBody": {
+    "additionalProperties": false,
+    "properties": {
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     }
+    },
+    "required": [
+     "reason"
+    ],
+    "title": "WaiveBody",
+    "type": "object"
+   },
+   "WithdrawBody": {
+    "additionalProperties": false,
+    "properties": {
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "reason": {
+      "$ref": "#/components/schemas/WithdrawReason"
+     }
+    },
+    "required": [
+     "reason"
+    ],
+    "title": "WithdrawBody",
+    "type": "object"
+   },
+   "WithdrawReason": {
+    "enum": [
+     "patient_requested",
+     "duplicate",
+     "hospital_error",
+     "other"
+    ],
+    "title": "WithdrawReason",
+    "type": "string"
+   }
+  }
+ },
+ "info": {
+  "title": "Hospital API",
+  "version": "1.0.0"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/v1/admin/config/{domain}": {
+   "get": {
+    "operationId": "listConfigVersions",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "name",
+      "required": false,
+      "schema": {
+       "default": "default",
+       "title": "Name",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Listconfigversions"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Versions",
+    "tags": [
+     "admin-config"
+    ]
+   },
+   "post": {
+    "operationId": "createConfigDraft",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DraftBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Createconfigdraft"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create",
+    "tags": [
+     "admin-config"
+    ]
+   }
+  },
+  "/v1/admin/config/{domain}/reevaluate": {
+   "post": {
+    "operationId": "reevaluateCases",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReevalBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Reevaluatecases"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reevaluate",
+    "tags": [
+     "admin-config"
+    ]
+   }
+  },
+  "/v1/admin/config/{domain}/schema": {
+   "get": {
+    "operationId": "configSchema",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Configschema"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Schema",
+    "tags": [
+     "admin-config"
+    ]
+   }
+  },
+  "/v1/admin/config/{domain}/{version}": {
+   "get": {
+    "operationId": "getConfigVersion",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "version",
+      "required": true,
+      "schema": {
+       "title": "Version",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "name",
+      "required": false,
+      "schema": {
+       "default": "default",
+       "title": "Name",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Getconfigversion"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Version",
+    "tags": [
+     "admin-config"
+    ]
+   }
+  },
+  "/v1/admin/config/{domain}/{version}/dry-run": {
+   "post": {
+    "operationId": "dryRunConfigVersion",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "version",
+      "required": true,
+      "schema": {
+       "title": "Version",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "name",
+      "required": false,
+      "schema": {
+       "default": "default",
+       "title": "Name",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/DryRunBody"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "title": "Body"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Dryrunconfigversion"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Dry Run",
+    "tags": [
+     "admin-config"
+    ]
+   }
+  },
+  "/v1/admin/config/{domain}/{version}/publish": {
+   "post": {
+    "operationId": "publishConfigVersion",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "version",
+      "required": true,
+      "schema": {
+       "title": "Version",
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/PublishBody"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "title": "Body"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Publishconfigversion"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Publish",
+    "tags": [
+     "admin-config"
+    ]
+   }
+  },
+  "/v1/admin/config/{domain}/{version}/retire": {
+   "post": {
+    "operationId": "retireConfigVersion",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "version",
+      "required": true,
+      "schema": {
+       "title": "Version",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "name",
+      "required": false,
+      "schema": {
+       "default": "default",
+       "title": "Name",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Retireconfigversion"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Retire",
+    "tags": [
+     "admin-config"
+    ]
+   }
+  },
+  "/v1/admin/config/{domain}/{version}/validate": {
+   "post": {
+    "operationId": "validateConfigVersion",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "domain",
+      "required": true,
+      "schema": {
+       "title": "Domain",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "version",
+      "required": true,
+      "schema": {
+       "title": "Version",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "name",
+      "required": false,
+      "schema": {
+       "default": "default",
+       "title": "Name",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Validateconfigversion"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Validate",
+    "tags": [
+     "admin-config"
+    ]
+   }
+  },
+  "/v1/admin/outbox": {
+   "get": {
+    "operationId": "adminOutbox",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "default": "dead",
+       "title": "Status",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 100,
+       "title": "Limit",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Adminoutbox"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Admin Outbox",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/admin/users": {
+   "get": {
+    "operationId": "listUsers",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "role",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Role"
+      }
+     },
+     {
+      "in": "query",
+      "name": "active",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Active"
+      }
+     },
+     {
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "in": "query",
+      "name": "page",
+      "required": false,
+      "schema": {
+       "default": 1,
+       "minimum": 1,
+       "title": "Page",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "size",
+      "required": false,
+      "schema": {
+       "default": 25,
+       "maximum": 100,
+       "minimum": 1,
+       "title": "Size",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Listusers",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Users",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/v1/admin/users/{user_id}": {
+   "patch": {
+    "operationId": "patchUser",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "user_id",
+      "required": true,
+      "schema": {
+       "title": "User Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UserPatch"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Patchuser",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Patch User",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/v1/admin/users/{user_id}/activity": {
+   "get": {
+    "operationId": "userActivity",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "user_id",
+      "required": true,
+      "schema": {
+       "title": "User Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 50,
+       "maximum": 200,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Useractivity",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "User Activity",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/v1/cases": {
+   "get": {
+    "operationId": "listCases",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "in": "query",
+      "name": "q",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "in": "query",
+      "name": "assigned",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Assigned"
+      }
+     },
+     {
+      "in": "query",
+      "name": "claim_type",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Claim Type"
+      }
+     },
+     {
+      "in": "query",
+      "name": "flag",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Flag"
+      }
+     },
+     {
+      "in": "query",
+      "name": "cursor",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "in": "query",
+      "name": "size",
+      "required": false,
+      "schema": {
+       "default": 25,
+       "maximum": 100,
+       "minimum": 1,
+       "title": "Size",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Listcases",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Cases",
+    "tags": [
+     "cases"
+    ]
+   },
+   "post": {
+    "operationId": "createCase",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "confirm_patient_update",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Confirm Patient Update",
+       "type": "boolean"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CaseCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Createcase",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create Case",
+    "tags": [
+     "cases"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}": {
+   "get": {
+    "operationId": "getCase",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Getcase",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Case",
+    "tags": [
+     "cases"
+    ]
+   },
+   "patch": {
+    "operationId": "patchCase",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "if-match",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "If-Match"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CasePatch"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Patchcase",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Patch Case",
+    "tags": [
+     "cases"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/assign": {
+   "post": {
+    "operationId": "assignCase",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AssignBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Assigncase",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Assign",
+    "tags": [
+     "cases"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/claim": {
+   "get": {
+    "operationId": "getClaim",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Getclaim"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Claim",
+    "tags": [
+     "claims"
+    ]
+   },
+   "put": {
+    "operationId": "editClaim",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "if-match",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "If-Match"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "items": {
+         "$ref": "#/components/schemas/PatchOp"
+        },
+        "title": "Ops",
+        "type": "array"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Editclaim"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Edit",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/claim/build": {
+   "post": {
+    "operationId": "buildClaim",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Buildclaim"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Build",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/claim/signoff": {
+   "post": {
+    "operationId": "signoffClaim",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SignoffBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Signoffclaim"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Signoff",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/claim/submit": {
+   "post": {
+    "operationId": "submitClaim",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/SubmitBody"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "title": "Body"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Submitclaim"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Submit",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/claim/validate": {
+   "post": {
+    "operationId": "validateClaim",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Validateclaim"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Validate Claim",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/claim/versions": {
+   "get": {
+    "operationId": "claimVersions",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Claimversions"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Versions",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/claim/withdraw": {
+   "post": {
+    "operationId": "withdrawClaim",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/WithdrawBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Withdrawclaim"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Withdraw",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/completeness": {
+   "get": {
+    "operationId": "getCompleteness",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "history",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "History",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Getcompleteness"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Completeness",
+    "tags": [
+     "completeness"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/completeness/run": {
+   "post": {
+    "operationId": "runCompleteness",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Runcompleteness"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Run Completeness",
+    "tags": [
+     "completeness"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/convert": {
+   "post": {
+    "operationId": "convertCase",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ConvertBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Convertcase"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Convert",
+    "tags": [
+     "route"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/doc-requests": {
+   "get": {
+    "operationId": "listDocRequests",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Listdocrequests"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Doc Requests",
+    "tags": [
+     "completeness"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/doc-requests/{request_id}/remind": {
+   "post": {
+    "operationId": "remindDocRequest",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "request_id",
+      "required": true,
+      "schema": {
+       "title": "Request Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Reminddocrequest"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Remind",
+    "tags": [
+     "completeness"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/documents": {
+   "get": {
+    "operationId": "listDocuments",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lifecycle",
+      "required": false,
+      "schema": {
+       "default": "active",
+       "pattern": "^(active|all)$",
+       "title": "Lifecycle",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "doc_type",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Doc Type"
+      }
+     },
+     {
+      "in": "query",
+      "name": "needs_attention",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Needs Attention"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Listdocuments",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Documents",
+    "tags": [
+     "documents"
+    ]
+   },
+   "post": {
+    "operationId": "uploadDocuments",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_uploadDocuments"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Uploaddocuments"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Upload",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/requirements/{doc_type}/waive": {
+   "delete": {
+    "operationId": "revokeWaiver",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "doc_type",
+      "required": true,
+      "schema": {
+       "title": "Doc Type",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Revokewaiver"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Revoke",
+    "tags": [
+     "completeness"
+    ]
+   },
+   "post": {
+    "operationId": "waiveRequirement",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "doc_type",
+      "required": true,
+      "schema": {
+       "title": "Doc Type",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/WaiveBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Waiverequirement"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Waive",
+    "tags": [
+     "completeness"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/route": {
+   "get": {
+    "operationId": "getRoute",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Getroute"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Route",
+    "tags": [
+     "route"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/route/ack": {
+   "post": {
+    "operationId": "ackRoute",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AckBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Ackroute"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Ack",
+    "tags": [
+     "route"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/route/override": {
+   "post": {
+    "operationId": "overrideRoute",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/OverrideBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Overrideroute"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Override",
+    "tags": [
+     "route"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/route/recompute": {
+   "post": {
+    "operationId": "recomputeRoute",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "clear_overrides",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Clear Overrides",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Recomputeroute"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Recompute",
+    "tags": [
+     "route"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/submission": {
+   "get": {
+    "operationId": "getSubmission",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Getsubmission"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Submission",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/submission/reopen": {
+   "post": {
+    "operationId": "reopenSubmission",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Reopensubmission"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reopen",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/submission/retry": {
+   "post": {
+    "operationId": "retrySubmission",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Retrysubmission"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Retry",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/timeline": {
+   "get": {
+    "operationId": "caseTimeline",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "cursor",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "in": "query",
+      "name": "size",
+      "required": false,
+      "schema": {
+       "default": 50,
+       "maximum": 200,
+       "minimum": 1,
+       "title": "Size",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Casetimeline",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Timeline",
+    "tags": [
+     "cases"
+    ]
+   }
+  },
+  "/v1/cases/{case_id}/transition": {
+   "post": {
+    "operationId": "transitionCase",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TransitionBody"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Transitioncase",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Transition",
+    "tags": [
+     "cases"
+    ]
+   }
+  },
+  "/v1/dashboard/summary": {
+   "get": {
+    "operationId": "dashboardSummary",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Dashboardsummary",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Summary",
+    "tags": [
+     "dashboard"
+    ]
+   }
+  },
+  "/v1/documents/{doc_id}": {
+   "delete": {
+    "operationId": "deleteDocument",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Delete",
+    "tags": [
+     "documents"
+    ]
+   },
+   "get": {
+    "operationId": "getDocument",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Getdocument",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Document",
+    "tags": [
+     "documents"
+    ]
+   },
+   "patch": {
+    "operationId": "patchDocument",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DocTypePatch"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Patchdocument",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Patch Document",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/v1/documents/{doc_id}/download": {
+   "get": {
+    "operationId": "downloadDocument",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Download",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/v1/documents/{doc_id}/pages/{n}": {
+   "get": {
+    "operationId": "documentPage",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "n",
+      "required": true,
+      "schema": {
+       "title": "N",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Page",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/v1/documents/{doc_id}/parse": {
+   "get": {
+    "operationId": "getParse",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Getparse",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Parse",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/v1/documents/{doc_id}/reparse": {
+   "post": {
+    "operationId": "reparseDocument",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "full",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Full",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Reparsedocument",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reparse",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/v1/health": {
+   "get": {
+    "operationId": "health",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "type": "string"
+         },
+         "title": "Response Health",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Health",
+    "tags": [
+     "health"
+    ]
+   }
+  },
+  "/v1/insurer-callbacks/decisions": {
+   "post": {
+    "operationId": "callbackDecision",
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Decisions",
+    "tags": [
+     "insurer-callbacks"
+    ]
+   }
+  },
+  "/v1/insurer-callbacks/documents/{doc_id}/refresh-url": {
+   "post": {
+    "operationId": "refreshDocumentUrl",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Refreshdocumenturl"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Refresh Url",
+    "tags": [
+     "insurer-callbacks"
+    ]
+   }
+  },
+  "/v1/insurer-callbacks/queries": {
+   "post": {
+    "operationId": "callbackQuery",
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Queries",
+    "tags": [
+     "insurer-callbacks"
+    ]
+   }
+  },
+  "/v1/insurer-callbacks/settlements": {
+   "post": {
+    "operationId": "callbackSettlement",
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Settlements",
+    "tags": [
+     "insurer-callbacks"
+    ]
+   }
+  },
+  "/v1/insurer-callbacks/status": {
+   "post": {
+    "operationId": "callbackStatus",
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Status",
+    "tags": [
+     "insurer-callbacks"
+    ]
+   }
+  },
+  "/v1/internal/cases/stale-building": {
+   "get": {
+    "operationId": "internalStaleBuilding",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "older_than_s",
+      "required": false,
+      "schema": {
+       "default": 900,
+       "minimum": 0,
+       "title": "Older Than S",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalstalebuilding",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Stale Building",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/cases/{case_id}/ack-status": {
+   "get": {
+    "operationId": "internalAckStatus",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalackstatus",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Ack Status",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/cases/{case_id}/build-context": {
+   "get": {
+    "description": "Facts for the claim builder: authoritative case data, typed document values, the previous draft.",
+    "operationId": "internalBuildContext",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalbuildcontext",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Build Context",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/cases/{case_id}/claim/draft": {
+   "post": {
+    "operationId": "cbDraft",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DraftResult"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Cbdraft"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Crew Draft",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/internal/cases/{case_id}/completeness/run": {
+   "post": {
+    "operationId": "internalRunCompleteness",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Internalruncompleteness"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Internal Run",
+    "tags": [
+     "completeness"
+    ]
+   }
+  },
+  "/v1/internal/cases/{case_id}/notify": {
+   "post": {
+    "operationId": "internalNotify",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/NotifyIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalnotify",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Notify",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/cases/{case_id}/route/recompute": {
+   "post": {
+    "operationId": "internalRecomputeRoute",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "case_id",
+      "required": true,
+      "schema": {
+       "title": "Case Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Internalrecomputeroute"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Internal Recompute",
+    "tags": [
+     "route"
+    ]
+   }
+  },
+  "/v1/internal/documents/pending-parse": {
+   "get": {
+    "operationId": "pendingParse",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "older_than_s",
+      "required": false,
+      "schema": {
+       "default": 120,
+       "minimum": 0,
+       "title": "Older Than S",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 50,
+       "maximum": 200,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Pendingparse",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Pending",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/documents/{doc_id}": {
+   "get": {
+    "description": "What a pipeline worker needs: scan result, a short-lived URL and the case. No PII.",
+    "operationId": "internalGetDocument",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalgetdocument",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Document",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/documents/{doc_id}/classify": {
+   "post": {
+    "operationId": "cbClassify",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ClassifyIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Cbclassify",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Classify",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/documents/{doc_id}/parse": {
+   "post": {
+    "operationId": "cbParse",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ParseIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Cbparse",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Parse",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/documents/{doc_id}/quality": {
+   "post": {
+    "operationId": "cbQuality",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/QualityIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Cbquality",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Quality",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/documents/{doc_id}/split": {
+   "post": {
+    "operationId": "cbSplit",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SplitIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Cbsplit",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Split",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/documents/{doc_id}/status": {
+   "post": {
+    "operationId": "cbStatus",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StatusIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Cbstatus",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Status",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/hospitals": {
+   "get": {
+    "description": "The hospital registry the vision service matches stamp text against.",
+    "operationId": "internalHospitals",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalhospitals",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Hospitals",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/idempotency": {
+   "post": {
+    "description": "SET NX with a TTL; n8n flows use it to drop duplicate webhook deliveries.",
+    "operationId": "internalIdempotency",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/IdemIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "type": "boolean"
+         },
+         "title": "Response Internalidempotency",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Idempotency",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/jobs/claim-build-timeouts": {
+   "post": {
+    "operationId": "jobClaimBuildTimeouts",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Jobclaimbuildtimeouts"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Timeouts",
+    "tags": [
+     "claims"
+    ]
+   }
+  },
+  "/v1/internal/jobs/orphan-scan": {
+   "post": {
+    "operationId": "jobOrphans",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Joborphans",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Job Orphans",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/jobs/purge-tombstones": {
+   "post": {
+    "operationId": "jobPurge",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "type": "integer"
+         },
+         "title": "Response Jobpurge",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Job Purge",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/jobs/query-overdue": {
+   "post": {
+    "operationId": "jobQueryOverdue",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Jobqueryoverdue"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Overdue",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/internal/jobs/stale-drafts": {
+   "post": {
+    "operationId": "jobStale",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "type": "integer"
+         },
+         "title": "Response Jobstale",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Job Stale",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/jobs/sweeper": {
+   "post": {
+    "operationId": "jobSweeper",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "type": "integer"
+         },
+         "title": "Response Jobsweeper",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Job Sweeper",
+    "tags": [
+     "internal"
+    ]
+   }
+  },
+  "/v1/internal/ops/events": {
+   "post": {
+    "operationId": "internalOpsEvent",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/OpsEvent"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalopsevent",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Ops Event",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/outbox/stalled": {
+   "get": {
+    "operationId": "internalOutboxStalled",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internaloutboxstalled",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Outbox Stalled",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/queries/{query_id}": {
+   "get": {
+    "operationId": "internalGetQuery",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalgetquery",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Query",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/queries/{query_id}/context": {
+   "get": {
+    "operationId": "internalQueryContext",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalquerycontext",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Query Context",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/queries/{query_id}/draft-result": {
+   "post": {
+    "operationId": "queryDraftResult",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DraftIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Querydraftresult"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Draft Result",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/internal/queries/{query_id}/triage-result": {
+   "post": {
+    "operationId": "queryTriageResult",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TriageIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Querytriageresult"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Triage Result",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/internal/reminders/due": {
+   "get": {
+    "operationId": "internalRemindersDue",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 50,
+       "maximum": 200,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalremindersdue",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reminders Due",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/reminders/{rid}/failed": {
+   "post": {
+    "operationId": "internalReminderFailed",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "rid",
+      "required": true,
+      "schema": {
+       "title": "Rid",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FiredIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalreminderfailed",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reminder Failed",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/internal/reminders/{rid}/fired": {
+   "post": {
+    "operationId": "internalReminderFired",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "rid",
+      "required": true,
+      "schema": {
+       "title": "Rid",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FiredIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Internalreminderfired",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reminder Fired",
+    "tags": [
+     "internal-ops"
+    ]
+   }
+  },
+  "/v1/me": {
+   "get": {
+    "operationId": "getMe",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Getme",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Get Me",
+    "tags": [
+     "me"
+    ]
+   }
+  },
+  "/v1/metrics": {
+   "get": {
+    "operationId": "metrics",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Scrape",
+    "tags": [
+     "metrics"
+    ]
+   }
+  },
+  "/v1/queries": {
+   "get": {
+    "operationId": "listQueries",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "in": "query",
+      "name": "limit",
+      "required": false,
+      "schema": {
+       "default": 50,
+       "maximum": 100,
+       "minimum": 1,
+       "title": "Limit",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "cursor",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Listqueries"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Queries",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/queries/{query_id}": {
+   "get": {
+    "operationId": "getQuery",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Getquery"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Query",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/queries/{query_id}/approve": {
+   "post": {
+    "operationId": "approveQueryResponse",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ApproveIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Approvequeryresponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Approve",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/queries/{query_id}/documents": {
+   "post": {
+    "operationId": "uploadQueryDocuments",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_uploadQueryDocuments"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Uploadquerydocuments"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Upload Docs",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/queries/{query_id}/draft": {
+   "post": {
+    "operationId": "requestQueryDraft",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Requestquerydraft"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Request Draft",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/queries/{query_id}/response": {
+   "put": {
+    "operationId": "editQueryResponse",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EditIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Editqueryresponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Edit Response",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/queries/{query_id}/send": {
+   "post": {
+    "operationId": "sendQueryResponse",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Sendqueryresponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Send",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/queries/{query_id}/triage": {
+   "post": {
+    "operationId": "overrideTriage",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "query_id",
+      "required": true,
+      "schema": {
+       "title": "Query Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TriageIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Overridetriage"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Override Triage",
+    "tags": [
+     "queries"
+    ]
+   }
+  },
+  "/v1/ready": {
+   "get": {
+    "operationId": "ready",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Ready"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Ready",
+    "tags": [
+     "health"
+    ]
+   }
+  },
+  "/v1/stream": {
+   "get": {
+    "operationId": "stream",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "ticket",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Ticket",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "scope",
+      "required": false,
+      "schema": {
+       "default": "inbox",
+       "title": "Scope",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "case_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Case Id"
+      }
+     },
+     {
+      "in": "query",
+      "name": "last_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Last Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Stream",
+    "tags": [
+     "stream"
+    ]
+   }
+  },
+  "/v1/stream/ticket": {
+   "post": {
+    "operationId": "streamTicket",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TicketReq"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Streamticket",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Ticket",
+    "tags": [
+     "stream"
+    ]
+   }
+  }
+ }
+}

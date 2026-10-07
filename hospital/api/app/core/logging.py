@@ -105,6 +105,11 @@ class RequestIdMiddleware:
         try:
             await self.app(scope, receive, send_wrapper)
         finally:
+            from app.core import metrics
+
+            metrics.observe(
+                scope["method"], metrics.route_label(scope), status, time.perf_counter() - t0
+            )
             self.log.info(
                 "request",
                 extra={

@@ -14,11 +14,32 @@ tables = {t.name: {c.name for c in t.columns} for t in Base.metadata.tables.valu
 pat = re.compile(
     r"\b(" + "|".join(sorted(tables, key=len, reverse=True)) + r")\.([a-z_][a-z0-9_]*)\b"
 )
+# Tokens that look like table.column but are not: file names, audit/SSE event names, function names, JSON payload keys.
+# Listed as (table, name) pairs so a real missing column with the same name elsewhere is still reported.
+NOT_COLUMNS = (
+    {("hospital", x) for x in ("dev", "local", "json", "md", "py", "yml", "yaml")}
+    | {("document", x) for x in ("uploaded", "scanned", "parsed", "classified")}
+    | {("doc_request", x) for x in ("opened", "closed")}
+    | {
+        ("outbox", "enqueue"),
+        ("outbox", "next_sequence"),
+        ("settlement", "received"),
+        ("claim_draft", "totals"),
+        ("patient", "name"),
+        (
+            "patient",
+            "member_id",
+        ),  # JSON alias path / python attribute (member id lives on insurance_policy_ref)
+        ("signoff", "four_eyes"),
+        ("signoff", "invalidate"),
+        ("signoff", "invalidated"),
+    }
+)
 missing: dict[tuple[str, str], set[str]] = {}
 for doc in sorted(pathlib.Path("docs/implementation/02-dev-A-hospital").glob("*.md")):
     for m in pat.finditer(doc.read_text()):
         t, c = m.groups()
-        if c not in tables[t]:
+        if c not in tables[t] and (t, c) not in NOT_COLUMNS:
             missing.setdefault((t, c), set()).add(doc.name)
 for (t, c), docs in sorted(missing.items()):
     print(f"MISSING {t}.{c}  <- {', '.join(sorted(docs))}")

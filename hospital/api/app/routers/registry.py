@@ -18,6 +18,7 @@ def routers() -> list[Any]:
         "callbacks",
         "queries",
         "dashboard",
+        "metrics",
         "internal_ops",
         "stream",
     ):

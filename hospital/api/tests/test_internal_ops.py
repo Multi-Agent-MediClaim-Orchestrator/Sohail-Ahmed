@@ -156,3 +156,30 @@ async def test_hospital_registry_for_the_vision_service(
     r = await client.get("/v1/internal/hospitals", headers=tok("svc:internal"))
     assert r.status_code == 200 and r.json()["items"][0]["name"]
     assert (await client.get("/v1/internal/hospitals", headers=tok("desk1"))).status_code == 403
+
+
+async def test_metrics_scrape_counts_routes_and_hides_ids(
+    client: httpx.AsyncClient, tok: Any
+) -> None:
+    from app.core import metrics
+
+    metrics.reset()
+    case = await ready_case_light(client, tok)
+    await client.get(f"/v1/cases/{case}", headers=tok("officer1"))
+    r = await client.get("/v1/metrics", headers=tok("svc:internal"))
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/plain")
+    body = r.text
+    assert 'route="/v1/cases/{case_id}"' in body and case not in body  # template, never the raw id
+    assert (
+        "http_request_duration_seconds_bucket" in body
+        and "outbox_rows" in body
+        or "queries_open" in body
+    )
+    assert (await client.get("/v1/metrics", headers=tok("desk1"))).status_code == 403
+    assert (await client.get("/v1/metrics", headers=tok("hadmin"))).status_code == 200
+
+
+async def ready_case_light(c: httpx.AsyncClient, tok: Any) -> str:
+    from tests.helpers import new_case
+
+    return str((await new_case(c, tok("officer1"), "UH-" + uuid.uuid4().hex[:8]))["id"])

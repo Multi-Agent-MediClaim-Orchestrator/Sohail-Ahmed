@@ -18,6 +18,7 @@ import sys
 import threading
 import time
 import uuid
+from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -85,7 +86,20 @@ class Stack:
                 pass
 
 
+_tokens: dict[str, tuple[float, dict[str, str]]] = {}
+
+
 def token(user: str) -> dict[str, str]:
+    """Access tokens live ~5 minutes and the run is longer: cache per user and refresh before expiry."""
+    hit = _tokens.get(user)
+    if hit and hit[0] > time.time():
+        return hit[1]
+    h = _fresh_token(user)
+    _tokens[user] = (time.time() + 200, h)
+    return h
+
+
+def _fresh_token(user: str) -> dict[str, str]:
     r = httpx.post(
         KC,
         data={
@@ -98,6 +112,22 @@ def token(user: str) -> dict[str, str]:
     )
     r.raise_for_status()
     return {"Authorization": "Bearer " + r.json()["access_token"]}
+
+
+class Live(Mapping[str, str]):
+    """Auth headers that are re-read (and refreshed when old) on every use."""
+
+    def __init__(self, user: str) -> None:
+        self.user = user
+
+    def __getitem__(self, k: str) -> str:
+        return token(self.user)[k]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(token(self.user))
+
+    def __len__(self) -> int:
+        return len(token(self.user))
 
 
 def step(name: str):  # type: ignore[no-untyped-def]
@@ -215,7 +245,7 @@ def main() -> int:
 
 
 async def scenario(sim: Any, case: dict[str, Any], out: Path, stack: Stack) -> int:
-    desk, officer = token("desk1"), token("officer1")
+    desk, officer = Live("desk1"), Live("officer1")
     c = httpx.Client(base_url=API, timeout=60)
     idem = lambda: {"Idempotency-Key": str(uuid.uuid4())}  # noqa: E731
     s: dict[str, Any] = {}
