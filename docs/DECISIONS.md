@@ -1,6 +1,26 @@
 # Decisions log
 Format: decision, reason, date. Newest first. Spec fixes are proven by a test.
 
+## 2026-10-07 — end-to-end run, deterministic modes, and what the e2e found
+
+- `make e2e-hospital` runs the real stack (hospital-api, doc-pipeline, vision, crew, n8n, Keycloak, MinIO, ClamAV,
+  Postgres, Redis) against the insurer simulator in 11 steps from case creation to settlement and audit. Default
+  `E2E_LLM=rules` uses deterministic extractors (`DOCPIPE_LLM=rules`, `CREW_LLM=rules`): about 20 s. `E2E_LLM=ollama`
+  uses the real local model (minutes). It migrates the dev database, clears cached user ids, restarts n8n when the flows
+  changed, refreshes tokens, fails fast on stuck states and prints a diagnostic.
+- `RulesLLM` (doc-pipeline and crew): model-free extractors with the same interface. They only copy printed values, so
+  the evidence check passes by construction and missing fields stay null. They double as the offline fallback.
+- Defects the e2e exposed and the fixes (each with a regression test): hospital-api keeps a document `processing`
+  until it has two passes, so the pipeline always sends two (cloud on masked text when allowed, else the local model
+  re-reading independently); flow F1 read the wrong confidence key (now linted against the pipeline's result keys);
+  prescriptions had no `medicines` field although completeness requires it (a test now checks every `must_have_field`
+  is producible); a surgical final bill tied with a procedure bill in classification (title keyword now outweighs body
+  keywords); person spans crossed column gaps; the crew did not take ICD codes from the discharge summary and the draft
+  validator did not flag a missing diagnosis code (V07 now errors at draft time instead of a 422 at sign-off); stale
+  cached user ids from the test database broke the first write of the dev API (test session clears them).
+- Ops lessons recorded: the dev database must be migrated (`make migrate`) before the API runs; n8n imports flows only
+  at boot; access tokens last about five minutes.
+
 ## 2026-10-07 — synthetic data and evaluation harness (hospital side only)
 
 - `data/synthetic` (package `synth`): seeded, byte-reproducible hospital-side corpus: 11 archetypes (S01-S03, S05-S08,
