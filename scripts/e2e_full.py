@@ -80,13 +80,15 @@ def q(sql: str, *args: Any) -> list[tuple[Any, ...]]:
 
 
 def pick_member() -> dict[str, Any]:
-    """An active, long-standing member with the fewest claims so far (waiting periods are not the story of this test)."""
+    """An active, long-standing member whose policy has the most cover left (waiting periods are not the story of this test)."""
     rows = q(
         "SELECT m.member_id, m.full_name, m.dob, m.gender, p.policy_number FROM core.policy_member m "
         "JOIN core.policy p ON p.id = m.policy_id WHERE p.start_date <= DATE '2026-01-15' AND p.end_date >= DATE '2026-12-31' AND p.status = 'active' "
         "AND coalesce(p.premium_paid_until, p.end_date) >= DATE '2026-12-31' AND cardinality(m.pre_existing) = 0 "
         "AND m.cover_start <= DATE '2026-01-15' AND m.relationship = 'self' "
-        "ORDER BY (SELECT count(*) FROM core.claim_case c WHERE c.member_id = m.id), m.member_id LIMIT 1"
+        # most remaining sum insured first (earlier runs consume it, and a claim near the limit correctly needs a human), then fewest claims
+        "ORDER BY p.sum_insured - coalesce((SELECT sum(u.utilised_amount) FROM core.policy_claim_utilisation u WHERE u.policy_id = p.id), 0) DESC, "
+        "(SELECT count(*) FROM core.claim_case c WHERE c.member_id = m.id), m.member_id LIMIT 1"
     )
     if not rows:
         raise SystemExit("no suitable member in the insurer seed; run `make seed-insurer`")
