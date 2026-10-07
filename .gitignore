@@ -16,3 +16,5 @@ data/eval/report.json
 .e2e-logs/
 .run.lock
 .venv-mineru/
+*.egg-info/
+Satyam-Pani-main/

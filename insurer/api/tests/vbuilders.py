@@ -9,7 +9,14 @@ from typing import Any
 
 from app.config.defaults import DOC_REQUIREMENTS, THRESHOLDS, policy_rules
 from app.config.schemas import DocRequirements, PolicyRulesPayload, Thresholds
-from app.verification.context import DocInfo, HospitalInfo, MemberInfo, PatientInfo, PolicyInfo, VCtx
+from app.verification.context import (
+    DocInfo,
+    HospitalInfo,
+    MemberInfo,
+    PatientInfo,
+    PolicyInfo,
+    VCtx,
+)
 
 REQUIRED = ["discharge_summary", "final_bill", "itemised_bill", "claim_form", "id_proof", "policy_card"]
 

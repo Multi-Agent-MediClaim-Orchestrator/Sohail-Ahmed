@@ -4,7 +4,13 @@ version = "0.0.0"
 requires-python = ">=3.12"
 
 [tool.uv.workspace]
-members = ["contract/python", "hospital/api", "hospital/crew", "services/doc-pipeline", "services/vision-service", "data/synthetic", "data/eval"]
+members = ["contract/python", "hospital/api", "hospital/crew", "services/doc-pipeline", "services/vision-service", "data/synthetic", "data/eval",
+    "insurer/api", "insurer/crew", "insurer/calc_engine", "services/tpa-sim", "services/rag-service"]
+
+[tool.uv.sources]
+claim-contract = { workspace = true }
+calc-engine = { workspace = true }
+insurer-api = { workspace = true }
 
 [tool.ruff]
 extend-exclude = ["docs"]
@@ -15,6 +21,7 @@ select = ["E", "F", "I", "B", "UP", "S", "ASYNC"]
 ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may run long
 [tool.ruff.lint.per-file-ignores]
 "infra/tests/**" = ["S101", "S603", "S607"]
+"infra/llm-gateway/tests/*" = ["S607"]
 "hospital/api/alembic/versions/*" = ["E501"]   # raw DDL copied from the spec
 "hospital/api/app/models/*" = ["E501", "UP042"]  # generated from the migrated schema
 "hospital/api/tests/*" = ["S101", "S603", "S607", "S106", "S608", "E501", "S311"]
@@ -23,7 +30,7 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "hospital/api/app/services/cases.py" = ["S608"]
 "scripts/e2e_hospital.py" = ["ASYNC110", "ASYNC212", "ASYNC210", "ASYNC251", "S603", "S607", "S101", "E501", "SIM115"]
 "data/**" = ["S101", "S603", "S607", "S311", "E501"]
-"services/**" = ["S311", "S101", "B008", "S105", "S106", "E501", "S603", "S607"]
+"services/**" = ["S608", "S311", "S101", "B008", "S105", "S106", "E501", "S603", "S607"]
 "hospital/crew/**" = ["S105", "S106", "E501"]
 "hospital/api/app/services/queries.py" = ["S608"]
 "hospital/api/app/services/previews.py" = ["S607"]
@@ -31,6 +38,12 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "hospital/api/app/services/documents.py" = ["S608", "B007"]  # SQL built only from constants and validated model field names
 "hospital/api/seed/*" = ["S311", "E501"]  # seeded fake data, not security-sensitive
 "**/tests/**" = ["S101"]
+"insurer/**" = ["S", "B008", "ASYNC109", "UP047", "UP042", "B904"]  # Dev B code, imported as received
+"eval/**" = ["S", "B008"]
+"security/**" = ["S"]
+"tests/**" = ["S", "B008"]
+"conftest.py" = ["S"]
+"scripts/*.py" = ["S310", "S603", "S607", "S101", "S105", "S106"]
 
 [tool.pytest.ini_options]
 markers = ["unit", "integration", "contract", "e2e", "slow", "llm", "n8n"]
