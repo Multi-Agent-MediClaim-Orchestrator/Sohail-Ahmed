@@ -134,3 +134,17 @@ async def test_n8n_client_sends_the_webhook_secret() -> None:
     )
     assert await c.trigger("query/intake", {"query_id": "q"}, "k1")
     assert seen["x-webhook-secret"] == "s3" and seen["x-idempotency-key"] == "k1"
+
+
+async def test_dashboard_summary(cclient: httpx.AsyncClient, tok: Any) -> None:
+    await ready_case(cclient, tok)
+    r = await cclient.get("/v1/dashboard/summary", headers=tok("officer1"))
+    assert r.status_code == 200
+    j = r.json()
+    assert j["cases_by_status"].get("docs_complete", 0) >= 1 and {
+        "queries_by_status",
+        "overdue_queries",
+        "overdue_requests",
+        "deadlines",
+    } <= set(j)
+    assert (await cclient.get("/v1/dashboard/summary", headers=tok("hadmin"))).status_code == 403

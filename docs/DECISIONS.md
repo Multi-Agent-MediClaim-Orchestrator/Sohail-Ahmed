@@ -1,6 +1,19 @@
 # Decisions log
 Format: decision, reason, date. Newest first. Spec fixes are proven by a test.
 
+## 2026-10-07 — UI (doc 10): lean Next.js app, deviations
+
+- **npm, not pnpm** (pnpm is not installed). No shadcn/NextAuth/Monaco/PDF.js/MSW/Playwright: plain Tailwind
+  components, a cookie-session proxy, a JSON textarea for config, and "Open" via the presigned download URL.
+- **Auth:** password grant against the dev client (`hospital-dev`) with server-side token storage, not NextAuth PKCE.
+  Fine for localhost; a real deployment should switch to the authorization-code flow.
+- **Audit explorer / hash-chain verify, saved views, ICD search, route-preview banner, PDF viewer with provenance
+  jump, version-history diff** are not built (no API endpoint or out of demo scope); the case Timeline tab shows status
+  history. Query reply editor shows grounding warnings and sources, not clickable citation chips.
+- **New API endpoint:** `GET /v1/dashboard/summary`. hospital-ui listens on 3100 (3000 is taken on this machine).
+- **Verification done:** typecheck, lint, vitest, production build, and login → proxy → API → SSE exercised through
+  the running UI server with curl. **Not done:** visual/browser check (the Chrome extension was not connected).
+
 ## 2026-10-07 — crew service (doc 09): plain agents over Ollama, no CrewAI package, no classify-extract job
 
 - The `crewai` package is not installed: it pulls a very large dependency tree for orchestration the jobs do not

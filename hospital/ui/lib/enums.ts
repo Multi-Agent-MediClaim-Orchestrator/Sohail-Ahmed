@@ -1,0 +1,2 @@
+export const DOC_TYPES = ["prescription","procedure_bill","discharge_summary","final_bill","itemised_bill","pharmacy_bill","lab_report","radiology_report","investigation_report","admission_note","preauth_approval","claim_form","id_proof","policy_card","cancelled_cheque","implant_sticker","payment_receipt","fir_mlc","other"] as const;
+export const CATEGORIES = ["room","icu","surgery","anaesthesia","medicine","consumable","implant","investigation","consultation","other"] as const;

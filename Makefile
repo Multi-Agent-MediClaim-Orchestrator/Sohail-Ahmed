@@ -1,5 +1,5 @@
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -27,6 +27,9 @@ n8n-test:
 
 run-api:
 	cd hospital/api && uv run uvicorn app.asgi:app --port 8100
+
+run-ui:
+	cd hospital/ui && npm install --no-audit --no-fund && HOSP_API_URL=http://localhost:8100 npx next dev -p 3100
 
 run-crew:
 	set -a && . ./.env && set +a && uv run uvicorn crew.main:app_factory --factory --app-dir hospital/crew --host 127.0.0.1 --port 8010
