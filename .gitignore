@@ -15,3 +15,4 @@ data/synthetic/out/
 data/eval/report.json
 .e2e-logs/
 .run.lock
+.venv-mineru/

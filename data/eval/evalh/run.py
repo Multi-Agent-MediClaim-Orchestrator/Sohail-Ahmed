@@ -12,6 +12,7 @@ import asyncio
 import json
 import re
 import statistics
+import time
 from collections import defaultdict
 from decimal import Decimal
 from pathlib import Path
@@ -54,7 +55,9 @@ async def eval_case(
             "quality_class": d["quality_class"],
             "stamp_expected": d["stamp_present"],
         }
+        t0 = time.monotonic()
         parsed = await parse_doc(raw, ds, llm)
+        row["seconds"] = round(time.monotonic() - t0, 2)
         row["doc_type_pred"] = parsed["doc_type"]
         row["parser"] = parsed["parser"]
         row["review_reasons"] = parsed["review_reasons"]
@@ -122,7 +125,7 @@ def score(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 async def main_async(a: argparse.Namespace) -> dict[str, Any]:
-    ds = DocSettings(parser="auto", allow_cloud=False)
+    ds = DocSettings(parser=a.parser, allow_cloud=False)
     vs = VisionSettings()
     llm = (
         Ollama(ds.llm_base_url, 240) if a.llm == "ollama" else Fake({})
@@ -142,6 +145,9 @@ def main() -> None:
     ap.add_argument("--out", default="data/eval/report.json")
     ap.add_argument("--llm", choices=["none", "ollama"], default="none")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument(
+        "--parser", choices=["auto", "textlayer", "tesseract", "mineru"], default="auto"
+    )
     a = ap.parse_args()
     rep = asyncio.run(main_async(a))
     m = rep["metrics"]

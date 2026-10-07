@@ -35,7 +35,7 @@ risky query categories; all data synthetic.
 
 ## Deviations worth knowing (details in DECISIONS.md)
 - CrewAI package not used (plain agents, same HTTP surface); no LLM `classify-extract`/`supervise` jobs.
-- doc-pipeline: MinerU is an optional backend that is NOT installed here (path untested); text layer + tesseract by
+- doc-pipeline: MinerU is an opt-in backend (`DOCPIPE_PARSER=mineru`, local `mineru-kit`; measured 7x slower than tesseract, no classification gain); text layer + tesseract by
   default; values are unmasked locally before reaching hospital-api; no `/v1/unmask`; jobs in memory.
 - vision-service: classical detector only (no trained model), tesseract OCR, local-model escalation.
 - n8n: thin flows over what the API already does; one process on the host network; in-app reminders only (no SMTP).

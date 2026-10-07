@@ -1,6 +1,6 @@
 """S1-S2: turn bytes into per-page text with a confidence. Text layer first (deterministic, 0.99); OCR for scans.
-Backends: pdftotext (text layer), tesseract (OCR), MinerU (layout-aware, optional: used when `mineru` is installed
-and DOCPIPE_PARSER=mineru|auto)."""
+Backends: pdftotext (text layer), tesseract (OCR), MinerU (layout-aware, optional: used only when
+DOCPIPE_PARSER=mineru; runs locally via mineru-kit)."""
 
 from __future__ import annotations
 
@@ -86,18 +86,32 @@ def _png(path: Path) -> bytes:
     return path.read_bytes()
 
 
+def _mineru_bin() -> str | None:
+    """Local-only: `mineru-kit parse` runs the models on this machine (never --remote / --remote-url)."""
+    import os
+
+    return os.environ.get("MINERU_BIN") or shutil.which("mineru-kit")
+
+
+def _table_to_text(md: str) -> str:
+    md = re.sub(r"</t[dh]>\s*<t[dh][^>]*>", "  ", md)
+    md = re.sub(r"</tr>", "\n", md)
+    return re.sub(r"</?(table|tr|td|th)[^>]*>", "", md)
+
+
 def _mineru(raw: bytes, suffix: str) -> Rendered | None:
-    exe = shutil.which("mineru")
+    exe = _mineru_bin()
     if not exe:
         return None
     with tempfile.TemporaryDirectory() as d:
         src = Path(d) / f"in{suffix}"
         src.write_bytes(raw)
-        r = _run([exe, "-p", str(src), "-o", d, "-b", "pipeline"], 900)
-        mds = sorted(Path(d).rglob("*.md"))
+        out = Path(d) / "out"
+        r = _run([exe, "parse", str(src), "-o", str(out), "--tier", "basic"], 900)
+        mds = sorted(out.rglob("*.md")) if out.exists() else []
         if r.returncode != 0 or not mds:
             return None
-        text = mds[0].read_text()
+        text = _table_to_text(mds[0].read_text())
     parts = [p for p in re.split(r"\n-{3,}\n|\f", text) if p.strip()] or [text]
     return Rendered(
         [Page(i + 1, p, 0.93, "mineru") for i, p in enumerate(parts)],
@@ -108,12 +122,11 @@ def _mineru(raw: bytes, suffix: str) -> Rendered | None:
 
 def render(raw: bytes, parser: str = "auto", max_pages: int = 30, min_chars: int = 200) -> Rendered:
     kind = sniff(raw)
-    if parser in ("auto", "mineru"):
+    if parser == "mineru":
         m = _mineru(raw, ".pdf" if kind == "pdf" else ".png")
         if m is not None:
             return m
-        if parser == "mineru":
-            raise ParseError("parser_unavailable", "MinerU is not installed")
+        raise ParseError("parser_unavailable", "MinerU is not installed or failed")
     with tempfile.TemporaryDirectory() as d:
         dd = Path(d)
         if kind == "pdf":

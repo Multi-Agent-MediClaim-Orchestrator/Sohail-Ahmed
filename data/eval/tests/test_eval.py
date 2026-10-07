@@ -36,7 +36,11 @@ def test_harness_runs_end_to_end_on_a_small_corpus(tmp_path):
     rep = asyncio.run(
         main_async(
             argparse.Namespace(
-                corpus=str(tmp_path / "c"), out=str(tmp_path / "r.json"), llm="none", limit=0
+                corpus=str(tmp_path / "c"),
+                out=str(tmp_path / "r.json"),
+                llm="none",
+                limit=0,
+                parser="auto",
             )
         )
     )

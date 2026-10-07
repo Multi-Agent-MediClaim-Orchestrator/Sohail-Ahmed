@@ -156,3 +156,11 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
 - Auto-approve when all gates pass and payable <= `T_auto` (start 50,000 INR); one human above; two above `T_four` (5,00,000). Failed gate/flag forces human review. Round-3 escalation stays; no 50%/80% SLA reminders.
 - Default required documents: prescription, pharmacy_bill, final_bill (+ procedure_bill when surgery, implant_sticker for implants); bills hospital-stamped; chronological check.
 - Localhost demo, not for sale. All data synthetic. Generate tests rather than fixed counts.
+
+## MinerU evaluated (local, CPU) — tesseract stays the default
+- MinerU 4 installed in `.venv-mineru` (gitignored); models via `mineru-kit models download --tier standard`. The adapter now
+  calls `mineru-kit parse FILE -o DIR --tier basic` (offline; `MINERU_BIN` overrides; never `--remote`), turns HTML tables
+  into spaced text, and is used only when `DOCPIPE_PARSER=mineru` (no longer picked by `auto`).
+- Synthetic corpus, 10 cases / 39 documents, rules-only extraction: classification 0.974 for both; line/total exactness
+  0.12 (MinerU) vs 0.00 (tesseract, rules-only cannot read OCR table rows); seconds per document 3.1 vs 0.46.
+  MinerU is about 7x slower on CPU with no classification gain, so it is opt-in. Real scans not tested (all data synthetic).
