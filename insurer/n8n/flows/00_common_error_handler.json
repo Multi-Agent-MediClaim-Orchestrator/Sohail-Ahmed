@@ -28,10 +28,12 @@
     },
     {
       "parameters": {
-        "functionCode": "const j = $input.first().json; delete j.context; delete j.body; delete j.payload; return [{ json: j }];"
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const j = $input.first().json; delete j.context; delete j.body; delete j.payload; return [{ json: j }];"
       },
       "name": "Strip payload",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
         480,
@@ -50,12 +52,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST alert').digest('hex') }}"
@@ -73,27 +73,13 @@
         720,
         0
       ],
-      "continueOnFail": false
-    },
-    {
-      "parameters": {
-        "operation": "publish",
-        "channel": "alert:n8n",
-        "messageData": "={{ JSON.stringify($json) }}"
-      },
-      "name": "Redis publish alert",
-      "type": "n8n-nodes-base.redis",
-      "typeVersion": 1,
-      "position": [
-        960,
-        0
-      ],
       "credentials": {
-        "redis": {
-          "id": "",
-          "name": "insurer-redis"
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
         }
-      }
+      },
+      "continueOnFail": false
     }
   ],
   "connections": {
@@ -113,17 +99,6 @@
         [
           {
             "node": "POST alert",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "POST alert": {
-      "main": [
-        [
-          {
-            "node": "Redis publish alert",
             "type": "main",
             "index": 0
           }

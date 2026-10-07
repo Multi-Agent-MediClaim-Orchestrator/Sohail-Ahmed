@@ -1,4 +1,15 @@
+00_common_error_handler
+01_get_token
+02_call_api
+03_call_crew
+04_emit_event
 10_verification_main
+11_step_document_fetch
+12_step_completeness
+13_step_identity
+14_step_authenticity
+15_step_coverage
+16_step_calculation
 20_decision_gate
 21_decision_final
 30_query_sent

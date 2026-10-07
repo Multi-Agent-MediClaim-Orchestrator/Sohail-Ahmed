@@ -38,12 +38,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST event').digest('hex') }}"
@@ -61,6 +59,12 @@
         480,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     }
   ],

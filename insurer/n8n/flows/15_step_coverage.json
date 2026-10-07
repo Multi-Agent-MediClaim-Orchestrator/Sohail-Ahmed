@@ -4,7 +4,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "Step coverage: start -> (context -> crew, if applicable) -> post result; follow the API's next_step. Failure policy 6.15: crew unavailable/invalid -> post failed result, continue.",
+        "content": "Step coverage: start -> (context -> crew, if agent-backed) -> post the result; the API computes the deterministic part. Failure policy 6.15: crew unavailable or invalid output -> post a failure body, the run continues.",
         "height": 120,
         "width": 420
       },
@@ -29,7 +29,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $json.run_id }}/steps/coverage/start",
+        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $('Execute Workflow Trigger').first().json.run_id }}/steps/coverage/start",
         "options": {
           "timeout": 30000,
           "retry": {
@@ -38,12 +38,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST step start').digest('hex') }}"
@@ -61,6 +59,12 @@
         480,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
@@ -75,11 +79,13 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
             {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
+              "name": "Accept",
+              "value": "application/json"
             }
           ]
         }
@@ -91,7 +97,27 @@
         720,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{json:{path:'/v1/coverage/analyze', body: {request_id: require('crypto').randomUUID(), case_id: $('Execute Workflow Trigger').first().json.case_id, context: $json, options: {}}}}];"
+      },
+      "name": "Build crew request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ]
     },
     {
       "parameters": {
@@ -104,7 +130,21 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        960,
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const o = $input.first().json;\nlet payload;\nif (o.ok) {\n  const out = o.output || {};\n  const notes = out.reconciliation_notes || (out.explanations || []).join('; ') || out.waiting_notes || null;\n  const ao = Object.assign({}, out); delete ao.token_usage;\n  payload = {step: 'coverage', agent: {name: 'coverage_agent', prompt_version: out.prompt_version || '', trace_id: out.trace_id || null}, agent_notes: notes, degraded: !!out.degraded, agent_output: ao};\n} else {\n  payload = {step: 'coverage', failure: o.reason === 'invalid_output' ? 'agent_invalid_output' : 'agent_unavailable', degraded: true};\n}\nreturn [{json: {payload}}];"
+      },
+      "name": "Build step result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
         0
       ]
     },
@@ -120,12 +160,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST step result').digest('hex') }}"
@@ -134,15 +172,21 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.ok ? {agent_output:$json.output} : {status:\"failed\", finding:\"step.agent_\" + $json.reason}) }}"
+        "jsonBody": "={{ JSON.stringify($json.payload) }}"
       },
       "name": "POST step result",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        1200,
+        1680,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     }
   ],
@@ -173,6 +217,17 @@
       "main": [
         [
           {
+            "node": "Build crew request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build crew request": {
+      "main": [
+        [
+          {
             "node": "Call crew",
             "type": "main",
             "index": 0
@@ -181,6 +236,17 @@
       ]
     },
     "Call crew": {
+      "main": [
+        [
+          {
+            "node": "Build step result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build step result": {
       "main": [
         [
           {

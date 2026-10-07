@@ -4,7 +4,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "Step document_fetch: start -> (context -> crew, if applicable) -> post result; follow the API's next_step. Failure policy 6.15: crew unavailable/invalid -> post failed result, continue.",
+        "content": "Step document_fetch: start -> (context -> crew, if agent-backed) -> post the result; the API computes the deterministic part. Failure policy 6.15: crew unavailable or invalid output -> post a failure body, the run continues.",
         "height": 120,
         "width": 420
       },
@@ -29,7 +29,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $json.run_id }}/steps/document_fetch/start",
+        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $('Execute Workflow Trigger').first().json.run_id }}/steps/document_fetch/start",
         "options": {
           "timeout": 30000,
           "retry": {
@@ -38,12 +38,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST step start').digest('hex') }}"
@@ -61,6 +59,12 @@
         480,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
@@ -75,11 +79,13 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
             {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
+              "name": "Accept",
+              "value": "application/json"
             }
           ]
         }
@@ -91,6 +97,12 @@
         720,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
@@ -98,13 +110,13 @@
         "conditions": {
           "boolean": [
             {
-              "value1": "={{ $json.all_fetched }}",
+              "value1": "={{ $json.terminal }}",
               "value2": true
             }
           ]
         }
       },
-      "name": "IF all fetched",
+      "name": "IF fetching finished",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
@@ -114,10 +126,10 @@
     },
     {
       "parameters": {
-        "amount": 10,
+        "amount": 3,
         "unit": "seconds"
       },
-      "name": "Wait 10s and re-poll (max 30)",
+      "name": "Wait 3s and poll again",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
       "position": [
@@ -128,7 +140,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $('Execute Workflow Trigger').first().json.run_id }}/steps/document_fetch/result",
+        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $('Execute Workflow Trigger').first().json.run_id }}/steps/document_fetch/evaluate",
         "options": {
           "timeout": 30000,
           "retry": {
@@ -137,29 +149,33 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
             {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
-            {
               "name": "Idempotency-Key",
-              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST step result').digest('hex') }}"
+              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST step evaluate').digest('hex') }}"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({status:$json.failed?.length ? \"failed\" : \"passed\", failed:$json.failed}) }}"
+        "jsonBody": "={}"
       },
-      "name": "POST step result",
+      "name": "POST step evaluate",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
         1440,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     }
   ],
@@ -190,25 +206,36 @@
       "main": [
         [
           {
-            "node": "IF all fetched",
+            "node": "IF fetching finished",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF all fetched": {
+    "IF fetching finished": {
       "main": [
         [
           {
-            "node": "POST step result",
+            "node": "POST step evaluate",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Wait 10s and re-poll (max 30)",
+            "node": "Wait 3s and poll again",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3s and poll again": {
+      "main": [
+        [
+          {
+            "node": "GET docs-status",
             "type": "main",
             "index": 0
           }

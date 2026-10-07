@@ -4,7 +4,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "Trigger verification-start. Create run (idempotent by case_id+client_token) -> steps -> finalize -> follow API next. No business rules; the API decides skip logic via next_step.",
+        "content": "Trigger verification-start. Create run (idempotent by case_id+client_token) -> steps in order -> finalize -> announce the outcome. No business rules: the API computes every step and result.",
         "height": 120,
         "width": 420
       },
@@ -36,10 +36,12 @@
     },
     {
       "parameters": {
-        "functionCode": "const crypto = require('crypto');\nconst item = $input.first();\nconst raw = item.binary?.data ? Buffer.from(item.binary.data.data, 'base64') : Buffer.from(JSON.stringify(item.json.body));\nconst sig = (item.json.headers['x-n8n-signature'] || '').replace('sha256=', '');\nconst exp = crypto.createHmac('sha256', $env.INS_N8N_WEBHOOK_SECRET).update(raw).digest('hex');\nconst ok = sig.length === exp.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(exp));\nreturn [{ json: { ok, body: item.json.body, event_id: item.json.headers['x-event-id'] } }];"
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const crypto = require('crypto');\nconst item = $input.first();\nconst raw = item.binary?.data ? Buffer.from(item.binary.data.data, 'base64') : Buffer.from(JSON.stringify(item.json.body));\nconst sig = (item.json.headers['x-n8n-signature'] || '').replace('sha256=', '');\nconst exp = crypto.createHmac('sha256', $env.INS_N8N_WEBHOOK_SECRET).update(raw).digest('hex');\nconst ok = sig.length === exp.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(exp));\nreturn [{ json: { ok, body: item.json.body, event_id: item.json.headers['x-event-id'] } }];"
       },
       "name": "Verify signature",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
         480,
@@ -109,12 +111,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST run create').digest('hex') }}"
@@ -132,6 +132,12 @@
         1440,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
@@ -165,25 +171,30 @@
     },
     {
       "parameters": {
-        "values": {
-          "string": [
-            {
-              "name": "run_id",
-              "value": "={{ $json.run_id }}"
-            },
-            {
-              "name": "case_id",
-              "value": "={{ $('Verify signature').first().json.body.case_id }}"
-            }
-          ]
-        }
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{json:{run_id: $json.run_id, case_id: $('Verify signature').first().json.body.case_id, steps_to_run: $json.steps_to_run}}];"
       },
-      "name": "Set run vars",
-      "type": "n8n-nodes-base.set",
+      "name": "Run vars",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         2160,
         200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{json:{run_id: $('Run vars').first().json.run_id, case_id: $('Run vars').first().json.case_id}}];"
+      },
+      "name": "Input document_fetch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        0
       ]
     },
     {
@@ -197,7 +208,21 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        2400,
+        2640,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{json:{run_id: $('Run vars').first().json.run_id, case_id: $('Run vars').first().json.case_id}}];"
+      },
+      "name": "Input completeness",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
         0
       ]
     },
@@ -212,7 +237,21 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        2640,
+        3120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{json:{run_id: $('Run vars').first().json.run_id, case_id: $('Run vars').first().json.case_id}}];"
+      },
+      "name": "Input identity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3360,
         0
       ]
     },
@@ -227,7 +266,21 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        2880,
+        3600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{json:{run_id: $('Run vars').first().json.run_id, case_id: $('Run vars').first().json.case_id}}];"
+      },
+      "name": "Input authenticity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
         0
       ]
     },
@@ -242,7 +295,21 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        3120,
+        4080,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{json:{run_id: $('Run vars').first().json.run_id, case_id: $('Run vars').first().json.case_id}}];"
+      },
+      "name": "Input coverage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4320,
         0
       ]
     },
@@ -257,7 +324,21 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        3360,
+        4560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{json:{run_id: $('Run vars').first().json.run_id, case_id: $('Run vars').first().json.case_id}}];"
+      },
+      "name": "Input calculation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4800,
         0
       ]
     },
@@ -272,14 +353,14 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        3600,
+        5040,
         0
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $json.run_id }}/finalize",
+        "url": "={{ $env.INS_API_URL }}/internal/runs/{{ $('Run vars').first().json.run_id }}/finalize",
         "options": {
           "timeout": 30000,
           "retry": {
@@ -288,12 +369,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST run finalize').digest('hex') }}"
@@ -308,46 +387,33 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        3840,
+        5280,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
       "parameters": {
-        "dataPropertyName": "next",
-        "rules": {
-          "rules": [
+        "conditions": {
+          "string": [
             {
-              "value2": "needs_info"
-            },
-            {
+              "value1": "={{ $json.outcome }}",
               "value2": "ready_for_decision"
-            },
-            {
-              "value2": "manual_review"
-            },
-            {
-              "value2": "failed"
             }
           ]
         }
       },
-      "name": "Switch on next",
-      "type": "n8n-nodes-base.switch",
+      "name": "IF ready for decision",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        4080,
-        0
-      ]
-    },
-    {
-      "parameters": {},
-      "name": "Query draft is created by the API (reviewer sends)",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        4320,
+        5520,
         0
       ]
     },
@@ -363,12 +429,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST event decision.ready').digest('hex') }}"
@@ -377,90 +441,32 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({type:\"decision.ready\", case_id:$json.case_id}) }}"
+        "jsonBody": "={{ JSON.stringify({type:\"decision.ready\", case_id:$('Run vars').first().json.case_id}) }}"
       },
       "name": "POST event decision.ready",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        4560,
+        5760,
+        0
+      ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
+      "continueOnFail": false
+    },
+    {
+      "parameters": {},
+      "name": "Query draft or manual review is handled by the API",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        6000,
         200
-      ],
-      "continueOnFail": false
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.INS_API_URL }}/internal/events",
-        "options": {
-          "timeout": 30000,
-          "retry": {
-            "maxTries": 3,
-            "waitBetweenTries": 2000
-          }
-        },
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
-            {
-              "name": "Idempotency-Key",
-              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST event case.manual_review').digest('hex') }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({type:\"case.manual_review\", case_id:$json.case_id}) }}"
-      },
-      "name": "POST event case.manual_review",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        4800,
-        400
-      ],
-      "continueOnFail": false
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.INS_API_URL }}/internal/alerts",
-        "options": {
-          "timeout": 30000,
-          "retry": {
-            "maxTries": 3,
-            "waitBetweenTries": 2000
-          }
-        },
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
-            {
-              "name": "Idempotency-Key",
-              "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST alert failed run').digest('hex') }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({severity:\"high\", source:\"n8n\", message:\"run failed\", case_id:$json.case_id}) }}"
-      },
-      "name": "POST alert failed run",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        5040,
-        600
-      ],
-      "continueOnFail": false
+      ]
     }
   ],
   "connections": {
@@ -537,14 +543,25 @@
         ],
         [
           {
-            "node": "Set run vars",
+            "node": "Run vars",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Set run vars": {
+    "Run vars": {
+      "main": [
+        [
+          {
+            "node": "Input document_fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input document_fetch": {
       "main": [
         [
           {
@@ -559,6 +576,17 @@
       "main": [
         [
           {
+            "node": "Input completeness",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input completeness": {
+      "main": [
+        [
+          {
             "node": "Step completeness",
             "type": "main",
             "index": 0
@@ -567,6 +595,17 @@
       ]
     },
     "Step completeness": {
+      "main": [
+        [
+          {
+            "node": "Input identity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input identity": {
       "main": [
         [
           {
@@ -581,6 +620,17 @@
       "main": [
         [
           {
+            "node": "Input authenticity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input authenticity": {
+      "main": [
+        [
+          {
             "node": "Step authenticity",
             "type": "main",
             "index": 0
@@ -592,6 +642,17 @@
       "main": [
         [
           {
+            "node": "Input coverage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input coverage": {
+      "main": [
+        [
+          {
             "node": "Step coverage",
             "type": "main",
             "index": 0
@@ -600,6 +661,17 @@
       ]
     },
     "Step coverage": {
+      "main": [
+        [
+          {
+            "node": "Input calculation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input calculation": {
       "main": [
         [
           {
@@ -625,22 +697,15 @@
       "main": [
         [
           {
-            "node": "Switch on next",
+            "node": "IF ready for decision",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Switch on next": {
+    "IF ready for decision": {
       "main": [
-        [
-          {
-            "node": "Query draft is created by the API (reviewer sends)",
-            "type": "main",
-            "index": 0
-          }
-        ],
         [
           {
             "node": "POST event decision.ready",
@@ -650,14 +715,7 @@
         ],
         [
           {
-            "node": "POST event case.manual_review",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "POST alert failed run",
+            "node": "Query draft or manual review is handled by the API",
             "type": "main",
             "index": 0
           }

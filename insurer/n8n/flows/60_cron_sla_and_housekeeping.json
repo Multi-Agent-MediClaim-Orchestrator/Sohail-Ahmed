@@ -18,19 +18,18 @@
     },
     {
       "parameters": {
-        "triggerTimes": {
-          "item": [
+        "rule": {
+          "interval": [
             {
-              "mode": "everyX",
-              "value": 5,
-              "unit": "minutes"
+              "field": "minutes",
+              "minutesInterval": 5
             }
           ]
         }
       },
-      "name": "Cron every 5 min",
-      "type": "n8n-nodes-base.cron",
-      "typeVersion": 1,
+      "name": "Every 5 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
       "position": [
         240,
         0
@@ -48,11 +47,13 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
             {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
+              "name": "Accept",
+              "value": "application/json"
             }
           ]
         }
@@ -64,6 +65,12 @@
         480,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
@@ -78,12 +85,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST outbox kick').digest('hex') }}"
@@ -101,23 +106,30 @@
         720,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
       "parameters": {
-        "triggerTimes": {
-          "item": [
+        "rule": {
+          "interval": [
             {
-              "mode": "everyDay",
-              "hour": 2,
-              "minute": 0
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 2,
+              "triggerAtMinute": 0
             }
           ]
         }
       },
-      "name": "Cron nightly 02:00",
-      "type": "n8n-nodes-base.cron",
-      "typeVersion": 1,
+      "name": "Nightly 02:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
       "position": [
         960,
         0
@@ -135,12 +147,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST audit verify-all').digest('hex') }}"
@@ -158,6 +168,12 @@
         1200,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
@@ -172,12 +188,10 @@
           }
         },
         "sendHeaders": true,
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $json.token }}"
-            },
             {
               "name": "Idempotency-Key",
               "value": "={{ $crypto.createHash('sha1').update($execution.id + ':POST idempotency purge').digest('hex') }}"
@@ -195,11 +209,17 @@
         1440,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     }
   ],
   "connections": {
-    "Cron every 5 min": {
+    "Every 5 min": {
       "main": [
         [
           {
@@ -221,7 +241,7 @@
         ]
       ]
     },
-    "Cron nightly 02:00": {
+    "Nightly 02:00": {
       "main": [
         [
           {

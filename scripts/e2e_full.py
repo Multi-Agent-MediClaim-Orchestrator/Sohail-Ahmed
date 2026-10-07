@@ -28,6 +28,8 @@ ROOT, E, LOGS = H.ROOT, H.E, H.LOGS
 INS = "http://localhost:8600"
 TPA = "http://localhost:8500"
 SCENARIO = os.environ.get("E2E_SCENARIO", "auto")
+CREW = os.environ.get("E2E_CREW", "off")  # off: no insurer crew (rules only); ollama: real agents on the local model
+ORCH = os.environ.get("E2E_ORCH", "inline")  # inline: pipeline runs inside insurer-api; n8n: the insurer n8n flows sequence it
 
 
 def ins_env() -> dict[str, str]:
@@ -44,8 +46,15 @@ def ins_env() -> dict[str, str]:
         "INS_ALLOWED_DOC_HOSTS": f"localhost:{E.get('SHARED_MINIO_PORT', '9000')}",
         "INS_TPA_SIM_URL": TPA,
         "INS_SETTLEMENT_MODE": "sim",
-        "INS_ORCHESTRATOR": "inline",
-        "INS_CREW_URL": "",
+        "INS_ORCHESTRATOR": ORCH,
+        "INS_N8N_URL": f"http://localhost:{E.get('INS_N8N_PORT', '5689')}",
+        "INS_N8N_WEBHOOK_SECRET": E["INS_N8N_WEBHOOK_SECRET"],
+        "INS_KEYCLOAK_JWKS_URL": "http://localhost:8080/realms/insurer/protocol/openid-connect/certs",
+        "INS_KEYCLOAK_ISSUER": "http://localhost:8080/realms/insurer",
+        "INS_KEYCLOAK_AUDIENCE": "insurer-api",
+        "INS_ALLOW_DEV_TOKENS": "true",  # the script signs its own reviewer tokens; n8n and the UI use real Keycloak tokens
+        "INS_CREW_URL": "http://localhost:8610" if CREW == "ollama" else "",
+        "INS_N8N_SERVICE_TOKEN": E["INS_CREW_SERVICE_TOKEN"],
         "INS_CALC_ENGINE_URL": "inprocess",
     }
 
@@ -107,6 +116,7 @@ def main() -> int:
     for need, url in (
         ("n8n", H.N8N + "/healthz"),
         ("keycloak", "http://localhost:8080/realms/hospital"),
+        *([("insurer n8n (make up-insurer-n8n)", f"http://localhost:{E.get('INS_N8N_PORT', '5689')}/healthz")] if ORCH == "n8n" else []),
     ):
         try:
             httpx.get(url, timeout=3).raise_for_status()
@@ -147,6 +157,25 @@ def main() -> int:
             ins_env(),
             INS + "/v1/ready",
         )
+        if CREW == "ollama":  # real agents on the local model; Ollama's OpenAI-compatible endpoint stands in for the gateway
+            model = E.get("INS_CREW_MODEL", "gemma4:latest")
+            stack.start(
+                "insurer-crew",
+                ["uv", "run", "uvicorn", "insurer_crew.main:app", "--port", "8610", "--log-level", "warning"],
+                ROOT / "insurer/crew",
+                8610,
+                {
+                    "INS_LLM_GATEWAY_URL": "http://localhost:11434",
+                    "INS_LLM_VIRTUAL_KEY": "ollama",
+                    "INS_ALIAS_SMART": model,
+                    "INS_ALIAS_FAST": model,
+                    "INS_ALIAS_FALLBACK": model,
+                    "INS_LLM_REASONING_EFFORT": "none",
+                    "INS_CREW_SERVICE_TOKENS": E["INS_CREW_SERVICE_TOKEN"],
+                    "INS_CREW_REQUEST_TIMEOUT": "240",
+                },
+                "http://localhost:8610/v1/health",
+            )
         stack.start(
             "tpa-sim",
             ["uv", "run", "uvicorn", "tpa_sim.main:app", "--port", "8500", "--log-level", "warning"],

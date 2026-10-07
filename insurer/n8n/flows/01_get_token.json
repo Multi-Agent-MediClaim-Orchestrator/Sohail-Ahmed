@@ -28,10 +28,12 @@
     },
     {
       "parameters": {
-        "functionCode": "const sd = $getWorkflowStaticData('global'); const ok = sd.token && sd.exp > Date.now(); return [{json:{ok, token: sd.token}}];"
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sd = $getWorkflowStaticData('global'); const ok = sd.token && sd.exp > Date.now(); return [{json:{ok, token: sd.token}}];"
       },
       "name": "Check cache",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
         480,
@@ -68,11 +70,17 @@
             {
               "name": "grant_type",
               "value": "client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $env.INS_N8N_CLIENT_ID }}"
+            },
+            {
+              "name": "client_secret",
+              "value": "={{ $env.INS_N8N_CLIENT_SECRET }}"
             }
           ]
         },
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "oAuth2Api",
         "options": {}
       },
       "name": "POST token",
@@ -82,20 +90,16 @@
         960,
         200
       ],
-      "credentials": {
-        "oAuth2Api": {
-          "id": "",
-          "name": "insurer-keycloak-client"
-        }
-      },
       "continueOnFail": false
     },
     {
       "parameters": {
-        "functionCode": "const sd = $getWorkflowStaticData('global'); sd.token = $json.access_token; sd.exp = Date.now() + ($json.expires_in - 60) * 1000; return [{json:{token: sd.token}}];"
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sd = $getWorkflowStaticData('global'); sd.token = $json.access_token; sd.exp = Date.now() + ($json.expires_in - 60) * 1000; return [{json:{token: sd.token}}];"
       },
       "name": "Store token",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
         1200,

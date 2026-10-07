@@ -59,14 +59,16 @@
         480,
         0
       ],
-      "continueOnFail": false
+      "continueOnFail": true
     },
     {
       "parameters": {
-        "functionCode": "const r = $input.first().json; const s = r.statusCode; if (s === 200) return [{json:{ok:true, output:r.body}}]; if (s === 429) return [{json:{ok:false, reason:'busy', retry_after:Math.min(60, Number(r.headers['retry-after']||5))}}]; if (s === 422) return [{json:{ok:false, reason:'invalid_output'}}]; return [{json:{ok:false, reason:'unavailable'}}];"
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const r = $input.first().json; const s = r.statusCode; if (s === 200) return [{json:{ok:true, output:r.body}}]; if (s === 429) return [{json:{ok:false, reason:'busy', retry_after:Math.min(60, Number(r.headers['retry-after']||5))}}]; if (s === 422) return [{json:{ok:false, reason:'invalid_output'}}]; return [{json:{ok:false, reason:'unavailable'}}];"
       },
       "name": "Classify crew result",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
         720,

@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     keycloak_jwks_url: str = ""
     dev_jwt_secret: str = "dev-insurer-api-jwt-secret-0000000000000000"  # HS256 tokens when no JWKS configured (dev/test only)
     service_token_audience: str = "insurer-api"
+    allow_dev_tokens: bool = False  # accept HS256 dev tokens even when Keycloak is configured (local demos and the e2e script only)
 
     # --- decision gate ---
     segregation_of_duties: bool = True

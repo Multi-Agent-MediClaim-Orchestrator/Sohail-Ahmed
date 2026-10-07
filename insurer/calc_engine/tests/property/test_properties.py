@@ -102,7 +102,8 @@ def test_p9_excluding_more_lines_never_raises_payable(d, data):
     d2["rules"]["exclusions"]["tags"] = sorted(set(d2["rules"]["exclusions"]["tags"]) | {"cosmetic"})
     d["rules"]["exclusions"]["tags"] = d2["rules"]["exclusions"]["tags"]
     base = res(d)
-    assert res(d2).payable_total <= base.payable_total + Decimal("0.01") * (2 * len(d["lines"]) + 5)
+    # each line can gain or lose a paisa in each rounding stage (sub-limit share, line cap, deductible, co-pay)
+    assert res(d2).payable_total <= base.payable_total + Decimal("0.01") * (4 * len(d["lines"]) + 5)
 
 
 @S

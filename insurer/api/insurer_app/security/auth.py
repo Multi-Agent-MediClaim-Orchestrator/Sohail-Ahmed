@@ -44,7 +44,7 @@ _jwks: jwt.PyJWKClient | None = None
 def _decode(token: str, s: Settings) -> dict[str, Any]:
     global _jwks
     try:
-        if s.keycloak_jwks_url:
+        if s.keycloak_jwks_url and not (s.allow_dev_tokens and jwt.get_unverified_header(token).get("alg") == "HS256"):
             if _jwks is None:
                 _jwks = jwt.PyJWKClient(s.keycloak_jwks_url)
             key = _jwks.get_signing_key_from_jwt(token).key
@@ -62,9 +62,11 @@ def principal_from_token(token: str, s: Settings | None = None) -> Principal:
     sub = str(claims.get("sub") or claims.get("preferred_username") or "")
     if not sub:
         raise ProblemError("invalid_signature", "token has no subject", status=401)
-    svc = sub.startswith("svc-")
+    # service accounts: dev tokens use a `svc-...` subject; Keycloak client-credentials tokens carry a `svc-...` realm role
+    svc_names = [sub] if sub.startswith("svc-") else sorted(r for r in roles if r.startswith("svc-"))
+    svc = bool(svc_names)
     if svc:
-        roles.add("n8n-service" if "n8n" in sub else "service")
+        roles.add("n8n-service" if any("n8n" in n for n in svc_names) else "service")
     return Principal(sub=sub, roles=frozenset(roles), name=str(claims.get("name") or sub), service=svc, claims=claims)
 
 

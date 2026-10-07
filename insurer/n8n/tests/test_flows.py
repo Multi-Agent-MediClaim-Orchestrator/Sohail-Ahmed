@@ -89,9 +89,11 @@ def test_main_flow_follows_step_order_and_finalizes():
     steps = [n["name"] for n in f["nodes"] if n["name"].startswith("Step ")]
     assert steps == ["Step document_fetch", "Step completeness", "Step identity", "Step authenticity", "Step coverage", "Step calculation"]
     assert any(n["name"] == "POST run finalize" for n in f["nodes"])
-    cur = "Set run vars"
+    cur = "Run vars"
     for s in steps:
-        assert f["connections"][cur]["main"][0][0]["node"] == s
+        inp = "Input " + s.removeprefix("Step ")  # a code node hands {run_id, case_id} to each step
+        assert f["connections"][cur]["main"][0][0]["node"] == inp
+        assert f["connections"][inp]["main"][0][0]["node"] == s
         cur = s
     assert f["connections"][cur]["main"][0][0]["node"] == "POST run finalize"
 
@@ -128,12 +130,13 @@ def test_committed_flow_files_are_up_to_date():
         assert json.loads((bf.OUT / f"{name}.json").read_text(encoding="utf-8")) == f
 
 
-def test_webhook_nodes_carry_a_webhook_id_and_only_trigger_flows_are_activated():
-    """Both found by importing into real n8n 1.64.3: without webhookId the URL is /webhook/<wf>/<node>/<path>; sub-workflows and the error handler cannot be activated."""
+def test_webhook_nodes_carry_a_webhook_id_and_all_flows_are_published():
+    """Found by importing into real n8n: without webhookId the URL is /webhook/<wf>/<node>/<path>; sub-workflows cannot be activated.
+    n8n 2.x refuses to run an error workflow that is not published, so the error handler is published too."""
     for name, f in FLOWS.items():
         for n in f["nodes"]:
             if n["type"] == "n8n-nodes-base.webhook":
                 assert re.fullmatch(r"[0-9a-f-]{36}", n["webhookId"]), name
     active = (N8N / "active_flows.txt").read_text(encoding="utf-8").split()
-    assert active and all(any(n["type"] in ("n8n-nodes-base.webhook", "n8n-nodes-base.cron") for n in FLOWS[a]["nodes"]) for a in active)
-    assert "00_common_error_handler" not in active and all(FLOWS[n]["id"] == n for n in FLOWS)  # ids are stable so Execute Workflow references resolve
+    assert sorted(active) == sorted(FLOWS)  # every flow is published: n8n 2.x refuses to run an unpublished sub-workflow
+    assert all(FLOWS[n]["id"] == n for n in FLOWS)  # ids are stable so Execute Workflow references resolve

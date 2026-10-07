@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     crew_allow_dev_token: bool = True
     alias_smart: str = "reason-cloud"  # ins-smart -> gateway alias (04-04 §3; the gateway key for this service allows only these two)
     alias_fast: str = "reason-cloud"  # ins-fast: same alias, the gateway's router handles free-tier limits
+    llm_reasoning_effort: str = ""  # "none" for Ollama models that think by default (several times slower for no gain here)
     alias_fallback: str = "reason-local"  # served by the gateway when the cloud alias fails; surfaced as degraded=true
 
 
@@ -72,11 +73,14 @@ class LLM(Protocol):
 class GatewayLLM:
     """OpenAI-compatible calls to llm-gateway. This container holds only the gateway virtual key - never a provider key."""
 
-    def __init__(self, base_url: str, key: str, transport: httpx.AsyncBaseTransport | None = None) -> None:
+    def __init__(self, base_url: str, key: str, transport: httpx.AsyncBaseTransport | None = None, reasoning_effort: str = "") -> None:
+        self.reasoning_effort = reasoning_effort
         self.http = httpx.AsyncClient(base_url=base_url.rstrip("/"), headers={"Authorization": f"Bearer {key}"}, transport=transport)
 
     async def complete(self, *, alias: str, messages: list[dict[str, str]], schema: dict[str, Any] | None, metadata: dict[str, Any], max_tokens: int, timeout: float) -> LLMResult:  # noqa: ASYNC109
         body: dict[str, Any] = {"model": alias, "messages": messages, "temperature": 0, "max_tokens": max_tokens, "metadata": {"system": "insurer", **metadata}}
+        if self.reasoning_effort:
+            body["reasoning_effort"] = self.reasoning_effort
         if schema:
             body["response_format"] = {"type": "json_schema", "json_schema": {"name": metadata.get("agent", "out"), "schema": schema, "strict": False}}
         try:

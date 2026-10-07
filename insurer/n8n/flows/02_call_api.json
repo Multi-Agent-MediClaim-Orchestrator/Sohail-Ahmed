@@ -28,20 +28,10 @@
     },
     {
       "parameters": {
-        "workflowId": "01_get_token"
-      },
-      "name": "Get token",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1,
-      "position": [
-        480,
-        0
-      ]
-    },
-    {
-      "parameters": {
         "method": "={{ $('Execute Workflow Trigger').first().json.method }}",
         "url": "={{ $env.INS_API_URL + $('Execute Workflow Trigger').first().json.path }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "oAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($('Execute Workflow Trigger').first().json.body || {}) }}",
@@ -63,37 +53,34 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        720,
+        480,
         0
       ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "insurer-keycloak-client",
+          "name": "insurer-keycloak-client"
+        }
+      },
       "continueOnFail": false
     },
     {
       "parameters": {
-        "functionCode": "const r = $input.first().json; const s = r.statusCode; if (s >= 200 && s < 300) return [{json:{ok:true, status:s, body:r.body}}]; if (s === 409 && r.body?.code === 'run_in_progress') return [{json:{ok:true, already:true, status:s, body:r.body}}]; if (s >= 500) throw new Error('api_5xx_' + s); return [{json:{ok:false, hard:true, status:s, body:r.body}}];"
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const r = $input.first().json; const s = r.statusCode; if (s >= 200 && s < 300) return [{json:{ok:true, status:s, body:r.body}}]; if (s === 409 && r.body?.code === 'run_in_progress') return [{json:{ok:true, already:true, status:s, body:r.body}}]; if (s >= 500) throw new Error('api_5xx_' + s); return [{json:{ok:false, hard:true, status:s, body:r.body}}];"
       },
       "name": "Classify",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        960,
+        720,
         0
       ]
     }
   ],
   "connections": {
     "Execute Workflow Trigger": {
-      "main": [
-        [
-          {
-            "node": "Get token",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get token": {
       "main": [
         [
           {
