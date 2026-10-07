@@ -108,7 +108,7 @@ class Stub:
                     "state": "succeeded",
                     "result": {
                         "doc_type": "final_bill",
-                        "classify_confidence": 0.9,
+                        "doc_type_conf": 0.9,
                         "passes": [
                             {"pass_no": 1, "engine": "mineru", "typed_json": {}, "confidence": 0.9},
                             {"pass_no": 2, "engine": "gemma", "typed_json": {}, "confidence": 0.9},

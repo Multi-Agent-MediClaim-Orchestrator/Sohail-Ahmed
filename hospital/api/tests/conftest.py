@@ -78,7 +78,14 @@ def settings(migrated: str) -> Settings:
     import redis as sync_redis
 
     # high per-minute upload limit: tests share one real Redis counter; the limiter has its own test
-    s = Settings.from_env(db_url=app_url(migrated), upload_rate_per_min=100000)
+    # no background outbox worker anywhere in tests: it would race the manual run_once() calls on the shared database
+    s = Settings.from_env(
+        db_url=app_url(migrated),
+        upload_rate_per_min=100000,
+        outbox_enabled=False,
+        db_pool_size=3,  # several apps share one Postgres with max_connections=60
+        db_max_overflow=3,
+    )
     r = sync_redis.Redis.from_url(s.redis_url)  # cached user ids belong to a previous test database
     for k in r.scan_iter("cache:hosp:*"):
         r.delete(k)
@@ -268,6 +275,24 @@ async def rclient(rapp: Any) -> AsyncIterator[httpx.AsyncClient]:
         transport=httpx.ASGITransport(app=rapp), base_url="http://hospital"
     ) as c:
         yield c
+
+
+def _guard_outbox_workers() -> None:
+    """Every test app must start with the background outbox worker OFF. A live worker polls the shared test database
+    and steals rows that tests drive by hand with run_once(): that caused flaky attempts/status failures."""
+    import app.main as main_mod
+
+    original = main_mod.create_app
+
+    def guarded(settings: Settings | None = None, **kw: Any):  # type: ignore[no-untyped-def]
+        effective = settings or Settings.from_env()
+        assert not effective.outbox_enabled, "test apps must set outbox_enabled=False"  # noqa: S101
+        return original(settings, **kw)
+
+    main_mod.create_app = guarded  # type: ignore[assignment]
+
+
+_guard_outbox_workers()
 
 
 import logging  # noqa: E402

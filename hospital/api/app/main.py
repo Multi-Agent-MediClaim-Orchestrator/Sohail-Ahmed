@@ -50,8 +50,8 @@ def create_app(
         setup_logging(s.log_level)
         app.state.engine = create_async_engine(
             s.db_url,
-            pool_size=10,
-            max_overflow=5,
+            pool_size=s.db_pool_size,
+            max_overflow=s.db_max_overflow,
             pool_pre_ping=True,
             connect_args={"server_settings": {"timezone": "UTC"}},
         )

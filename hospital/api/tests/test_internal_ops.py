@@ -148,3 +148,11 @@ async def test_dashboard_summary(cclient: httpx.AsyncClient, tok: Any) -> None:
         "deadlines",
     } <= set(j)
     assert (await cclient.get("/v1/dashboard/summary", headers=tok("hadmin"))).status_code == 403
+
+
+async def test_hospital_registry_for_the_vision_service(
+    client: httpx.AsyncClient, tok: Any
+) -> None:
+    r = await client.get("/v1/internal/hospitals", headers=tok("svc:internal"))
+    assert r.status_code == 200 and r.json()["items"][0]["name"]
+    assert (await client.get("/v1/internal/hospitals", headers=tok("desk1"))).status_code == 403

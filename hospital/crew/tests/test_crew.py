@@ -128,6 +128,13 @@ def test_pii_guard_blocks_before_any_call():
     )
 
 
+def test_uuids_are_not_mistaken_for_identifiers():
+    u = "11111111-1111-4111-8111-987654321012"  # last segment: 12 digits starting 9
+    assert pii.scan(f"source_doc_id {u}") == []
+    assert pii.scan(f"source_doc_id {u} call 9876543210") == ["phone"]
+    assert pii.scan("number 987654321012 alone") != []
+
+
 def test_grounding_rules():
     ev = "Room rent 10000.00 for 4 days"
     assert (

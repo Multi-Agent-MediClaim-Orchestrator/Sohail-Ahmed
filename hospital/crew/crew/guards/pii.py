@@ -18,7 +18,15 @@ class PiiDetected(Exception):
         self.kinds = kinds
 
 
+UUID = re.compile(
+    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+)
+
+
 def scan(text: str) -> list[str]:
+    # Document and case ids are random hex: a run of 10-12 decimal digits inside one is not a phone or Aadhaar number
+    # (it blocked ~1 in 7 test runs). A real identifier next to a UUID is still found.
+    text = UUID.sub(" ", text)
     return [k for k, rx in PATTERNS.items() if rx.search(text)]
 
 

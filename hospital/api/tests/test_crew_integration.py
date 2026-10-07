@@ -62,7 +62,7 @@ async def test_claim_build_by_the_real_crew_passes_the_api_validators(
     assert r.status_code == 202
     sent = capp.state.crew.jobs[-1]
     env = await run_job(crew_app(FakeLLM(default={"items": []})), "claim-build", sent)
-    assert env["state"] == "succeeded", env
+    assert env["state"] == "succeeded", env["error"]
     assert await status_of(cclient, tok, case["id"]) == "ready_for_review"
     d = (await cclient.get(f"/v1/cases/{case['id']}/claim", headers=tok("officer1"))).json()
     assert d["has_errors"] is False
@@ -98,7 +98,7 @@ async def test_triage_then_grounded_draft_is_accepted_without_flags(
     row = (await cclient.get(f"/v1/queries/{qid}", headers=tok("officer1"))).json()
     assert row["triage_source"] == "crew" and row["triage"]["action"] == "clarify"
     env = await run_job(app, "query-draft", {"query_id": qid})
-    assert env["state"] == "succeeded", env
+    assert env["state"] == "succeeded", env["error"]
     assert env["result"]["unsupported"] == []
     resp = (await cclient.get(f"/v1/queries/{qid}", headers=tok("officer1"))).json()["responses"][0]
     assert (

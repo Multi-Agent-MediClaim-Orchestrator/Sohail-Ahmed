@@ -659,9 +659,17 @@ async def test_transient_failures_retry_with_backoff_then_succeed(
             row[0] == "pending" and row[1] == expected and row[2] is True
         )  # backoff scheduled in the future
         assert "503" in row[3]
-    await deliver(capp, settings, cid)
+    res = await deliver(capp, settings, cid)
     row = sql(settings, "SELECT status, attempts FROM outbox WHERE case_id=:c", c=cid)[0]
-    assert row == ("sent", 4) and await status_of(cclient, tok, cid) == "acknowledged"
+    assert row == ("sent", 4), (
+        res,
+        sql(
+            settings,
+            "SELECT status, attempts, last_error, next_attempt_at, now() FROM outbox WHERE case_id=:c",
+            c=cid,
+        ),
+    )
+    assert await status_of(cclient, tok, cid) == "acknowledged"
     assert len(sim.claims) >= 1
 
 
@@ -861,7 +869,12 @@ async def test_withdraw_flows_through_outbox(
 async def acked(cclient: httpx.AsyncClient, tok: Any, capp: Any, settings: Any) -> dict[str, Any]:
     case = await submitted(cclient, tok, capp)
     await deliver(capp, settings, case["id"])
-    assert await status_of(cclient, tok, case["id"]) == "acknowledged"
+    got = await status_of(cclient, tok, case["id"])
+    assert got == "acknowledged", sql(
+        settings,
+        "SELECT kind, status, attempts, last_error, response_status FROM outbox WHERE case_id=:c",
+        c=case["id"],
+    )
     return case
 
 

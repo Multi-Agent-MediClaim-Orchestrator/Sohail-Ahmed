@@ -328,3 +328,16 @@ async def build_context(
         ],
         "previous_draft": prev.payload if prev else None,
     }
+
+
+@router.get("/hospitals", operation_id="internalHospitals")
+async def hospitals(_: Principal = Svc, uow: UoW = Depends(get_uow)) -> dict[str, Any]:
+    """The hospital registry the vision service matches stamp text against."""
+    rows = (
+        await uow.session.execute(text("SELECT code, name, rohini_id FROM hospital ORDER BY code"))
+    ).all()
+    return {
+        "items": [
+            {"code": r.code, "name": r.name, "rohini_id": r.rohini_id, "aliases": []} for r in rows
+        ]
+    }

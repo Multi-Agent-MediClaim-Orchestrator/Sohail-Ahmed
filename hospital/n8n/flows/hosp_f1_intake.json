@@ -860,7 +860,7 @@
       "id": "d33882f8-54ae-5a94-baa1-a97c65ae00b3",
       "name": "19 Split passes",
       "parameters": {
-        "jsCode": "const r = $json.result || {};\nreturn (r.passes || []).map(p => ({json: {pass: p, doc_type: r.doc_type ?? null, confidence: r.classify_confidence ?? 0}}));",
+        "jsCode": "const r = $json.result || {};\nreturn (r.passes || []).map(p => ({json: {pass: p, doc_type: r.doc_type ?? null, confidence: r.doc_type_conf ?? 0}}));",
         "mode": "runOnceForAllItems"
       },
       "position": [

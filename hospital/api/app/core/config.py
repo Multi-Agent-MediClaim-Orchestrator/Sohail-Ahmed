@@ -41,6 +41,8 @@ class Settings(BaseModel):
     name_match_min: int = 90
     completeness_debounce_s: float = 5.0
     outbox_enabled: bool = True
+    db_pool_size: int = 10  # per process; Postgres max_connections is 60 in the dev compose
+    db_max_overflow: int = 5
     sse_heartbeat_s: float = 15.0
     sse_stream_maxlen: int = 10000
     sse_ticket_ttl_s: int = 30
@@ -83,6 +85,8 @@ class Settings(BaseModel):
             "hospital_to_insurer_secret": g("HOSP_TO_INS_HMAC_SECRET"),
             "insurer_to_hospital_secret": g("INS_TO_HOSP_HMAC_SECRET"),
             "hospital_key_id": g("HOSP_KEY_ID", "hosp-001"),
+            "db_pool_size": int(g("HOSP_DB_POOL_SIZE", "10")),
+            "db_max_overflow": int(g("HOSP_DB_MAX_OVERFLOW", "5")),
             "n8n_webhook_secret": g("N8N_WEBHOOK_SECRET", ""),
             "llm_base_url": g("HOSP_LLM_BASE_URL", "http://localhost:11434/v1"),
             "llm_model": g("HOSP_LLM_MODEL", "gemma4:31b-cloud"),

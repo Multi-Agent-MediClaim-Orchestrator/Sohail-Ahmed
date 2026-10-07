@@ -427,7 +427,7 @@ def f1() -> Flow:
     f.if_("18 Parse ok", "$json.state === 'succeeded'")
     f.code(
         "19 Split passes",
-        "const r = $json.result || {};\nreturn (r.passes || []).map(p => ({json: {pass: p, doc_type: r.doc_type ?? null, confidence: r.classify_confidence ?? 0}}));",
+        "const r = $json.result || {};\nreturn (r.passes || []).map(p => ({json: {pass: p, doc_type: r.doc_type ?? null, confidence: r.doc_type_conf ?? 0}}));",
     )
     f.http(
         "20 API parse pass",

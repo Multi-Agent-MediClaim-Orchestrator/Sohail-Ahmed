@@ -77,7 +77,9 @@ async def sapp(settings):
     from app.main import create_checked_app
     from app.services.n8n import RecordingN8n
 
-    a = create_checked_app(settings, n8n=RecordingN8n())
+    a = create_checked_app(
+        settings.model_copy(update={"outbox_enabled": False}), n8n=RecordingN8n()
+    )  # a live worker would steal other tests' outbox rows
     async with a.router.lifespan_context(a):
         yield a
 
