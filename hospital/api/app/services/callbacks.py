@@ -135,7 +135,7 @@ async def apply_if_valid(
         )
         current = "acknowledged"
     try:
-        assert_hospital(H(current), H(target))
+        assert_hospital(H(str(current)), H(target))
     except InvalidTransition:
         await audit.append(
             uow.session,

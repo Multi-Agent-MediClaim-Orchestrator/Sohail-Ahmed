@@ -66,8 +66,8 @@ async def eval_case(
         pred_lines = t.get("lines") or []
         if lab_lines:
             row["lines_expected"], row["lines_pred"] = len(lab_lines), len(pred_lines)
-            want = sorted(norm_amount(a) for _, a in lab_lines)
-            got = sorted(norm_amount(x["amount"]) for x in pred_lines)
+            want = sorted((norm_amount(a) for _, a in lab_lines), key=lambda v: (v is None, v or 0))
+            got = sorted((norm_amount(x["amount"]) for x in pred_lines), key=lambda v: (v is None, v or 0))
             row["line_amounts_match"] = want == got
         tl = next((x["value"] for x in labels if x["field"] == "total"), None)
         if tl is not None:

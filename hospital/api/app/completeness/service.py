@@ -9,7 +9,7 @@ import json
 import logging
 import uuid
 from datetime import UTC, date, datetime, time, timedelta
-from typing import Any
+from typing import Any, Literal
 
 from claim_contract.audit import canonical_json
 from sqlalchemy import text
@@ -100,6 +100,8 @@ async def build_context(
     ).all()
     by: dict[str, list[DocFacts]] = {}
     unclassified: list[str] = []
+    state: Literal["ok", "excluded", "pending_processing"]
+    reason: str | None
     for r in rows:
         if r.scan_status == "infected" or r.lifecycle == "quarantined":
             state, reason = "excluded", "infected"

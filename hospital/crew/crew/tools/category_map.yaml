@@ -2,8 +2,8 @@
 - {pattern: "room|bed charge|ward", category: room}
 - {pattern: "ot charge|operation theatre|surgeon|surgery fee", category: surgery}
 - {pattern: "anaesth|anesth", category: anaesthesia}
-- {pattern: "tablet|injection|inj\\.|syrup|iv fluid|medicine|pharmacy", category: medicine}
-- {pattern: "gloves|syringe|cannula|consumable|dressing", category: consumable}
+- {pattern: "tablet|injection|inj\\.|syrup|iv fluid|medicine|pharmacy|\\b(tab|inj|syp|cap)\\b|ointment|eye drops", category: medicine}
+- {pattern: "gloves|syringe|cannula|consumable|dressing|urine bag|catheter|bandage|gauze|swab|face mask", category: consumable}
 - {pattern: "stent|implant|mesh|screw|plate|lens", category: implant}
 - {pattern: "x-?ray|ct |mri|usg|ecg|blood test|cbc|lft|kft|lab", category: investigation}
 - {pattern: "consult|visit|round", category: consultation}

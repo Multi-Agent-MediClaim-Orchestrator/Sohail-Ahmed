@@ -150,6 +150,8 @@ class QdrantStore:
         return int(self._call("POST", f"/collections/{collection}/points/count", body)["result"]["count"])
 
     def _query(self, collection: str, query: Any, using: str, flt: Filter, limit: int) -> list[Hit]:
+        if limit <= 0:  # ablation variants switch a ranking off with k=0; Qdrant rejects a zero limit
+            return []
         body: dict[str, Any] = {"query": query, "using": using, "limit": limit, "with_payload": True}
         if f := to_qdrant_filter(flt):
             body["filter"] = f

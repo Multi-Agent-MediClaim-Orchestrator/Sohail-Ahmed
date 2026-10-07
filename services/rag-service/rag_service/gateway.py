@@ -32,8 +32,9 @@ class GatewayEmbedder:
                     if r.status_code >= 500 or r.status_code == 429:
                         raise GatewayUnavailable(f"gateway {r.status_code}")
                     r.raise_for_status()
-                    self.model_id = r.headers.get("x-embed-model", self.model_id)
-                    out += [d["embedding"] for d in sorted(r.json()["data"], key=lambda d: d["index"])]
+                    body_json = r.json()
+                    self.model_id = r.headers.get("x-embed-model") or body_json.get("model") or self.model_id  # gateway header, else the OpenAI-style field
+                    out += [d["embedding"] for d in sorted(body_json["data"], key=lambda d: d["index"])]
                     break
                 except (httpx.HTTPError, GatewayUnavailable) as e:
                     last = e

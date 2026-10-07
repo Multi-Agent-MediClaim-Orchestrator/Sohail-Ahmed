@@ -121,7 +121,7 @@ def _signatures(rgb: np.ndarray, page: int) -> list[Stamp]:
         np.uint8
     ) * 255
     ink[: int(H * 0.6)] = 0
-    ink = cv2.morphologyEx(ink, cv2.MORPH_CLOSE, np.ones((9, 25), np.uint8))
+    ink = cv2.morphologyEx(ink, cv2.MORPH_CLOSE, np.ones((9, 25), np.uint8)).astype(np.uint8)
     cnts, _ = cv2.findContours(ink, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     out = []
     for c in cnts:

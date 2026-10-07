@@ -117,7 +117,7 @@ async def next_version(uow: UoW, case_id: Any) -> int:
                 text("SELECT COALESCE(max(version), 0) + 1 FROM claim_draft WHERE case_id=:c"),
                 {"c": case_id},
             )
-        ).scalar()
+        ).scalar_one()
     )
 
 
@@ -155,7 +155,7 @@ async def persist_draft(
                 "es": json.dumps(edit_summary) if edit_summary else None,
             },
         )
-    ).scalar()
+    ).scalar_one()  # RETURNING id
     for ln in payload.bill_lines:
         await s.execute(
             text(

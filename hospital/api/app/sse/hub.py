@@ -14,7 +14,7 @@ from typing import Any
 STREAM = "sse:hospital:stream"
 CHANNEL = "sse:hospital:events"
 TICKET = "sse:hospital:ticket:"
-RESET = {"type": "reset", "case_id": None, "data": {}}
+RESET: dict[str, Any] = {"type": "reset", "case_id": None, "data": {}}
 
 
 def _now() -> str:

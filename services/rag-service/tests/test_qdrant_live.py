@@ -46,11 +46,11 @@ def test_reingest_is_idempotent_on_live_qdrant(live):
 def test_temporal_filter_and_code_lookup_match_memory_store_behaviour(live):
     q, _, emb = live
     for as_of, room in (("2025-09-01", "1.5"), ("2026-03-01", "1.25"), ("2026-09-01", "1.0")):
-        res = search(q, emb, "ins_policy_wording", "room rent limit per day", {"policy_product": "HealthPlus-A", "as_of": as_of}, SearchParams(rerank=False))
+        res = search(q, emb, "ins_policy_wording", "room rent limit per day", {"policy_product": "HEALTH-BASIC", "as_of": as_of}, SearchParams(rerank=False))
         assert res.results and any(f"limited to {room}%" in r["text"] for r in res.results[:3]), (as_of, [r["text"][:60] for r in res.results])
     g = search(q, emb, "ins_medical_guidelines", "expected length of stay for I21.9", {}, SearchParams(rerank=False))
     assert any("I21.9" in r["text"] for r in g.results[:3])
-    miss = search(q, emb, "ins_policy_wording", "room rent", {"policy_product": "FamilyShield", "as_of": "2025-01-01"}, SearchParams())
+    miss = search(q, emb, "ins_policy_wording", "room rent", {"policy_product": "SENIOR-SHIELD", "as_of": "2025-01-01"}, SearchParams())
     assert miss.results == [] and miss.diagnostics["temporal_miss"] is True
 
 
@@ -73,3 +73,10 @@ def test_delete_where_and_reindex_swap_alias_on_live_qdrant(live):
     with pytest.raises(QdrantError):  # unfiltered delete is refused client-side
         q.delete_where("ins_medical_guidelines", Filter())
 _ = LexicalReranker
+
+
+def test_zero_limit_returns_nothing_instead_of_a_422(live):
+    """Ablation variants (dense-only / sparse-only) switch one ranking off with k=0; the in-memory store allows it, Qdrant rejects it."""
+    q, _, emb = live
+    qv = emb.embed(["search_query: room rent"], kind="query")[0]
+    assert q.query_dense("ins_policy_wording", qv, Filter(), 0) == []

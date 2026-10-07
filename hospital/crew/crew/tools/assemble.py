@@ -100,7 +100,7 @@ def assemble(ctx: dict[str, Any]) -> dict[str, Any]:
     ):  # case facts win; otherwise take the codes printed on the discharge summary
         adm["diagnosis_codes"] = icd_from_discharge(docs)
     pat = case["patient"]
-    payload = {
+    payload: dict[str, Any] = {
         "patient": {
             k: pat[k] for k in ("full_name", "dob", "gender", "member_id", "policy_number")
         },
@@ -140,11 +140,11 @@ def assemble(ctx: dict[str, Any]) -> dict[str, Any]:
         },
         "documents": [d["id"] for d in docs],
     }
-    for ln in payload["bill_lines"]:
-        if ln["code"] is None:
-            del ln["code"]
-        if ln["service_date"] is None:
-            del ln["service_date"]
+    for bl in payload["bill_lines"]:
+        if bl["code"] is None:
+            del bl["code"]
+        if bl["service_date"] is None:
+            del bl["service_date"]
     prov = {
         f"bill_lines[{i}].amount": {"doc_id": ln["doc"]["id"], "page": 1, "confidence": 0.9}
         for i, ln in enumerate(lines)

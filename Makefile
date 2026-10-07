@@ -1,6 +1,6 @@
 LOCK = scripts/run_exclusive.sh
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: check-crew up-insurer-n8n n8n-insurer-test db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: up-rag seed-kb run-rag rag-tokens ins-ui-e2e check-crew up-insurer-n8n n8n-insurer-test db-reset-insurer e2e-full up-insurer migrate-insurer seed-insurer run-insurer-api run-calc run-insurer-crew run-tpa-sim test-insurer train-stamps eval-stamps ui-e2e e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -176,3 +176,24 @@ up-insurer-n8n: init-secrets
 
 check-crew: ## known-answer check of the insurer crew on the real local model (needs Ollama)
 	uv run python scripts/check_insurer_crew.py
+
+ins-ui-e2e: ## insurer UI browser tests against the real stack (system Chrome)
+	$(LOCK) scripts/ins_ui_e2e.sh
+
+# ---- RAG (Qdrant + local Ollama; no gateway: Ollama's OpenAI-compatible endpoint serves embeddings and answers) ----
+RAG_ENV = set -a && . ./.env && set +a && \
+	export STORE=qdrant EMBEDDER=gateway QDRANT_URL=http://localhost:6333 QDRANT_API_KEY=$$QDRANT_API_KEY \
+	LLM_GATEWAY_URL=http://localhost:11434 LLM_GATEWAY_KEY=ollama EMBED_ALIAS=$${RAG_EMBED_MODEL:-nomic-embed-text:latest} \
+	CHAT_ALIAS=$${RAG_CHAT_MODEL:-gemma4:latest} DOCPIPE_URL= DB_URL=.e2e-logs/rag.db JWT_SECRET=$$RAG_JWT_SECRET RAG_PORT=$${RAG_PORT:-8400}
+
+up-rag: init-secrets
+	docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/ai.yml --profile rag up -d --wait qdrant
+
+seed-kb: ## build the synthetic knowledge base in Qdrant with real embeddings
+	$(RAG_ENV) && uv run python services/rag-service/scripts/seed_kb.py
+
+run-rag:
+	$(RAG_ENV) && cd services/rag-service && uv run uvicorn rag_service.main:app --port $${RAG_PORT:-8400}
+
+rag-tokens: ## service tokens (JSON) for the crews and the API
+	$(RAG_ENV) && uv run python services/rag-service/scripts/issue_service_tokens.py

@@ -175,7 +175,7 @@ class Engine:
         if ev["kind"] != "status":
             assert step is not None  # only synthetic status events (withdraw notice) have no scenario step
         if ev["kind"] == "status":
-            st = InsurerCaseStatus(pl.get("status") or (step.status if step else ""))
+            st = InsurerCaseStatus(str(pl.get("status") or (step.status if step else "")))
             body = {"claim_ref": ref, "insurer_claim_no": ino, "status": st.value, "hospital_visible_status": INSURER_TO_HOSPITAL[st].value, "sequence": seq,
                     "occurred_at": _z(now), "note": pl.get("note") or (step.note if step else None), "open_query_ids": []}
         elif ev["kind"] == "query":

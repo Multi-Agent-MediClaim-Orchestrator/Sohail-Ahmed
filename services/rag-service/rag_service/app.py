@@ -38,6 +38,7 @@ class SearchReq(BaseModel):
 
 class AnswerReq(SearchReq):
     question: str
+    query: str = ""  # unused: the question is the retrieval query (kept so older callers that send both still validate)
     answer_style: str = "brief"
     max_context_tokens: int | None = None
     top_k: int = 8

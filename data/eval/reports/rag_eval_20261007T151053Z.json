@@ -1,0 +1,74 @@
+{
+ "metrics": {
+  "rows": 120,
+  "answerable": 100,
+  "unanswerable": 20,
+  "recall@5": 0.93,
+  "mrr": 0.7977,
+  "ndcg@5": 0.8309,
+  "citation_precision": 0.6104,
+  "insufficient_evidence_accuracy": 1.0,
+  "temporal_trap_accuracy": 1.0,
+  "numeric_faithfulness": 1.0
+ },
+ "ablation": {
+  "hybrid": {
+   "rows": 120,
+   "answerable": 100,
+   "unanswerable": 20,
+   "recall@5": 0.93,
+   "mrr": 0.8118,
+   "ndcg@5": 0.8419,
+   "citation_precision": null,
+   "insufficient_evidence_accuracy": null,
+   "temporal_trap_accuracy": 1.0,
+   "numeric_faithfulness": null
+  },
+  "hybrid+rerank": {
+   "rows": 120,
+   "answerable": 100,
+   "unanswerable": 20,
+   "recall@5": 0.93,
+   "mrr": 0.7977,
+   "ndcg@5": 0.8309,
+   "citation_precision": null,
+   "insufficient_evidence_accuracy": null,
+   "temporal_trap_accuracy": 1.0,
+   "numeric_faithfulness": null
+  },
+  "dense_only": {
+   "rows": 120,
+   "answerable": 100,
+   "unanswerable": 20,
+   "recall@5": 0.89,
+   "mrr": 0.6305,
+   "ndcg@5": 0.6967,
+   "citation_precision": null,
+   "insufficient_evidence_accuracy": null,
+   "temporal_trap_accuracy": 1.0,
+   "numeric_faithfulness": null
+  },
+  "sparse_only": {
+   "rows": 120,
+   "answerable": 100,
+   "unanswerable": 20,
+   "recall@5": 0.94,
+   "mrr": 0.8487,
+   "ndcg@5": 0.8713,
+   "citation_precision": null,
+   "insufficient_evidence_accuracy": null,
+   "temporal_trap_accuracy": 1.0,
+   "numeric_faithfulness": null
+  }
+ },
+ "targets": {
+  "recall@5": 0.85,
+  "mrr": 0.6,
+  "ndcg@5": 0.7,
+  "citation_precision": 0.9,
+  "insufficient_evidence_accuracy": 0.9,
+  "temporal_trap_accuracy": 0.95,
+  "numeric_faithfulness": 1.0
+ },
+ "mode": "offline: hash embedder + lexical reranker + extractive answer stub"
+}

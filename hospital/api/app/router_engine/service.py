@@ -652,7 +652,7 @@ async def convert(
                 "r": json.dumps(new_route),
             },
         )
-    ).scalar()
+    ).scalar_one()
     await s.execute(
         text(
             "INSERT INTO case_status_history (id, case_id, from_status, to_status, actor_id, reason) VALUES "

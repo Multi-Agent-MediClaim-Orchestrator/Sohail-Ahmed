@@ -23,7 +23,7 @@ def money(v: Decimal) -> str:
     """Indian grouping: 1,25,000.50"""
     i, f = f"{v:.2f}".split(".")
     head, tail = i[:-3], i[-3:]
-    groups = []
+    groups: list[str] = []
     while len(head) > 2:
         groups.insert(0, head[-2:])
         head = head[:-2]

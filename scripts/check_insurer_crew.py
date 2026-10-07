@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PORT = int(os.environ.get("CREW_PORT", "8610"))
 MODEL = os.environ.get("INS_CREW_MODEL", "gemma4:latest")
 TOKEN = "check-token"
+RAG_URL = os.environ.get("INS_RAG_URL", "http://localhost:8400")
 RESULTS: list[tuple[str, bool, float, str]] = []
 
 
@@ -152,6 +153,24 @@ def coverage_without_kb(c: httpx.Client) -> str:
     return "refused to invent clauses"
 
 
+def coverage_with_kb(c: httpx.Client) -> str:
+    out, _ = post(c, "/v1/coverage/analyze", {
+        "policy": {"product_code": "HEALTH-BASIC", "effective_date": "2026-01-01"}, "diagnoses": [{"icd": "K80.20", "name": "Calculus of gallbladder"}],
+        "procedures": [{"code": "0FT44ZZ", "name": "Cholecystectomy"}], "diagnosis_codes": ["K80.20"], "procedure_codes": ["Cholecystectomy"],
+        "claim_type": "cashless", "admission_type": "planned", "admitted_on": "2026-09-02",
+    })
+    clean(out)
+    assert "rag_unavailable" not in out.get("warnings", []), f"knowledge base not reachable: {out.get('warnings')}"
+    assert out.get("insufficient_evidence") is False, f"the KB documents this procedure but the agent says insufficient evidence; warnings {out.get('warnings')}, clauses {out.get('applicable_clauses')}"
+    clauses = out.get("applicable_clauses") or []
+    assert clauses, "no clause returned although the knowledge base holds the product wording"
+    cites = out.get("citations") or []
+    assert cites, "clauses must carry citations"
+    bad = [x for x in cites if not str(x.get("chunk_id", "")).startswith("pw-HPA-v3")]
+    assert not bad, f"citations must come from the product's current wording (pw-HPA-v3), got {[x.get('chunk_id') for x in bad]}"
+    return f"{len(clauses)} clause(s), cited {sorted({x['chunk_id'] for x in cites})[:2]}"
+
+
 def query_draft(c: httpx.Client) -> str:
     out, _ = post(c, "/v1/query/draft", {
         "round": 1, "claim_ref": "HC-2026-000123", "hospital_name": "City Care Hospital",
@@ -208,9 +227,31 @@ def supervisor(c: httpx.Client) -> str:
     return f"next action {out['recommended_next_action']}"
 
 
+def rag_token() -> str | None:
+    """A crew service token for the local RAG service, or None when RAG is not running (the no-KB check runs instead)."""
+    try:
+        httpx.get(f"{RAG_URL}/health", timeout=2).raise_for_status()
+    except httpx.HTTPError:
+        return None
+    secret = os.environ.get("RAG_JWT_SECRET")
+    if not secret:
+        for ln in (ROOT / ".env").read_text().splitlines():
+            if ln.startswith("RAG_JWT_SECRET="):
+                secret = ln.split("=", 1)[1].strip()
+    if not secret:
+        return None
+    sys.path.insert(0, str(ROOT / "services/rag-service"))
+    from rag_service.security import issue_token
+
+    return issue_token(secret, "insurer-crew")
+
+
 def main() -> int:
+    token = rag_token()
+    only = os.environ.get("CHECK_ONLY", "")  # run just the checks whose name contains this
     env = {**os.environ, "INS_LLM_GATEWAY_URL": "http://localhost:11434", "INS_LLM_VIRTUAL_KEY": "ollama", "INS_ALIAS_SMART": MODEL, "INS_ALIAS_FAST": MODEL,
-           "INS_ALIAS_FALLBACK": MODEL, "INS_LLM_REASONING_EFFORT": "none", "INS_CREW_SERVICE_TOKENS": TOKEN, "INS_CREW_REQUEST_TIMEOUT": "240", "INS_RAG_URL": ""}
+           "INS_ALIAS_FALLBACK": MODEL, "INS_LLM_REASONING_EFFORT": "none", "INS_CREW_SERVICE_TOKENS": TOKEN, "INS_CREW_REQUEST_TIMEOUT": "240",
+           "INS_RAG_URL": RAG_URL if token else "", "INS_RAG_TOKEN": token or ""}
     try:
         httpx.get("http://localhost:11434/api/tags", timeout=3).raise_for_status()
     except httpx.HTTPError:
@@ -227,15 +268,17 @@ def main() -> int:
             except httpx.HTTPError:
                 time.sleep(1)
         c = httpx.Client(base_url=f"http://localhost:{PORT}", headers={"X-Service-Token": TOKEN})
-        print(f"insurer crew on the real model {MODEL}:")
+        print(f"insurer crew on the real model {MODEL}, knowledge base {'ON' if token else 'off (start it with make run-rag)'}:")
         for name, fn in [
             ("identity: matching person raises nothing", identity_match), ("identity: different person is flagged", identity_mismatch),
             ("authenticity: clean bill raises nothing", authenticity_clean), ("authenticity: total mismatch is reported", authenticity_arithmetic),
             ("authenticity: duplicate bill and missing stamp", authenticity_duplicate_and_stamp), ("calc map-lines: 12 lines to calculator groups", calc_map),
-            ("coverage: no knowledge base -> no invented clauses", coverage_without_kb), ("query draft: polite, specific, no promises", query_draft),
+            ("coverage: with the knowledge base -> cited clauses", coverage_with_kb) if token else ("coverage: no knowledge base -> no invented clauses", coverage_without_kb), ("query draft: polite, specific, no promises", query_draft),
             ("triage: supplied document resolves the finding", triage_resolved), ("triage: a stalling reply stays unresolved", triage_unresolved),
             ("supervisor: identity conflict is not waved through", supervisor),
         ]:
+            if only and only not in name:
+                continue
             check(name, fn, c)
     finally:
         os.killpg(p.pid, signal.SIGTERM)

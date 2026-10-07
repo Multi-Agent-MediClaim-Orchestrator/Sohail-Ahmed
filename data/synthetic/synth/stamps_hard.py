@@ -120,7 +120,7 @@ def _paste(
     alpha: float,
     overlap_text: bool,
 ) -> list[int] | None:
-    layer = layer.rotate(angle, expand=True, resample=Image.BICUBIC)
+    layer = layer.rotate(angle, expand=True, resample=Image.Resampling.BICUBIC)
     a = layer.split()[3].point(lambda v: int(v * alpha))
     layer.putalpha(a)
     bbox = layer.split()[3].point(lambda v: 255 if v > 20 else 0).getbbox()

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import io
 from datetime import timedelta
-from typing import Any
+from typing import Any, cast
 
 import anyio
 from minio import Minio
@@ -39,7 +39,7 @@ class ObjectStore:
                 io.BytesIO(data),
                 len(data),
                 content_type=content_type,
-                metadata=metadata,
+                metadata=cast(Any, metadata),
             )
         )
 
@@ -92,7 +92,7 @@ class ObjectStore:
         )
         return await anyio.to_thread.run_sync(
             lambda: self.c.presigned_get_object(
-                self.bucket, key, expires=timedelta(seconds=ttl_s), response_headers=extra
+                self.bucket, key, expires=timedelta(seconds=ttl_s), response_headers=cast(Any, extra)
             )
         )
 

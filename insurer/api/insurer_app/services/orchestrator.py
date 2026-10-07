@@ -13,6 +13,7 @@ from typing import Any
 from uuid import UUID
 
 import httpx
+from claim_contract.enums import StepName
 from sqlalchemy import select, text
 
 from .. import clock
@@ -153,13 +154,13 @@ async def _agent_body(c: ConfigService, case_id: UUID, step: str) -> StepResultB
             mapping = {m["line_ref"]: {"mapped_group": m["mapped_group"], "procedure_group": m.get("procedure_group"), "tags": m.get("tags", []),
                                        "is_non_medical": m.get("is_non_medical", False), "is_implant": m.get("is_implant", False), "source": m.get("source", "agent")}
                        for m in out.get("lines", [])}
-            return StepResultBody(step="calculation", agent=AgentInfo(name="calc_mapper", prompt_version=out.get("prompt_version", ""), trace_id=out.get("trace_id")),
+            return StepResultBody(step=StepName.calculation, agent=AgentInfo(name="calc_mapper", prompt_version=out.get("prompt_version", ""), trace_id=out.get("trace_id")),
                                   line_mapping=mapping, degraded=bool(out.get("degraded")))
         out = await crew.call(AGENT_PATHS[step], case_id, context.minimised_context(vctx, step))
         notes = out.get("reconciliation_notes") or "; ".join(out.get("explanations", []) or []) or out.get("waiting_notes")
-        return StepResultBody(step=step, agent=AgentInfo(name=f"{step}_agent", prompt_version=out.get("prompt_version", ""), trace_id=out.get("trace_id")),
+        return StepResultBody(step=StepName(step), agent=AgentInfo(name=f"{step}_agent", prompt_version=out.get("prompt_version", ""), trace_id=out.get("trace_id")),
                               agent_notes=notes, degraded=bool(out.get("degraded")), agent_output={k: v for k, v in out.items() if k not in ("token_usage",)})
     except crew.CrewUnavailable:
-        return StepResultBody(step=step, failure="agent_unavailable", degraded=True)
+        return StepResultBody(step=StepName(step), failure="agent_unavailable", degraded=True)
     except crew.CrewInvalidOutput:
-        return StepResultBody(step=step, failure="agent_invalid_output", degraded=True)
+        return StepResultBody(step=StepName(step), failure="agent_invalid_output", degraded=True)

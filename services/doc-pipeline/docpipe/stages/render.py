@@ -135,8 +135,8 @@ def render(raw: bytes, parser: str = "auto", max_pages: int = 30, min_chars: int
             info = _run(["pdfinfo", str(src)]).stdout.decode(errors="ignore")
             if "Encrypted:       yes" in info:
                 raise ParseError("encrypted_pdf", "document is password protected")
-            m = re.search(r"Pages:\s+(\d+)", info)
-            n = int(m.group(1)) if m else 0
+            pm = re.search(r"Pages:\s+(\d+)", info)
+            n = int(pm.group(1)) if pm else 0
             if n == 0:
                 raise ParseError("corrupt_file", "no pages")
             if n > max_pages:

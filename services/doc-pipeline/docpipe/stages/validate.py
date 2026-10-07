@@ -54,12 +54,12 @@ def validate(
                     }
                 )
             seen.add(k)
-    for k in ("total", "discounts", "claim_amount", "approved_amount", "amount", "mrp"):  # V07
-        v = typed.get(k)
+    for ak in ("total", "discounts", "claim_amount", "approved_amount", "amount", "mrp"):  # V07
+        v = typed.get(ak)
         if v is not None:
-            d = parse_amount(v)
-            if d is None or d < 0 or not re.fullmatch(r"\d{1,9}(\.\d{1,2})?", format(d, "f")):
-                out.append({"code": "amount_format", "field": k, "detail": "not a valid amount"})
+            amt = parse_amount(v)
+            if amt is None or amt < 0 or not re.fullmatch(r"\d{1,9}(\.\d{1,2})?", format(amt, "f")):
+                out.append({"code": "amount_format", "field": ak, "detail": "not a valid amount"})
     adm, dis = parse_date(typed.get("admitted_on")), parse_date(typed.get("discharged_on"))
     if adm and dis:  # V05
         if dis < adm:
@@ -78,7 +78,7 @@ def validate(
                     "detail": "stay longer than a year",
                 }
             )
-    for k in (
+    for dk in (
         "date",
         "admitted_on",
         "discharged_on",
@@ -87,9 +87,9 @@ def validate(
         "valid_from",
         "valid_to",
     ):
-        d = parse_date(typed.get(k))
-        if d and d > date.today().replace(year=date.today().year + 2):
-            out.append({"code": "date_invalid", "field": k, "detail": "implausible date"})
+        dv = parse_date(typed.get(dk))
+        if dv and dv > date.today().replace(year=date.today().year + 2):
+            out.append({"code": "date_invalid", "field": dk, "detail": "implausible date"})
     vf, vt = parse_date(typed.get("valid_from")), parse_date(typed.get("valid_to"))
     if vf and vt and vf >= vt:  # V12
         out.append(

@@ -165,8 +165,8 @@ async def test_triage_empty_response_skips_llm_and_off_topic_surfaces(settings):
 
 
 # ------------------------------------------------------------------------------------------------ coverage
-COV_CTX = {"policy": {"product_code": "HealthPlus-A"}, "diagnosis_codes": ["I21.9"], "procedure_codes": ["Coronary angioplasty"], "admitted_on": "2026-09-01"}
-CHUNK = Chunk("pw-HPA-v3#p8#s4.1", "Room rent is limited to 1.0% of the sum insured per day.", "HealthPlus-A wording v3", "4.1", 0.9, "HealthPlus-A", "2026-07-01", None)
+COV_CTX = {"policy": {"product_code": "HEALTH-BASIC"}, "diagnosis_codes": ["I21.9"], "procedure_codes": ["Coronary angioplasty"], "admitted_on": "2026-09-01"}
+CHUNK = Chunk("pw-HPA-v3#p8#s4.1", "Room rent is limited to 1.0% of the sum insured per day.", "HEALTH-BASIC wording v3", "4.1", 0.9, "HEALTH-BASIC", "2026-07-01", None)
 
 
 def clause(cid, quote, ref="4.1", effect="limits"):
@@ -180,8 +180,8 @@ async def test_coverage_keeps_grounded_drops_fabricated(settings):
     c, _ = make_client(llm, settings, rag)
     j = (await call(c, "/v1/coverage/analyze", COV_CTX)).json()
     assert [h["clause_ref"] for h in j["applicable_clauses"]] == ["4.1"] and j["no_citation"] is False and len(j["citations"]) == 1
-    assert "dropped_ungrounded:9.9" in j["warnings"] and "dropped_ungrounded:8.8" in j["warnings"] and j["applicable_clauses"][0]["citation"]["doc_title"] == "HealthPlus-A wording v3"
-    assert rag.calls[0][2] == {"policy_product": "HealthPlus-A", "as_of": "2026-09-01"} and "Acute myocardial infarction" in rag.calls[0][1]
+    assert "dropped_ungrounded:9.9" in j["warnings"] and "dropped_ungrounded:8.8" in j["warnings"] and j["applicable_clauses"][0]["citation"]["doc_title"] == "HEALTH-BASIC wording v3"
+    assert rag.calls[0][2] == {"policy_product": "HEALTH-BASIC", "as_of": "2026-09-01"} and "Acute myocardial infarction" in rag.calls[0][1]
 
 
 async def test_coverage_all_ungrounded_means_no_citation_and_insufficient(settings):
@@ -192,7 +192,7 @@ async def test_coverage_all_ungrounded_means_no_citation_and_insufficient(settin
 
 
 async def test_coverage_out_of_window_chunk_never_reaches_llm(settings):
-    old = Chunk("pw-HPA-v1#p8#s4.1", "Room rent is limited to 1.5%.", "v1", "4.1", 0.9, "HealthPlus-A", "2025-01-01", "2026-01-01")
+    old = Chunk("pw-HPA-v1#p8#s4.1", "Room rent is limited to 1.5%.", "v1", "4.1", 0.9, "HEALTH-BASIC", "2025-01-01", "2026-01-01")
     llm = ScriptedLLM(lambda *a: pytest.fail("LLM must not see out-of-window text"))
     c, _ = make_client(llm, settings, FakeRag([old]))
     j = (await call(c, "/v1/coverage/analyze", COV_CTX)).json()
@@ -434,3 +434,32 @@ async def test_redis_down_does_not_break_requests(settings):
 
     c, _ = make_client(ScriptedLLM(good_sentences), settings, cache=Broken())
     assert (await call(c, "/v1/query/draft", DRAFT_CTX)).status_code == 200
+
+
+# ------------------------------------------------------------------------------------------------ coverage: keyword fallback
+TABLE = Chunk("pw-HPA-v3#p8#s4.1.2", "| Procedure | 3 lakh | 5 lakh |\n|---|---|---|\n| Cataract surgery | 23,000 | 34,500 |\n| Coronary angioplasty | 210,000 | 315,000 |", "HEALTH-BASIC wording v3", "4.1.2", 0.8, "HEALTH-BASIC", "2026-07-01", None)
+EXCL = Chunk("pw-HPA-v3#p11#s5", "We do not pay for the following:\n5.1 Coronary angioplasty performed abroad (HEALTH-BASIC exclusion 1).", "HEALTH-BASIC wording v3", "5", 0.7, "HEALTH-BASIC", "2026-07-01", None)
+
+
+async def test_coverage_falls_back_to_a_verbatim_table_row_when_the_model_finds_nothing(settings):
+    llm = ScriptedLLM(lambda *a: {"applicable_clauses": [], "exclusions_hit": [], "insufficient_evidence": True})
+    c, _ = make_client(llm, settings, FakeRag([TABLE]))
+    j = (await call(c, "/v1/coverage/analyze", COV_CTX)).json()
+    assert "clauses_from_keyword_fallback" in j["warnings"] and j["insufficient_evidence"] is False and j["no_citation"] is False
+    hit = j["applicable_clauses"][0]
+    assert hit["effect"] == "limits" and hit["citation"]["chunk_id"] == TABLE.chunk_id
+    assert hit["citation"]["quote"] == "| Coronary angioplasty | 210,000 | 315,000 |" and hit["citation"]["quote"] in TABLE.text  # verbatim, never invented
+
+
+async def test_coverage_fallback_marks_an_exclusion_as_excluding(settings):
+    llm = ScriptedLLM(lambda *a: {"applicable_clauses": [], "exclusions_hit": []})
+    c, _ = make_client(llm, settings, FakeRag([EXCL]))
+    j = (await call(c, "/v1/coverage/analyze", COV_CTX)).json()
+    assert j["applicable_clauses"] == [] and [h["effect"] for h in j["exclusions_hit"]] == ["excludes"]
+
+
+async def test_coverage_fallback_stays_silent_when_no_chunk_names_the_procedure(settings):
+    llm = ScriptedLLM(lambda *a: {"applicable_clauses": [], "exclusions_hit": []})
+    c, _ = make_client(llm, settings, FakeRag([CHUNK]))  # room rent wording: says nothing about angioplasty
+    j = (await call(c, "/v1/coverage/analyze", COV_CTX)).json()
+    assert j["insufficient_evidence"] is True and j["no_citation"] is True and "clauses_from_keyword_fallback" not in j["warnings"]

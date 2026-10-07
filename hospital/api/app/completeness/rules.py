@@ -10,7 +10,7 @@ import re
 import unicodedata
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Any, cast
 
 from rapidfuzz import fuzz
 
@@ -190,7 +190,7 @@ def _item_from_checks(
     blocking = sorted({r for c in checks for r in c.blocking})
     review = sorted({r for c in checks for r in c.review})
     warn = sorted({r for c in checks for r in c.warn})
-    base = dict(
+    base: dict[str, Any] = dict(
         rule_id=rule.id,
         doc_type=rule.doc_type.value,
         requirement=rule.requirement,
@@ -320,7 +320,7 @@ def _x(rule_id: str, status: str, severity: Severity, reason: str, docs: list[Do
         rule_id=rule_id,
         doc_type=t,
         requirement="check",
-        status=status,
+        status=cast(Any, status),  # str in, the Item field is a Literal of the same values
         severity=severity,  # type: ignore[arg-type]
         reasons=[reason],
         document_ids=sorted(d.doc_id for d in docs),
@@ -389,9 +389,8 @@ def cross_checks(ctx: CaseContext, cfg: DocRequirementsConfig) -> list[Item]:
         amounts = [
             parse_amount(lookup(ln, "amount")) if isinstance(ln, dict) else None for ln in lines
         ]
-        if all(a is not None for a in amounts) and total + Decimal("0.01") < sum(
-            amounts, Decimal("0")
-        ):  # type: ignore[arg-type]
+        known = [a for a in amounts if a is not None]
+        if len(known) == len(amounts) and total + Decimal("0.01") < sum(known, Decimal("0")):
             bad.append(d)
     if bad:
         items.append(_x("X-04", "unusable", "blocker", "bill_total_mismatch", bad))
@@ -441,11 +440,10 @@ def ordering_item(ctx: CaseContext, cfg: DocRequirementsConfig) -> Item | None:
     if not o or not o.chronological:
         return None
     rx = [
-        parse_date(field_value(d, "date"))
+        x
         for d in ctx.docs_by_type.get("prescription", [])
-        if d.usable_state == "ok"
+        if d.usable_state == "ok" and (x := parse_date(field_value(d, "date")))
     ]
-    rx = [x for x in rx if x]
     if not rx:
         return None
     first_rx = min(rx)

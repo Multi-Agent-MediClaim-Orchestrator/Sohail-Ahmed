@@ -50,7 +50,7 @@ def build():
     store = QdrantStore(cfg.qdrant_url, cfg.qdrant_api_key) if cfg.store == "qdrant" else MemoryStore()
     live = cfg.embedder == "gateway"
     embedder = GatewayEmbedder(cfg.llm_gateway_url, cfg.llm_gateway_key, cfg.embed_alias, cfg.embed_batch) if live else HashEmbedder(cfg.embed_dim)
-    chat = GatewayChat(cfg.llm_gateway_url, cfg.llm_gateway_key) if live else None
+    chat = GatewayChat(cfg.llm_gateway_url, cfg.llm_gateway_key, cfg.chat_alias) if live else None
     return create_app(cfg, store=store, meta=Meta(cfg.db_url), embedder=embedder, chat=chat, loader=_minio_loader(cfg), docpipe=_docpipe(cfg))
 
 

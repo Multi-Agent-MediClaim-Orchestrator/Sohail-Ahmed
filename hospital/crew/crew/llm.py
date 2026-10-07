@@ -82,7 +82,8 @@ class FakeLLM:
     def __init__(
         self, script: dict[str, Any] | None = None, default: dict[str, Any] | None = None
     ) -> None:
-        self.script, self.default, self.calls = script or {}, default, []
+        self.script, self.default = script or {}, default
+        self.calls: list[Any] = []
 
     async def complete_json(
         self, *, model: str, prompt: str, schema: dict[str, Any] | None = None

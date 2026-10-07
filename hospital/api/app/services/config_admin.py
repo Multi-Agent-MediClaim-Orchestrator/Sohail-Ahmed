@@ -368,6 +368,8 @@ async def dry_run(
                 {"i": cid},
             )
         ).first()
+        if case is None:
+            continue
         now = datetime.now(UTC)
         before = evaluate(await comp.build_context(uow, case, current, now), current)
         after = evaluate(await comp.build_context(uow, case, cand, now), cand)

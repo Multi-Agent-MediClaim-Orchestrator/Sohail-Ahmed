@@ -36,14 +36,14 @@ def hospital_lines(
         line(
             "Room rent general ward",
             days,
-            d(rng.randrange(*t["room_per_day"], 100)),
+            d(rng.randrange(t["room_per_day"][0], t["room_per_day"][1], 100)),
             "room",
             admitted,
         )
     ]
     if proc["surgery"]:
         out.append(
-            line("ICU charges", 1, d(rng.randrange(*t["icu_per_day"], 100)), "icu", admitted)
+            line("ICU charges", 1, d(rng.randrange(t["icu_per_day"][0], t["icu_per_day"][1], 100)), "icu", admitted)
         )
         out.append(
             line(
@@ -79,7 +79,7 @@ def hospital_lines(
             line(
                 "Implant " + proc["code"].replace("_", " "),
                 1,
-                d(rng.randrange(*proc["price"], 1000) // 2),
+                d(rng.randrange(proc["price"][0], proc["price"][1], 1000) // 2),
                 "implant",
                 admitted,
             )

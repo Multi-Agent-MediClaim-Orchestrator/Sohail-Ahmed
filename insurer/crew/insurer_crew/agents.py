@@ -24,6 +24,8 @@ from .schemas import (
     AuthenticityCore,
     CalcMapContext,
     CalcMapCore,
+    Citation,
+    ClauseHit,
     CoverageContext,
     CoverageCore,
     DocType,
@@ -320,6 +322,30 @@ def _in_window(chunk: tools.Chunk, product: str, admitted: str | None) -> bool:
     return True
 
 
+def _keyword_clauses(chunks: dict[str, tools.Chunk], terms: list[str]) -> list[ClauseHit]:
+    """Deterministic fallback when the model returns no grounded clause: the line of a retrieved chunk that names the
+    procedure or diagnosis, quoted verbatim. Never invents text: the quote is a slice of the chunk, so it passes the same
+    grounding check as a model quote. A table row is a limit, a line under an exclusions list is an exclusion."""
+    hits: list[ClauseHit] = []
+    wanted = [t.strip() for t in terms if len(t.strip()) >= 5]
+    for ch in chunks.values():
+        low_chunk = ch.text.lower()
+        for line in ch.text.splitlines():
+            low = line.lower()
+            term = next((t for t in wanted if t.lower() in low), None)
+            if term is None:
+                continue
+            quote = " ".join(line.split())[:400]
+            if not validators.quote_in(quote, ch.text):
+                continue
+            exclusion = "do not pay" in low_chunk or "exclusion" in low_chunk
+            effect = "excludes" if exclusion else ("limits" if "|" in line else "covers")
+            hits.append(ClauseHit(clause_ref=ch.chunk_id, summary=f"Wording that mentions {term}"[:300], effect=effect,
+                                  citation=Citation(chunk_id=ch.chunk_id, doc_title=ch.doc_title, section=ch.section, quote=quote)))
+            break  # one clause per chunk is enough for a reviewer to follow the link
+    return hits[:4]
+
+
 async def coverage(ctx: CoverageContext, r: Runner) -> dict[str, Any]:
     product = (ctx.policy or {}).get("product_code") or ""
     admitted = ctx.admitted_on or (ctx.policy or {}).get("effective_date")
@@ -361,6 +387,13 @@ async def coverage(ctx: CoverageContext, r: Runner) -> dict[str, Any]:
         return out
 
     core.applicable_clauses, core.exclusions_hit = keep(core.applicable_clauses), keep(core.exclusions_hit)
+    if not core.applicable_clauses and not core.exclusions_hit:
+        extra = _keyword_clauses(chunks, [n for n in names if n] + list(ctx.procedure_codes))
+        if extra:
+            r.warnings.append("clauses_from_keyword_fallback")
+            core.applicable_clauses = [h for h in extra if h.effect != "excludes"]
+            core.exclusions_hit = [h for h in extra if h.effect == "excludes"]
+            core.insufficient_evidence = False
     cites = [h.citation for h in core.applicable_clauses + core.exclusions_hit]
     uniq = {(c.chunk_id, c.quote): c for c in cites}
     out = _base_dict(core)

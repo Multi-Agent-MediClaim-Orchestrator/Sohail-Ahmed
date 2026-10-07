@@ -57,6 +57,6 @@ def render(extra: dict[str, float] | None = None) -> str:
                 f'http_request_duration_seconds_sum{{method="{m}",route="{r}"}} {_sum[(m, r)]:.6f}'
             )
             out.append(f'http_request_duration_seconds_count{{method="{m}",route="{r}"}} {h[-1]}')
-    for name, v in sorted((extra or {}).items()):
-        out += [f"# TYPE {name} gauge", f"{name} {v}"]
+    for name, val in sorted((extra or {}).items()):
+        out += [f"# TYPE {name} gauge", f"{name} {val}"]
     return "\n".join(out) + "\n"

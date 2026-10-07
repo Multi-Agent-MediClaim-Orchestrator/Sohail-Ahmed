@@ -72,7 +72,10 @@ class Settings(BaseModel):
     @classmethod
     def from_env(cls, **overrides: object) -> Settings:
         e = _env()
-        g = lambda k, d="": os.environ.get(k, e.get(k, d))  # noqa: E731
+
+        def g(k: str, d: str = "") -> str:
+            return os.environ.get(k) or e.get(k, d)
+
         redis_port = g("SHARED_REDIS_PORT", "6379")
         redis_url = g("HOSP_REDIS_URL") or (
             f"redis://hosp_app:{quote(g('HOSP_REDIS_PW'))}@localhost:{redis_port}/3"

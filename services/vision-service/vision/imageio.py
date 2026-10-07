@@ -47,7 +47,7 @@ def load_pages(raw: bytes, max_pages: int = 20, max_mp: int = 40) -> list[np.nda
 
 def _open(b: bytes, max_mp: int) -> np.ndarray:
     try:
-        im = Image.open(io.BytesIO(b))
+        im: Image.Image = Image.open(io.BytesIO(b))
         im = ImageOps.exif_transpose(im).convert("RGB")
     except Exception as e:  # noqa: BLE001
         raise ImageError("unsupported_image", type(e).__name__) from e

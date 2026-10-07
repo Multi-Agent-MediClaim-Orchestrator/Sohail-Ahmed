@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import random
 from dataclasses import dataclass, field
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -44,7 +45,7 @@ class Case:
     discharged_on: dt.date
     doctor: str
     bill_lines: list[dict[str, Any]] = field(default_factory=list)
-    totals: dict[str, str] = field(default_factory=dict)
+    totals: dict[str, Decimal] = field(default_factory=dict)
 
 
 def make_member(rng: random.Random, seed: int, n: int) -> Member:

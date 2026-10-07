@@ -347,7 +347,7 @@ async def draft_result(uow: UoW, query_id: str, body: dict[str, Any], hub: Any) 
                 text("SELECT COALESCE(max(version),0)+1 FROM query_response WHERE query_id=:i"),
                 {"i": q.id},
             )
-        ).scalar()
+        ).scalar_one()
     )
     await s.execute(
         text(
@@ -556,7 +556,7 @@ async def send(uow: UoW, p: Principal, query_id: str, hub: Any, store: Any) -> d
                 text("SELECT COALESCE(max(sequence),0)+1 FROM outbox WHERE case_id=:c"),
                 {"c": case.id},
             )
-        ).scalar()
+        ).scalar_one()
     )
     if attached:
         refs = await doc_refs_for(uow, store, case, attached, settings_ttl)

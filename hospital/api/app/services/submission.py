@@ -522,7 +522,7 @@ async def submit(
         raise ApiError(
             "draft_has_errors",
             "the draft no longer validates",
-            errors=sorted({f.code for f in fresh.errors}),
+            errors=[{"field": f.field, "code": f.code, "message": f.message} for f in fresh.errors],
         )
     route = case.route or {}
     unacked = sorted(
@@ -554,7 +554,7 @@ async def submit(
                 text("SELECT count(*) FROM outbox WHERE case_id=:c AND kind='claim.submit'"),
                 {"c": case.id},
             )
-        ).scalar()
+        ).scalar_one()
     )
     idem = uuid.uuid5(uuid.NAMESPACE_URL, f"{case.claim_ref}:{d.version}:{attempt}")
     seq = int(
@@ -563,7 +563,7 @@ async def submit(
                 text("SELECT COALESCE(max(sequence), 0) + 1 FROM outbox WHERE case_id=:c"),
                 {"c": case.id},
             )
-        ).scalar()
+        ).scalar_one()
     )
     oid = (
         await s.execute(
@@ -731,7 +731,7 @@ async def withdraw(
                 text("SELECT COALESCE(max(sequence), 0) + 1 FROM outbox WHERE case_id=:c"),
                 {"c": case.id},
             )
-        ).scalar()
+        ).scalar_one()
     )
     await s.execute(
         text(

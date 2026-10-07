@@ -62,13 +62,13 @@ def _supported(kind: str, value: Any, quote: str, text: str, ntext: str, nums: s
             return False
         return canon(d) in nums
     if kind == "date":
-        d = parse_date(value)
-        if d is None:
+        dv = parse_date(value)
+        if dv is None:
             return False
         for m in re.findall(r"\d{1,4}[/.-]\d{1,2}[/.-]\d{2,4}", text):
-            if parse_date(m) == d:
+            if parse_date(m) == dv:
                 return True
-        return d.isoformat() in text
+        return dv.isoformat() in text
     if kind == "list":
         return all(norm(str(v)) in ntext for v in (value if isinstance(value, list) else [value]))
     v = norm(str(value))

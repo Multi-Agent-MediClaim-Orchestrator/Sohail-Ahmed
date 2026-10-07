@@ -23,6 +23,7 @@ from typing import Any
 import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import check_insurer_crew as CC  # noqa: E402
 import e2e_hospital as H  # noqa: E402
 
 ROOT, E, LOGS = H.ROOT, H.E, H.LOGS
@@ -32,6 +33,7 @@ SCENARIO = os.environ.get("E2E_SCENARIO", "auto")
 CREW = os.environ.get(
     "E2E_CREW", "off"
 )  # off: no insurer crew (rules only); ollama: real agents on the local model
+RAG_URL = CC.RAG_URL
 ORCH = os.environ.get(
     "E2E_ORCH", "inline"
 )  # inline: pipeline runs inside insurer-api; n8n: the insurer n8n flows sequence it
@@ -687,6 +689,49 @@ def run_scenario(scn: Scn) -> bool:
     return ok
 
 
+def serve_for_browser(stack: Any) -> int:
+    """Seed claims in distinct states, start the insurer UI, print READY and wait: the Playwright tests drive the UI against them."""
+    seeded: dict[str, dict[str, Any]] = {}
+    for key, scn_name, extra in (
+        ("single", "reviewer", None),
+        ("dual", "dual", None),
+        ("query", "reviewer", "query"),
+        ("settled", "auto", "settle"),
+    ):
+        scn = SCENARIOS[scn_name]
+        print(f"- seeding {key} ({scn.name}) ...", flush=True)
+        H.steps.clear()
+        case, out = prepare(scn)
+        run = Run(scn, case, out)
+        run.hospital_pipeline()
+        run.submit_and_verify()
+        if extra == "query":
+            run.raise_query("Please explain the room rent charge on the final bill.")
+        if extra == "settle":
+            H.wait(lambda run=run: run.status() == "settled", 150, "settled at hospital")
+        seeded[key] = {
+            "id": run.s["ins"]["id"],
+            "claim_no": run.s["ins"]["claim_no"],
+            "ref": run.s["ref"],
+            "hospital_id": run.s["id"],
+        }
+        if not all(o for _, o, _, _ in H.steps):
+            print(f"seeding {key} failed: {H.steps}")
+            return 1
+    (LOGS / "ui-seed.json").write_text(json.dumps(seeded, indent=1))
+    stack.start(
+        "insurer-ui",
+        ["npx", "next", "start", "-p", "3600"],
+        ROOT / "insurer/ui",
+        3600,
+        {"INS_API_URL": INS, "INS_ALLOW_DEV_LOGIN": "1"},
+        "http://localhost:3600/login",
+    )
+    print("READY", flush=True)
+    while True:  # killed by the test script
+        time.sleep(3600)
+
+
 def main() -> int:
     wanted = os.environ.get("E2E_SCENARIO", "auto")
     names = (
@@ -745,6 +790,11 @@ def main() -> int:
             ins_env(),
             INS + "/v1/ready",
         )
+        rag_tok = (
+            CC.rag_token()
+        )  # the crew grounds coverage in the knowledge base when `make run-rag` is up
+        if rag_tok:
+            print("    knowledge base: ON (rag-service reachable)", flush=True)
         if (
             CREW == "ollama"
         ):  # real agents on the local model; Ollama's OpenAI-compatible endpoint stands in for the gateway
@@ -772,6 +822,8 @@ def main() -> int:
                     "INS_LLM_REASONING_EFFORT": "none",
                     "INS_CREW_SERVICE_TOKENS": E["INS_CREW_SERVICE_TOKEN"],
                     "INS_CREW_REQUEST_TIMEOUT": "240",
+                    "INS_RAG_URL": RAG_URL if rag_tok else "",
+                    "INS_RAG_TOKEN": rag_tok or "",
                 },
                 "http://localhost:8610/v1/health",
             )
@@ -824,6 +876,10 @@ def main() -> int:
             {"HOSP_LLM_MODEL": local, "CREW_LLM": "rules" if H.FAST else "ollama"},
             H.CREW + "/v1/health",
         )
+        if (
+            "--serve" in sys.argv
+        ):  # keep the stack and the insurer UI up for the browser tests (scripts/ins_ui_e2e.sh)
+            return serve_for_browser(stack)
         results = {n: run_scenario(SCENARIOS[n]) for n in names}
     finally:
         stack.stop()

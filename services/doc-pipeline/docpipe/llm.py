@@ -58,7 +58,8 @@ class Fake:
     """Test double. `script[model]` is a dict (or list consumed in order) returned for that model alias."""
 
     def __init__(self, script: dict[str, Any]) -> None:
-        self.script, self.calls = script, []
+        self.script = script
+        self.calls: list[Any] = []
 
     async def json(self, model: str, prompt: str) -> dict[str, Any]:
         self.calls.append((model, prompt))

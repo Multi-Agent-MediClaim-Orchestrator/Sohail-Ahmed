@@ -225,8 +225,8 @@ async def _ingest_one(
             text("SELECT count(*) FROM document WHERE case_id=:c AND lifecycle='active'"),
             {"c": case.id},
         )
-    ).scalar()
-    if count >= d.s.max_files_per_case:
+    ).scalar_one()
+    if (count or 0) >= d.s.max_files_per_case:
         raise ApiError(
             "too_many_files", f"case already has {count} documents (max {d.s.max_files_per_case})"
         )
@@ -335,7 +335,7 @@ async def _ingest_one(
             "draft": "docs_pending",
             "docs_complete": "docs_pending",
             "ready_for_review": "docs_pending",
-        }.get(current)
+        }.get(str(current))
         if new_status and purpose != "query":
             await transitions.transition(
                 uow, case.id, new_status, p, reason="document uploaded", hub=d.hub
