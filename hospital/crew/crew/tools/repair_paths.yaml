@@ -1,0 +1,3 @@
+allowed: ["bill_lines[*].category", "bill_lines[*].code", "notes"]
+deterministic: ["totals.gross", "totals.claimed"]
+forbidden: ["patient.*", "admission.*", "bill_lines[*].amount", "bill_lines[*].qty", "bill_lines[*].unit_price"]

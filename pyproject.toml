@@ -4,7 +4,7 @@ version = "0.0.0"
 requires-python = ">=3.12"
 
 [tool.uv.workspace]
-members = ["contract/python", "hospital/api"]
+members = ["contract/python", "hospital/api", "hospital/crew"]
 
 [tool.ruff]
 extend-exclude = ["docs"]
@@ -21,6 +21,7 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "hospital/n8n/tests/*" = ["S101", "S105", "S106", "S310", "S603", "S607", "E501"]
 "hospital/api/app/**" = ["B008"]  # FastAPI Depends() defaults
 "hospital/api/app/services/cases.py" = ["S608"]
+"hospital/crew/**" = ["S105", "S106", "E501"]
 "hospital/api/app/services/queries.py" = ["S608"]
 "hospital/api/app/services/documents.py" = ["S608", "B007"]  # SQL built only from constants and validated model field names
 "hospital/api/seed/*" = ["S311", "E501"]  # seeded fake data, not security-sensitive
@@ -31,7 +32,7 @@ markers = ["unit", "integration", "contract", "e2e", "slow", "llm", "n8n"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
-pythonpath = ["contract/python"]
+pythonpath = ["contract/python", "hospital/crew"]
 
 [dependency-groups]
 dev = [

@@ -277,7 +277,9 @@ def grounding_check(
     return out
 
 
-async def _evidence(uow: UoW, q: Any) -> str:
+async def evidence_parts(uow: UoW, q: Any, *, mask_identity: bool = False) -> list[str]:
+    """The record a reply may quote: the query, the latest claim facts and the document list. `mask_identity`
+    drops the patient block (names, dob, member/policy ids) for text that goes to a cloud model."""
     s = uow.session
     parts = [q.text]
     d = (
@@ -287,7 +289,8 @@ async def _evidence(uow: UoW, q: Any) -> str:
         )
     ).first()
     if d:
-        parts.append(json.dumps(d.payload))
+        payload = {k: v for k, v in d.payload.items() if not (mask_identity and k == "patient")}
+        parts.append(json.dumps(payload))
     for r in (
         await s.execute(
             text(
@@ -297,7 +300,36 @@ async def _evidence(uow: UoW, q: Any) -> str:
         )
     ).all():
         parts += [r.original_filename, r.dtype]
-    return "\n".join(parts)
+    return parts
+
+
+async def _evidence(uow: UoW, q: Any) -> str:
+    return "\n".join(await evidence_parts(uow, q))
+
+
+async def query_context(uow: UoW, query_id: str) -> dict[str, Any]:
+    """What the drafting crew gets: identity-free evidence plus the documents it may suggest attaching."""
+    q = await _load(uow, query_id)
+    attach: list[str] = []
+    if q.requested_doc_types:
+        want = [str(x.value if hasattr(x, "value") else x) for x in q.requested_doc_types]
+        rows = (
+            await uow.session.execute(
+                text(
+                    "SELECT id FROM document WHERE case_id=:c AND lifecycle='active' AND scan_status='clean' "
+                    "AND doc_type::text = ANY(CAST(:w AS text[])) ORDER BY created_at"
+                ),
+                {"c": q.case_id, "w": want},
+            )
+        ).all()
+        attach = [str(r.id) for r in rows]
+    return {
+        "query_id": str(q.id),
+        "round": q.round,
+        "category": q.cat,
+        "evidence": await evidence_parts(uow, q, mask_identity=True),
+        "attach_doc_ids": attach,
+    }
 
 
 async def draft_result(uow: UoW, query_id: str, body: dict[str, Any], hub: Any) -> dict[str, Any]:

@@ -254,3 +254,77 @@ async def ack_status(
     if r is None:
         raise ApiError("not_found", "unknown case")
     return {"acknowledged": r.acknowledged_at is not None, "status": r.status}
+
+
+@router.get("/queries/{query_id}/context", operation_id="internalQueryContext")
+async def query_context(
+    query_id: str, _: Principal = Svc, uow: UoW = Depends(get_uow)
+) -> dict[str, Any]:
+    from app.services import queries as qsvc
+
+    return await qsvc.query_context(uow, query_id)
+
+
+@router.get("/cases/{case_id}/build-context", operation_id="internalBuildContext")
+async def build_context(
+    case_id: str, _: Principal = Svc, uow: UoW = Depends(get_uow)
+) -> dict[str, Any]:
+    """Facts for the claim builder: authoritative case data, typed document values, the previous draft."""
+    s = uow.session
+    cid = _cid(case_id)
+    c = (
+        await s.execute(
+            text(
+                "SELECT c.*, c.admission_type::text AS adm_t, p.full_name, p.dob, p.gender, pol.member_id, pol.policy_number "
+                "FROM claim_case c JOIN patient p ON p.id=c.patient_id JOIN insurance_policy_ref pol ON pol.id=c.policy_ref_id "
+                "WHERE c.id=:i"
+            ),
+            {"i": cid},
+        )
+    ).first()
+    if c is None:
+        raise ApiError("not_found", "unknown case")
+    docs = (
+        await s.execute(
+            text(
+                "SELECT d.id, d.doc_type::text AS dtype, d.pages, "
+                "(SELECT jsonb_object_agg(k, v) FROM (SELECT (jsonb_each(p.typed_json)).* FROM document_parse p "
+                "WHERE p.document_id = d.id ORDER BY p.pass_no) x(k, v)) AS typed "
+                "FROM document d WHERE d.case_id=:c AND d.lifecycle='active' AND d.scan_status='clean' "
+                "AND d.doc_type IS NOT NULL ORDER BY d.created_at"
+            ),
+            {"c": cid},
+        )
+    ).all()
+    prev = (
+        await s.execute(
+            text("SELECT payload FROM claim_draft WHERE case_id=:c ORDER BY version DESC LIMIT 1"),
+            {"c": cid},
+        )
+    ).first()
+    return {
+        "case": {
+            "patient": {
+                "full_name": c.full_name,
+                "dob": c.dob.isoformat(),
+                "gender": c.gender,
+                "member_id": c.member_id,
+                "policy_number": c.policy_number,
+            },
+            "admission": {
+                "admission_type": c.adm_t,
+                "admitted_on": c.admitted_on.isoformat() if c.admitted_on else None,
+                "discharged_on": c.discharged_on.isoformat() if c.discharged_on else None,
+                "diagnosis_codes": list(c.diagnosis_codes or []),
+                "procedure_codes": list(c.procedure_codes or []),
+                "treating_doctor": c.treating_doctor or "",
+                "hospital_id": None,
+                "preauth_ref": c.preauth_ref,
+            },
+        },
+        "documents": [
+            {"id": str(d.id), "doc_type": d.dtype, "pages": d.pages or 1, "typed": d.typed or {}}
+            for d in docs
+        ],
+        "previous_draft": prev.payload if prev else None,
+    }

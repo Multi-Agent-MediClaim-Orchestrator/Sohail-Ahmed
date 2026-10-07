@@ -1,6 +1,21 @@
 # Decisions log
 Format: decision, reason, date. Newest first. Spec fixes are proven by a test.
 
+## 2026-10-07 — crew service (doc 09): plain agents over Ollama, no CrewAI package, no classify-extract job
+
+- The `crewai` package is not installed: it pulls a very large dependency tree for orchestration the jobs do not
+  need (each job is one or two prompts plus deterministic code). Agents are plain classes with the roles, guards and
+  prompt files from the doc; the HTTP surface (`/v1/jobs/*`) is unchanged, so CrewAI can be swapped in behind it.
+- `classify-extract` and `supervise` as LLM jobs are not built: the doc-pipeline (MinerU → Presidio → Ollama, two
+  passes) does classification and extraction, and the supervisor is a deterministic rule set (an LLM tone check is
+  not a gate). Jobs: `claim-build`, `claim-repair`, `query-triage`, `query-draft`.
+- Models: general `gemma4:31b-cloud` only sees identity-free text (the context endpoints drop the patient block);
+  line categorisation uses the local model. The PII guard runs before every call.
+- Job store is in memory (jobs are minutes long; the API/n8n retry a lost one). Inbound auth is "localhost only";
+  the crew's outbound calls use a client-credentials token.
+- New API endpoints: `GET /v1/internal/cases/{id}/build-context`, `GET /v1/internal/queries/{id}/context`.
+- Live check: local `gemma4:latest` returns valid triage JSON in JSON mode (`pytest -m llm`, ~60 s cold).
+
 ## 2026-10-07 — n8n flows (doc 08): thin orchestrator over what the API already does
 
 The API already runs its own completeness scheduler, document sweeper, claim-build crew call, outbox worker and

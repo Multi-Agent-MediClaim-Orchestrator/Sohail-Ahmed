@@ -12,6 +12,7 @@ members = [
     "claim-contract",
     "claims-monorepo",
     "hospital-api",
+    "hospital-crew",
 ]
 
 [[package]]
@@ -793,6 +794,43 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "fakeredis", specifier = ">=2.20" },
+    { name = "hypothesis", specifier = ">=6" },
+    { name = "pytest", specifier = ">=8" },
+    { name = "pytest-asyncio", specifier = ">=0.23" },
+]
+
+[[package]]
+name = "hospital-crew"
+version = "0.1.0"
+source = { editable = "hospital/crew" }
+dependencies = [
+    { name = "claim-contract" },
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "hypothesis" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "claim-contract", editable = "contract/python" },
+    { name = "fastapi", specifier = ">=0.110" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pydantic", specifier = ">=2.6" },
+    { name = "pyyaml", specifier = ">=6" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.29" },
+]
+
+[package.metadata.requires-dev]
+dev = [
     { name = "hypothesis", specifier = ">=6" },
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-asyncio", specifier = ">=0.23" },
