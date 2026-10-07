@@ -68,7 +68,7 @@ async def validation_context(uow: UoW, case: Any) -> ValidationContext:
             text(
                 "SELECT d.id, d.pages, d.scan_status, d.lifecycle, d.doc_type::text AS dtype, "
                 "(SELECT jsonb_object_agg(k, v) FROM (SELECT (jsonb_each(p.typed_json)).* FROM document_parse p "
-                "WHERE p.document_id = d.id ORDER BY p.pass_no) x(k, v)) AS j FROM document d WHERE d.case_id=:c"
+                "WHERE p.document_id = d.id ORDER BY p.pass_no) x(k, v) WHERE jsonb_typeof(v) <> 'null') AS j FROM document d WHERE d.case_id=:c"
             ),
             {"c": case.id},
         )

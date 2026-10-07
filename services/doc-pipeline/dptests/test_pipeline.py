@@ -384,3 +384,13 @@ async def test_medicines_are_filled_by_code_when_the_model_returns_none():
         "Tab Paracetamol 500mg",
         "Inj Ceftriaxone",
     ]
+
+
+def test_icd_codes_are_read_by_code_from_diagnosis_lines_only():
+    from docpipe.stages.tables import extract_icd
+
+    assert extract_icd("Diagnosis: appendectomy  ICD-10: K35.80, K35.2\nBill B12 ref") == [
+        "K35.80",
+        "K35.2",
+    ]
+    assert extract_icd("no codes here") == []

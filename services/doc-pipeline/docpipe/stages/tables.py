@@ -63,3 +63,15 @@ MED = re.compile(
 
 def extract_medicines(text: str) -> list[str]:
     return [m.strip() for m in MED.findall(text) if m.strip()]
+
+
+ICD_RX = re.compile(r"\b([A-TV-Z]\d{2}(?:\.\d{1,4})?)\b")
+
+
+def extract_icd(text: str) -> list[str]:
+    """ICD-10 codes printed on lines that mention ICD or diagnosis (a stray 'B12' elsewhere is not a diagnosis)."""
+    out: list[str] = []
+    for ln in text.splitlines():
+        if re.search(r"(?i)icd|diagnos", ln):
+            out += [c for c in ICD_RX.findall(ln.upper()) if c not in out]
+    return out[:10]

@@ -127,3 +127,35 @@ def test_every_field_the_requirements_demand_is_one_the_pipeline_produces() -> N
                 and dt in LINE_DOCS
             )
             assert ok, f"rule {rule['id']} needs {f!r} on {dt} but the pipeline never produces it"
+
+
+async def test_a_later_pass_with_null_does_not_erase_what_an_earlier_pass_read(
+    client: httpx.AsyncClient, tok: Any
+) -> None:
+    """Found by the real-model e2e: pass 1 had the ICD code, pass 2 returned null, and the merged view lost it."""
+    b = build_case(21, 3, RECIPES["S01"])
+    d = next(x for x in b["case"]["documents"] if x["doc_type"] == "discharge_summary")
+    case = await new_case(client, tok("officer1"), "UH-" + uuid.uuid4().hex[:8])
+    doc = await upload(client, tok, case["id"], "ds.pdf", b["files"][d["clean_file"]])
+    svc = tok("svc:n8n")
+    base = {"engine": "x", "confidence": 0.9}
+    await client.post(
+        f"/v1/internal/documents/{doc}/parse",
+        json={"pass_no": 1, **base, "typed_json": {"icd_codes": ["K80.20"], "diagnosis": "x"}},
+        headers=svc,
+    )
+    await client.post(
+        f"/v1/internal/documents/{doc}/parse",
+        json={"pass_no": 2, **base, "typed_json": {"icd_codes": None, "diagnosis": "x"}},
+        headers=svc,
+    )
+    await client.post(
+        f"/v1/internal/documents/{doc}/classify",
+        json={"doc_type": "discharge_summary", "confidence": 0.95, "source": "auto"},
+        headers=svc,
+    )
+    ctx = (
+        await client.get(f"/v1/internal/cases/{case['id']}/build-context", headers=tok("svc:crew"))
+    ).json()
+    ds = next(x for x in ctx["documents"] if x["doc_type"] == "discharge_summary")
+    assert ds["typed"]["icd_codes"] == ["K80.20"]

@@ -156,6 +156,14 @@ async def run(
                             }
                         )
                     t[key] = fixed
+    if dt == "discharge_summary" and not typed_a.get(
+        "icd_codes"
+    ):  # the claim needs a diagnosis code: read it by code
+        icd = tables.extract_icd(raw_text)
+        if icd:
+            typed_a["icd_codes"] = icd
+            if b:
+                typed_b["icd_codes"] = icd
     if dt == "prescription" and not typed_a.get(
         "medicines"
     ):  # numbered "1. Tab X  1-0-1  5 days" lines are code's job

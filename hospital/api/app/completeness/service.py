@@ -88,7 +88,7 @@ async def build_context(
                 "SELECT d.id, d.doc_type::text AS doc_type, d.lifecycle, d.scan_status, d.parse_status, d.quality_flags, "
                 "d.quality_score, d.has_required_stamp, d.classification_confidence, d.pages, d.created_at, "
                 "(SELECT jsonb_object_agg(k, v) FROM (SELECT (jsonb_each(p.typed_json)).* FROM document_parse p "
-                "  WHERE p.document_id = d.id ORDER BY p.pass_no) t(k, v)) AS typed_json, "
+                "  WHERE p.document_id = d.id ORDER BY p.pass_no) t(k, v) WHERE jsonb_typeof(v) <> 'null') AS typed_json, "
                 "(SELECT p.confidence FROM document_parse p WHERE p.document_id = d.id ORDER BY p.pass_no DESC LIMIT 1) "
                 "  AS parse_conf, "
                 "(SELECT p.agreement_score FROM document_parse p WHERE p.document_id = d.id AND p.agreement_score IS NOT NULL "

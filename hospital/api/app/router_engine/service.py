@@ -97,7 +97,7 @@ async def gather_facts(uow: UoW, case: Any) -> tuple[dict[str, Any], dict[str, A
         await s.execute(
             text(
                 "SELECT d.doc_type::text AS dtype, (SELECT jsonb_object_agg(k, v) FROM (SELECT (jsonb_each(p.typed_json)).* FROM "
-                "document_parse p WHERE p.document_id = d.id ORDER BY p.pass_no) x(k, v)) AS j FROM document d "
+                "document_parse p WHERE p.document_id = d.id ORDER BY p.pass_no) x(k, v) WHERE jsonb_typeof(v) <> 'null') AS j FROM document d "
                 "WHERE d.case_id=:c AND d.lifecycle='active' AND d.scan_status='clean' AND d.doc_type IS NOT NULL"
             ),
             {"c": case.id},

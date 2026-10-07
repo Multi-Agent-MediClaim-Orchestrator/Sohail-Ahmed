@@ -289,7 +289,7 @@ async def build_context(
             text(
                 "SELECT d.id, d.doc_type::text AS dtype, d.pages, "
                 "(SELECT jsonb_object_agg(k, v) FROM (SELECT (jsonb_each(p.typed_json)).* FROM document_parse p "
-                "WHERE p.document_id = d.id ORDER BY p.pass_no) x(k, v)) AS typed "
+                "WHERE p.document_id = d.id ORDER BY p.pass_no) x(k, v) WHERE jsonb_typeof(v) <> 'null') AS typed "
                 "FROM document d WHERE d.case_id=:c AND d.lifecycle='active' AND d.scan_status='clean' "
                 "AND d.doc_type IS NOT NULL ORDER BY d.created_at"
             ),
