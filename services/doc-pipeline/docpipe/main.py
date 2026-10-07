@@ -9,7 +9,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, ConfigDict, Field
 
 from docpipe.jobs import Jobs
-from docpipe.llm import LLM, Ollama
+from docpipe.llm import LLM, Ollama, RulesLLM
 from docpipe.pipeline import run
 from docpipe.settings import PIPELINE_VERSION, Settings
 from docpipe.stages import mask
@@ -33,7 +33,7 @@ def create_app(
     settings: Settings | None = None, *, llm: LLM | None = None, fetch: Any = None
 ) -> FastAPI:
     s = settings or Settings.from_env()
-    llm = llm or Ollama(s.llm_base_url, s.llm_timeout_s)
+    llm = llm or (RulesLLM() if s.llm_mode == "rules" else Ollama(s.llm_base_url, s.llm_timeout_s))
     client = httpx.AsyncClient(timeout=60)
 
     async def get_bytes(url: str) -> bytes:

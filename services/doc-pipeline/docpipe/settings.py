@@ -23,6 +23,7 @@ class Settings:
     workers: int = 2
     llm_timeout_s: float = 180.0
     allow_cloud: bool = True
+    llm_mode: str = "ollama"  # ollama | rules (deterministic extractor, no model)
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -36,4 +37,5 @@ class Settings:
             pii_key_b64=g("DOCPIPE_PII_KEY_B64", g("HOSP_FIELD_KEY", "")),
             workers=int(g("DOCPIPE_WORKERS", "2")),
             allow_cloud=g("DOCPIPE_ALLOW_CLOUD", "true").lower() == "true",
+            llm_mode=g("DOCPIPE_LLM", "ollama"),
         )

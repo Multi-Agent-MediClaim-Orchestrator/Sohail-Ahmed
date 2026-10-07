@@ -36,6 +36,7 @@ FIELDS: dict[str, dict[str, tuple[str, bool]]] = {
         "patient_name": ("text", False),
         "date": ("date", True),
         "doctor_name": ("text", False),
+        "medicines": ("list", False),
     },
     "discharge_summary": {
         "patient_name": ("text", False),

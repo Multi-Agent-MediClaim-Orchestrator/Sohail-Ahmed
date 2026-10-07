@@ -301,3 +301,24 @@ def test_names_are_cut_at_the_next_label():
         and clean_name("Dr. Anil Rao") == "Dr. Anil Rao"
     )
     assert clean_name("Asha Verma  Age 40") == "Asha Verma"
+
+
+def test_a_person_span_stops_at_a_column_gap():
+    m = mask.mask("Patient Name: Hemang Gopal      Age/Sex: 38/M   UHID: UH-000001")
+    assert (
+        "Age/Sex" in m.text
+        and "Hemang" not in m.text
+        and m.pii_map == {"<PERSON_1>": "Hemang Gopal"}
+    )
+
+
+def test_surgical_final_bill_is_still_a_final_bill():
+    text = "CITY CARE HOSPITAL\nFINAL BILL\nBill No: FB-1\nOT charges operation theatre   1  23,000.00  23,000.00\nSurgeon fees  1  40,000.00  40,000.00\nAnaesthesia charges  1  9,000.00  9,000.00\nNet amount   72,000.00"
+    dt, conf, decisive = classify.classify(text)
+    assert dt == "final_bill" and decisive
+    assert (
+        classify.classify(
+            "PROCEDURE CHARGES\nOT charges operation theatre\nSurgeon fees\nAnaesthesia"
+        )[0]
+        == "procedure_bill"
+    )

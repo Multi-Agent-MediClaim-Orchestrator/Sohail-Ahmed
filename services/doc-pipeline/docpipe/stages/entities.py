@@ -122,6 +122,13 @@ def find(text: str) -> list[Ent]:
                 w in span.lower() for w in ALLOW_WORDS
             ):
                 continue  # treating doctors and facility names stay readable
+            cut = re.split(r"\s{2,}|\t|\n|[:/|]", span, maxsplit=1)[
+                0
+            ].rstrip()  # a name never spans a column gap or label
+            if not cut:
+                continue
+            out.append(Ent("PERSON", r.start, r.start + len(cut), r.score))
+            continue
         if r.entity_type in ("POLICY_NO", "MEMBER_ID"):  # keep only the id part, not the label
             m = re.search(r"[A-Z0-9][A-Z0-9/-]{3,19}$", span)
             if not m:

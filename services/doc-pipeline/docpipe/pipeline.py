@@ -13,6 +13,26 @@ from docpipe.settings import PIPELINE_VERSION, Settings
 from docpipe.stages import classify, extract, guard, mask, render, tables, validate
 from docpipe.stages.numbers import norm, parse_amount, parse_date
 
+# Keys of a parse job's result (the n8n flow F1 reads these; hospital/n8n/tests/test_lint.py checks the flow against it).
+RESULT_KEYS = frozenset(
+    {
+        "doc_type",
+        "doc_type_conf",
+        "pages",
+        "parser",
+        "overall_conf",
+        "needs_review",
+        "review_reasons",
+        "issues",
+        "passes",
+        "entities_masked",
+        "pipeline_version",
+        "timings_ms",
+        "source_sha256",
+        "document_id",
+    }
+)
+
 CRITICAL = {t: {k for k, (_, c) in f.items() if c} for t, f in FIELDS.items()}
 
 
