@@ -140,6 +140,52 @@ test.describe.serial("hospital UI against the real stack", () => {
     await ctx.close();
   });
 
+  test("document viewer: page image, extracted values, zoom, rotate, jump from a claim line", async ({ browser }) => {
+    const { page, ctx, errors } = await login(browser, "officer1");
+    await page.goto(state.caseUrl! + "/documents");
+    await page.getByRole("button", { name: "View" }).nth(2).click(); // the final bill
+    const dialog = page.getByRole("dialog");
+    const img = dialog.getByRole("img");
+    await expect(img).toBeVisible();
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth), { timeout: 30_000 }).toBeGreaterThan(100); // really rendered
+    await expect(dialog.getByText("What we read")).toBeVisible();
+    await expect(dialog.getByText("Total")).toBeVisible();
+    await dialog.getByRole("button", { name: "Zoom in" }).click();
+    await expect(dialog.getByText("125%")).toBeVisible();
+    await dialog.getByRole("button", { name: "Rotate" }).click();
+    await a11y(page, "document viewer");
+    await shot(page, "10-viewer");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    // from the claim editor: a line's source opens the viewer on that page
+    await page.goto(state.caseUrl! + "/claim");
+    await page.getByRole("button", { name: /Show line 1 in/ }).click();
+    await expect(page.getByRole("dialog").getByRole("img")).toBeVisible();
+    await page.keyboard.press("Escape");
+    expect(errors, "console errors").toEqual([]);
+    await ctx.close();
+  });
+
+  test("audit explorer lists the chain and verifies it", async ({ browser }) => {
+    const { page, ctx, errors } = await login(browser, "officer1");
+    await page.goto(state.caseUrl! + "/audit");
+    await expect(page.getByRole("heading", { name: "Audit trail" })).toBeVisible();
+    await expect(page.getByText("case.created").first()).toBeVisible();
+    await expect(page.getByText("claim.submitted").first()).toBeVisible();
+    await page.getByRole("button", { name: "Verify chain" }).click();
+    await expect(page.getByRole("status")).toContainText(/Verified: \d+ events, chain intact/);
+    await page.getByLabel("Event type").selectOption("doc.uploaded");
+    await expect(page.getByText("doc.uploaded").first()).toBeVisible();
+    await a11y(page, "audit");
+    await shot(page, "11-audit");
+    const desk = await login(browser, "desk1"); // desk staff do not get the tab
+    await desk.page.goto(state.caseUrl! + "/documents");
+    await expect(desk.page.getByRole("link", { name: "Audit" })).toHaveCount(0);
+    await desk.ctx.close();
+    expect(errors, "console errors").toEqual([]);
+    await ctx.close();
+  });
+
   test("admin pages load without errors", async ({ browser }) => {
     const { page, ctx, errors } = await login(browser, "hadmin");
     for (const [url, text, name] of [["/admin/config/doc_requirements", /Versions/, "config"], ["/admin/users", /Users/, "users"], ["/admin/outbox", /Outbox/, "outbox"]] as const) {

@@ -20,6 +20,11 @@ async function proxy(req: NextRequest, ctx: { params: { path: string[] } }) {
   });
   const out = new Headers();
   for (const h of ["content-type", "etag", "location", "idempotent-replay", "retry-after"]) { const v = up.headers.get(h); if (v) out.set(h, v); }
+  if (up.status >= 300 && up.status < 400 && up.headers.get("location") && /\/pages\/\d+$/.test(ctx.params.path.join("/"))) {
+    // page previews: fetch the presigned image here and stream it (the CSP only allows same-origin images)
+    const img = await fetch(up.headers.get("location")!, { cache: "no-store" });
+    return new NextResponse(img.body, { status: img.status, headers: { "content-type": img.headers.get("content-type") ?? "image/png", "cache-control": "private, max-age=300" } });
+  }
   if (up.status >= 300 && up.status < 400 && up.headers.get("location")) {  // document downloads redirect to a presigned URL
     return NextResponse.json({ redirect: up.headers.get("location") }, { status: 200 });
   }

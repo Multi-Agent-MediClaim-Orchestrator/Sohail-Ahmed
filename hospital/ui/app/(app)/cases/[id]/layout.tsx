@@ -26,7 +26,7 @@ export default function CaseLayout({ children }: { children: React.ReactNode }) 
   if (q.isLoading) return <Skeleton rows={3} />;
   if (q.error || !q.data) return <ErrorCard error={q.error} retry={() => q.refetch()} />;
   const c = q.data;
-  const tabs = [["documents", "Documents"], ["checklist", "Checklist"], ["claim", "Claim"], ["submission", "Submission"], ["queries", "Queries"], ["timeline", "Timeline"]];
+  const tabs = [["documents", "Documents"], ["checklist", "Checklist"], ["claim", "Claim"], ["submission", "Submission"], ["queries", "Queries"], ["timeline", "Timeline"], ...(is("officer") || is("admin") ? [["audit", "Audit"]] : [])];
   const idx = FLOW.indexOf(c.status === "building_claim" ? "docs_complete" : c.status === "under_query" ? "acknowledged" : c.status);
   return (
     <div className="space-y-4">

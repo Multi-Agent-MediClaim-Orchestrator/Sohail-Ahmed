@@ -53,7 +53,7 @@ export function Field({ label, children, error, hint }: { label: string; childre
 }
 export const inputCls = "w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm";
 
-export function Dialog({ open, title, onClose, children }: { open: boolean; title: string; onClose: () => void; children: ReactNode }) {
+export function Dialog({ open, title, onClose, children, wide }: { open: boolean; title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -75,7 +75,7 @@ export function Dialog({ open, title, onClose, children }: { open: boolean; titl
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} className="w-full max-w-lg rounded-lg bg-white p-5 shadow-xl">
+      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} className={`w-full ${wide ? "max-w-5xl" : "max-w-lg"} max-h-[92vh] overflow-auto rounded-lg bg-white p-5 shadow-xl`}>
         <h2 className="mb-3 text-lg font-semibold">{title}</h2>{children}
       </div>
     </div>

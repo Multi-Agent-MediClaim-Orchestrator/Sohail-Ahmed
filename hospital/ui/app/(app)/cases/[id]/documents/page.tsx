@@ -9,6 +9,7 @@ import { DOC_TYPES } from "@/lib/enums";
 import { CHIP_HELP, docChip } from "@/lib/docStatus";
 import { Badge, Button, Card, ConfirmDialog, DocChip, Empty, ErrorCard, Skeleton, Toast, inputCls } from "@/components/ui";
 import { useAct, useRole, useToast } from "@/components/hooks";
+import { DocViewer, ViewerDoc } from "@/components/DocViewer";
 
 const MAX = 25 * 1024 * 1024, OK = ["application/pdf", "image/jpeg", "image/png", "image/tiff"];
 interface Up { name: string; pct: number; state: "queued" | "sending" | "done" | "dup" | "error"; text?: string }
@@ -43,6 +44,7 @@ export default function Documents() {
   const [ups, setUps] = useState<Up[]>([]);
   const [del, setDel] = useState<DocView | null>(null);
   const [drag, setDrag] = useState(false);
+  const [view, setView] = useState<ViewerDoc | null>(null);
   const active = useRef(0);
   const q = useQuery({ queryKey: ["case", id, "documents"], queryFn: () => get<{ documents: DocView[] }>(`/v1/cases/${id}/documents`) });
   const act = useAct([["case", id]], notify);
@@ -102,7 +104,8 @@ export default function Documents() {
                 <select id={`t-${d.id}`} className={inputCls} value={d.doc_type ?? ""} disabled={!(is("desk") || is("officer"))} onChange={(e) => act.mutate({ method: "PATCH", path: `/v1/documents/${d.id}`, body: { doc_type: e.target.value } })}>
                   {d.doc_type === null && <option value="">Choose a type…</option>}{DOC_TYPES.map((t) => <option key={t} value={t}>{t.replace(/_/g, " ")}</option>)}</select>
                 {d.classification_confidence !== null && d.doc_type && <span className="text-xs text-slate-600">{Math.round((d.classification_confidence ?? 0) * 100)}%</span>}</div>
-              <div className="mt-2 flex gap-2"><Button variant="secondary" onClick={() => open(d)} disabled={chip === "blocked" || chip === "scanning"}>Open</Button>
+              <div className="mt-2 flex gap-2"><Button variant="secondary" onClick={() => setView({ id: d.id, filename: d.filename, pages: d.pages, doc_type: d.doc_type })} disabled={chip === "blocked" || chip === "scanning"}>View</Button>
+                <Button variant="ghost" onClick={() => open(d)} disabled={chip === "blocked" || chip === "scanning"}>Download</Button>
                 <Button variant="secondary" onClick={() => act.mutate({ method: "POST", path: `/v1/documents/${d.id}/reparse`, body: {} })} disabled={chip === "scanning" || chip === "blocked"}>Re-read</Button>
                 <Button variant="ghost" onClick={() => setDel(d)}>Delete</Button></div>
             </Card>);
@@ -111,6 +114,7 @@ export default function Documents() {
       <ConfirmDialog open={!!del} title="Delete this document?" danger confirmLabel="Delete" busy={act.isPending} onClose={() => setDel(null)}
         body={<>This removes <b>{del?.filename}</b> from the case. The checklist is re-checked afterwards.</>}
         onConfirm={() => { if (del) act.mutate({ method: "DELETE", path: `/v1/documents/${del.id}` }, { onSuccess: () => setDel(null) }); }} />
+      <DocViewer doc={view} onClose={() => setView(null)} />
       <Toast text={toast} tone={tone} />
     </div>
   );

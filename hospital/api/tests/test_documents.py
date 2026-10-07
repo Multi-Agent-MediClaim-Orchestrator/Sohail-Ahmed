@@ -389,8 +389,9 @@ async def test_download_and_scope(client: httpx.AsyncClient, tok: Any) -> None:
         await client.get(f"/v1/documents/{d['id']}", headers=tok("officer1"))
     ).status_code == 200
     assert (
-        await client.get(f"/v1/documents/{d['id']}/pages/1", headers=tok("officer1"))
-    ).status_code == 404  # no preview yet
+        (await client.get(f"/v1/documents/{d['id']}/pages/1", headers=tok("officer1"))).status_code
+        == 302
+    )  # previews are rendered on first view now (see test_audit_api.py for caching and bad pages)
 
 
 async def test_reclassify_manual_wins_and_reparse(

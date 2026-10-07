@@ -9,6 +9,7 @@ import { CATEGORIES } from "@/lib/enums";
 import { inr, isAmount, minus, sumAmounts } from "@/lib/money";
 import { Badge, Button, Card, ConfirmDialog, Dialog, Empty, ErrorCard, Skeleton, Toast, inputCls } from "@/components/ui";
 import { useAct, useRole, useToast } from "@/components/hooks";
+import { DocViewer, ViewerDoc } from "@/components/DocViewer";
 
 export default function Claim() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,7 @@ export default function Claim() {
   const [comment, setComment] = useState("");
   const [confirm, setConfirm] = useState<"signoff" | "submit" | "return" | null>(null);
   const [late, setLate] = useState("");
+  const [view, setView] = useState<{ doc: ViewerDoc; page: number } | null>(null);
   useEffect(() => { if (q.data && !dirty) setLines(q.data.payload.bill_lines); }, [q.data, dirty]);
 
   if (q.isLoading) return <Skeleton rows={5} />;
@@ -77,10 +79,13 @@ export default function Claim() {
               <tbody>{lines.map((l, i) => (
                 <tr key={i} className={`border-t ${lineErr(l) ? "bg-red-50" : ""}`}>
                   <td className="px-1">{l.line_no}</td>
-                  <td className="px-1">{editable ? <input aria-label={`Description line ${l.line_no}`} className={inputCls} value={l.description} onChange={(e) => setLine(i, "description", e.target.value)} /> : l.description}</td>
-                  <td className="px-1">{editable ? <select aria-label={`Category line ${l.line_no}`} className={inputCls} value={l.category} onChange={(e) => setLine(i, "category", e.target.value)}>{CATEGORIES.map((x) => <option key={x}>{x}</option>)}</select> : l.category}</td>
+                  <td className="px-1">{editable ? <input aria-label={`Description line ${l.line_no}`} className={inputCls + " min-w-[15rem]"} value={l.description} onChange={(e) => setLine(i, "description", e.target.value)} /> : l.description}</td>
+                  <td className="px-1">{editable ? <select aria-label={`Category line ${l.line_no}`} className={inputCls + " min-w-[8.5rem]"} value={l.category} onChange={(e) => setLine(i, "category", e.target.value)}>{CATEGORIES.map((x) => <option key={x}>{x}</option>)}</select> : l.category}</td>
                   {(["qty", "unit_price", "amount"] as const).map((k) => <td key={k} className="px-1">{editable ? <input aria-label={`${k} line ${l.line_no}`} inputMode="decimal" className={inputCls + " w-24 text-right"} value={l[k]} onChange={(e) => setLine(i, k, e.target.value)} /> : <span className="block text-right">{k === "qty" ? l.qty : inr(l[k])}</span>}</td>)}
-                  <td className="px-1 text-xs text-slate-600">{docs.data?.documents.find((d) => d.id === l.source_doc_id)?.filename ?? "—"}{l.source_page ? ` p.${l.source_page}` : ""}</td>
+                  <td className="px-1 text-xs">{(() => {
+                    const src = docs.data?.documents.find((d) => d.id === l.source_doc_id);
+                    return src ? <button className="text-blue-800 underline" onClick={() => setView({ doc: { id: src.id, filename: src.filename, pages: src.pages, doc_type: src.doc_type }, page: l.source_page ?? 1 })} aria-label={`Show line ${l.line_no} in ${src.filename}`}>{src.filename}{l.source_page ? ` p.${l.source_page}` : ""}</button> : "—";
+                  })()}</td>
                 </tr>))}</tbody>
               <tfoot><tr className="border-t font-medium"><td colSpan={5} className="px-1 py-2 text-right">Gross</td><td className="px-1 text-right">{inr(gross)}</td><td /></tr>
                 <tr><td colSpan={5} className="px-1 text-right">Discounts</td><td className="px-1 text-right">{inr(c.payload.totals.discounts)}</td><td /></tr>
@@ -116,6 +121,7 @@ export default function Claim() {
         <p className="mb-3 text-sm">A newer version exists. Reload to see it; your edits on this screen will be discarded.</p>
         <div className="flex justify-end"><Button onClick={() => { setConflict(false); setDirty(false); void q.refetch(); }}>Reload latest</Button></div>
       </Dialog>
+      <DocViewer doc={view?.doc ?? null} page={view?.page ?? 1} onClose={() => setView(null)} />
       <Toast text={toast} tone={tone} />
     </div>
   );

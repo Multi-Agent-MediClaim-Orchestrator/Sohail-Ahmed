@@ -12,6 +12,7 @@ from app.core.errors import ApiError
 from app.core.uow import UoW
 from app.schemas.documents import DocTypePatch
 from app.services import documents as svc
+from app.services import previews
 from app.services.cases import load_case
 from app.services.route_triggers import request_state, route_on_doc
 
@@ -136,10 +137,9 @@ async def page(
     d: Any = Depends(get_ingest),
 ) -> Response:
     row = await svc.get_doc_row(uow, p, doc_id)
-    return RedirectResponse(
-        await svc.presign(uow, d, p, doc_id, f"{row.case_id}/{row.id}/pages/{n}.png"),
-        status_code=302,
-    )
+    key = f"{row.case_id}/{row.id}/pages/{n}.png"
+    await previews.ensure(d, row, n, key)  # rendered on first view, then cached in the object store
+    return RedirectResponse(await svc.presign(uow, d, p, doc_id, key), status_code=302)
 
 
 @router.get("/v1/documents/{doc_id}/parse", operation_id="getParse")
