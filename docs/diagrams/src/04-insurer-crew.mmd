@@ -1,0 +1,15 @@
+flowchart LR
+  subgraph VF["VerificationFlow · POST /v1/flows/verification"]
+    I["🤖 Identity agent<br/>name / DOB / policy vs member"] --> AU["🤖 Authenticity agent<br/>stamps, totals, duplicates"]
+    AU --> CO["🤖 Coverage agent<br/>RAG: quoted policy clauses"]
+    CO --> CM["🤖 Calc mapper agent<br/>bill lines → calc groups"]
+    CM --> SU["🤖 Supervisor agent<br/>summary + next action"]
+    SU --> RT{"@router<br/>route"}
+    RT -- "proceed & no blockers" --> G["ready_for_gate"]
+    RT -- "otherwise" --> HR["needs_human_review"]
+  end
+  subgraph QF2["QueryFlow · POST /v1/flows/query"]
+    C2["choose"] --> R2{"@router"}
+    R2 -- draft --> QD["🤖 Query drafter<br/>one sentence per finding"]
+    R2 -- triage --> TR["🤖 Triage agent<br/>which findings the reply resolved"]
+  end

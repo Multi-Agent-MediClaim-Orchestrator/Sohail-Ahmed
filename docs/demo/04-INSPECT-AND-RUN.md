@@ -4,7 +4,7 @@ Use this file during a demo to **show** what is happening, not just tell. Everyt
 Start the system with `01-RUNBOOK.md` first. Every command is run from the project folder:
 
 ```bash
-cd "/home/ashok/Downloads/Multiagent healthcare claim processing"
+cd Sohail-Ahmed        # the folder you cloned the repository into
 ```
 
 Handy shortcuts for this terminal session (copy-paste once):

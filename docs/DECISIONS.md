@@ -230,3 +230,35 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
 - hospital-api: `claim_draft.estimate jsonb` (migration 0023), `DraftResult.estimate`, the claim view returns the newest
   estimate with its draft version, the build context carries `claim_type`, the audit `claim.built` event records the
   estimate status and payable. The officer UI shows the estimate with the quoted terms.
+
+## 2026-10-07 — one command: make demo / make demo-offline (scripts/demo.py)
+
+- `make demo` (real local model) and `make demo-offline` (no model) run: prerequisites (Docker, Ollama and models, RAM,
+  free ports) → `.env` secrets and `uv sync` → missing Ollama models pulled over Ollama's HTTP API → containers (infra,
+  insurer DB, hospital n8n; insurer n8n with `DEMO_ORCH=n8n`; Qdrant online) → hospital migrate + seed → knowledge base
+  (online: Qdrant + nomic-embed-text; offline: rag-service in memory with hash embeddings, seeded at start,
+  `RAG_SEED_ON_START=1`) → rag-service in the background → `scripts/e2e_full.py` (both CrewAI crews, decision,
+  settlement, audit chains) → `eval/run_eval.py`. `make demo-check` and `make demo-down` too. Steps are idempotent.
+- Offline, the insurer crew still runs its CrewAI agents on a deterministic stand-in model (`INS_CREW_LLM=offline`,
+  `E2E_CREW=offline`); it claims nothing on its own (no issues, no clauses), so the agents' code decides, as with a cautious
+  model. The hospital crew uses `CREW_LLM=rules`.
+- Fixed in `e2e_full.py`: the stay was always dated late January 2026, so on a fresh database a member whose cover began
+  on 1 January was inside the 30-day initial waiting period and the insurer (correctly) refused auto-approval. The stay
+  now starts at least 45 days after cover and policy start.
+- The evaluation exits 1 when a metric is below target; the demo reports which metrics (today: RAG citation precision)
+  instead of failing. Demo evaluation runs go to `.e2e-logs/demo/eval/`, not the tracked `eval/runs/`.
+- Verified here without Docker (services run natively, `--no-containers`): `DEMO_SCENARIO=all` offline passes all seven
+  scenarios in about 2.5 minutes. Not verified here: the Docker steps and the online (Ollama) run.
+- Found by the first real runs of the estimate: the HEALTH-PLUS-GOLD wording in force before 2026-06-01 (rag-service
+  corpus v1) says 20% co-pay, but the insurer's rules for that product say 0%, so hospital estimates are 80% of what the
+  insurer pays for early-2026 stays. Synthetic data inconsistency, left as is; step 6 measures estimate accuracy.
+
+## 2026-10-07 — container images that broke `make up-infra` on a Mac
+
+- `minio/minio` no longer exists on Docker Hub and `quay.io/minio/minio` needs a login, so `make up-infra` failed for
+  everyone. MinIO is now built from source at the pinned community release (`infra/minio/Dockerfile`, static Go build,
+  native on arm64 and amd64); the health check uses MinIO's `/minio/health/live` with wget (no `mc` in the image).
+- ClamAV: `clamav/clamav` is amd64-only (emulated, slow on Apple Silicon); `clamav/clamav-debian` is the same project's
+  multi-arch image with the same config directory and `clamdcheck.sh`.
+- The n8n containers use host networking; Docker Desktop needs it switched on. `make demo` checks n8n is reachable from
+  the host right after starting it and says how to switch it on.

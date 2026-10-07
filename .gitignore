@@ -18,3 +18,6 @@ data/eval/report.json
 .venv-mineru/
 *.egg-info/
 Satyam-Pani-main/
+# Redis files written by a locally run redis-server
+dump.rdb
+appendonlydir/

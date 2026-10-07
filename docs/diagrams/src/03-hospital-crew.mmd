@@ -1,0 +1,14 @@
+flowchart LR
+  subgraph CF["ClaimFlow (claim-build / claim-repair)"]
+    A["@start<br/>load_context"] --> R{"@router<br/>route"}
+    R -- build --> B["build_claim<br/>code assembles lines + totals<br/>🤖 Category mapper agent<br/>(only unknown lines)"]
+    R -- repair --> C["repair_claim<br/>code recomputes totals<br/>🤖 Category mapper agent<br/>whitelist guardrail"]
+    B --> E["estimate_admissible<br/>🤖 Policy estimator agent<br/>+ calc_engine"]
+    C --> E
+    E --> P["post_draft<br/>→ hospital-api"]
+  end
+  subgraph QF["QueryFlow (query-triage / query-draft)"]
+    Q["@start<br/>load_query"] --> S{"@router<br/>route"}
+    S -- triage --> T["triage_query<br/>🤖 Triage agent<br/>rule risk flag never lowered"]
+    S -- draft --> D["draft_reply<br/>🤖 Reply writer agent<br/>guardrail: grounding G01-G08<br/>supervisor checklist"]
+  end

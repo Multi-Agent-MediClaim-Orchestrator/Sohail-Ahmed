@@ -32,7 +32,7 @@ TPA = "http://localhost:8500"
 SCENARIO = os.environ.get("E2E_SCENARIO", "auto")
 CREW = os.environ.get(
     "E2E_CREW", "off"
-)  # off: no insurer crew (rules only); ollama: real agents on the local model
+)  # off: no insurer crew (rules only); ollama: real CrewAI agents on the local model; offline: CrewAI agents on a stand-in model
 RAG_URL = CC.RAG_URL
 ORCH = os.environ.get(
     "E2E_ORCH", "inline"
@@ -61,7 +61,7 @@ def ins_env() -> dict[str, str]:
         "INS_KEYCLOAK_ISSUER": "http://localhost:8080/realms/insurer",
         "INS_KEYCLOAK_AUDIENCE": "insurer-api",
         "INS_ALLOW_DEV_TOKENS": "true",  # the script signs its own reviewer tokens; n8n and the UI use real Keycloak tokens
-        "INS_CREW_URL": "http://localhost:8610" if CREW == "ollama" else "",
+        "INS_CREW_URL": "http://localhost:8610" if CREW in ("ollama", "offline") else "",
         "INS_N8N_SERVICE_TOKEN": E["INS_CREW_SERVICE_TOKEN"],
         "INS_CALC_ENGINE_URL": "inprocess",
     }
@@ -82,7 +82,7 @@ def q(sql: str, *args: Any) -> list[tuple[Any, ...]]:
 def pick_member() -> dict[str, Any]:
     """An active, long-standing member whose policy has the most cover left (waiting periods are not the story of this test)."""
     rows = q(
-        "SELECT m.member_id, m.full_name, m.dob, m.gender, p.policy_number, pr.code, p.sum_insured, p.start_date, p.end_date FROM core.policy_member m "
+        "SELECT m.member_id, m.full_name, m.dob, m.gender, p.policy_number, pr.code, p.sum_insured, p.start_date, p.end_date, m.cover_start FROM core.policy_member m "
         "JOIN core.policy p ON p.id = m.policy_id JOIN core.insurance_product pr ON pr.id = p.product_id WHERE p.start_date <= DATE '2026-01-15' AND p.end_date >= DATE '2026-12-31' AND p.status = 'active' "
         "AND coalesce(p.premium_paid_until, p.end_date) >= DATE '2026-12-31' AND cardinality(m.pre_existing) = 0 "
         "AND m.cover_start <= DATE '2026-01-15' AND m.relationship = 'self' "
@@ -92,7 +92,7 @@ def pick_member() -> dict[str, Any]:
     )
     if not rows:
         raise SystemExit("no suitable member in the insurer seed; run `make seed-insurer`")
-    mid, name, dob, gender, pol, product, si, start, end = rows[0]
+    mid, name, dob, gender, pol, product, si, start, end, cover_start = rows[0]
     used = q(
         "SELECT count(*) FROM core.claim_case c JOIN core.policy_member m ON m.id = c.member_id WHERE m.member_id = %s",
         mid,
@@ -110,6 +110,7 @@ def pick_member() -> dict[str, Any]:
         "valid_from": start.isoformat(),
         "valid_to": end.isoformat(),
         "_used": int(used),
+        "_cover_start": max(cover_start, start),
     }
 
 
@@ -680,12 +681,15 @@ def prepare(scn: Scn) -> tuple[dict[str, Any], Path]:
     used = member.pop(
         "_used"
     )  # earlier runs claimed for this member: move the stay forward so it is not a duplicate
+    # the stay must be past the 30-day initial waiting period, or the insurer (correctly) refuses auto-approval; on a fresh
+    # database the chosen member's cover may start in January
+    first_discharge = max(dt.date(2026, 2, 1), member.pop("_cover_start") + dt.timedelta(days=45))
     synth = build_case(
         int(os.environ.get("E2E_SEED", "42")),
         int(time.time()) % 100000,
         dataclasses.replace(RECIPES["S01"], procedure=scn.procedure),
         identity=member,
-        discharged_on=dt.date(2026, 2, 1) + dt.timedelta(days=8 * used),
+        discharged_on=first_discharge + dt.timedelta(days=8 * used),
         price_scale=scn.scale,
     )
     out = LOGS / f"case_{scn.name}"
@@ -828,9 +832,10 @@ def main() -> int:
         )  # the crew grounds coverage in the knowledge base when `make run-rag` is up
         if rag_tok:
             print("    knowledge base: ON (rag-service reachable)", flush=True)
-        if (
-            CREW == "ollama"
-        ):  # real agents on the local model; Ollama's OpenAI-compatible endpoint stands in for the gateway
+        if CREW in (
+            "ollama",
+            "offline",
+        ):  # CrewAI agents: on the local model (Ollama's OpenAI-compatible endpoint stands in for the gateway) or offline stand-in
             model = E.get("INS_CREW_MODEL", "gemma4:latest")
             stack.start(
                 "insurer-crew",
@@ -853,6 +858,7 @@ def main() -> int:
                     "INS_ALIAS_FAST": model,
                     "INS_ALIAS_FALLBACK": model,
                     "INS_LLM_REASONING_EFFORT": "none",
+                    "INS_CREW_LLM": "offline" if CREW == "offline" else "gateway",
                     "INS_CREW_SERVICE_TOKENS": E["INS_CREW_SERVICE_TOKEN"],
                     "INS_CREW_REQUEST_TIMEOUT": "240",
                     "INS_RAG_URL": RAG_URL if rag_tok else "",
@@ -906,7 +912,8 @@ def main() -> int:
             ["uv", "run", "uvicorn", "crew.main:app_factory", "--factory", "--port", "8010"],
             ROOT / "hospital/crew",
             8010,
-            {"HOSP_LLM_MODEL": local, "CREW_LLM": "rules" if H.FAST else "ollama"},
+            {"HOSP_LLM_MODEL": local, "CREW_LLM": "rules" if H.FAST else "ollama",
+             "HOSP_RAG_URL": E.get("HOSP_RAG_URL") or RAG_URL},  # fmt: skip
             H.CREW + "/v1/health",
         )
         if (

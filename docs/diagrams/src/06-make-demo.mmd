@@ -1,0 +1,14 @@
+flowchart TB
+  P["Prerequisites<br/>Docker · Ollama models · RAM · ports · Poppler/Tesseract"] --> S[".env secrets · uv sync (incl. CrewAI)"]
+  S --> M{"online?"}
+  M -- "make demo" --> OM["pull Ollama models<br/>gemma4, nomic-embed-text"]
+  M -- "make demo-offline" --> C
+  OM --> C["containers: Postgres ×2, Redis, MinIO, ClamAV, Keycloak, n8n"]
+  C --> DB["migrate + seed databases"]
+  DB --> KB{"knowledge base"}
+  KB -- online --> QK["Qdrant + nomic-embed-text"]
+  KB -- offline --> MK["in-memory, hash embeddings"]
+  QK --> RS["rag-service"]
+  MK --> RS
+  RS --> E2E["claims end to end<br/>hospital ClaimFlow → insurer CrewAI → decision → settlement → audit"]
+  E2E --> EV["evaluation report"]

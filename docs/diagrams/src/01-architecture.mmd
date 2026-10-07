@@ -1,0 +1,37 @@
+flowchart LR
+  subgraph H["Hospital system"]
+    direction TB
+    HUI["Hospital UI<br/>Next.js 14 · :3100"] --> HAPI["hospital-api<br/>FastAPI · :8100"]
+    HAPI <--> HN8N["hospital n8n<br/>13 workflows · :5688"]
+    HN8N --> DOC["doc-pipeline · :8200<br/>OCR, classify, Presidio masking"]
+    HN8N --> VIS["vision-service · :8300<br/>page quality, stamp detection"]
+    HN8N --> HCREW["Hospital crew · :8010<br/>CrewAI ClaimFlow + QueryFlow"]
+    HAPI --> HDB[("Postgres<br/>hospital")]
+  end
+  subgraph I["Insurer / TPA system"]
+    direction TB
+    IUI["Insurer UI<br/>Next.js 14 · :3600"] --> IAPI["insurer-api<br/>FastAPI · :8600"]
+    IAPI <--> IN8N["insurer n8n<br/>19 workflows · :5689"]
+    IAPI --> ICREW["Insurer crew · :8610<br/>7 CrewAI agents, VerificationFlow"]
+    IAPI --> CALC["calc-engine · :8620<br/>deterministic money"]
+    IAPI --> IDB[("Postgres<br/>insurer")]
+  end
+  subgraph AI["AI layer (local, no paid keys)"]
+    direction TB
+    OLL["Ollama<br/>gemma4 · nomic-embed-text"]
+    RAG["rag-service · :8400<br/>hybrid search, citations"] --> QD[("Qdrant")]
+  end
+  subgraph P["Platform"]
+    direction TB
+    KC["Keycloak<br/>login, 2 realms"]
+    MINIO[("MinIO<br/>documents")]
+    CLAM["ClamAV<br/>virus scan"]
+    REDIS[("Redis")]
+    TPA["tpa-sim<br/>bank simulator"]
+  end
+  HAPI == "signed claim (HMAC + idempotency)" ==> IAPI
+  IAPI == "signed callbacks: decision, queries, settlement" ==> HAPI
+  H --> AI
+  I --> AI
+  H --> P
+  I --> P
