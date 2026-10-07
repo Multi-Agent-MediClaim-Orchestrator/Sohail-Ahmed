@@ -108,8 +108,11 @@ Top-level folders:
 - **Hospital crew: CrewAI.** Each job runs a CrewAI Flow (`hospital/crew/crew/flows.py`) whose steps call CrewAI agents
   (`crew/config/agents.yaml`, `crew/team.py`); deterministic checks are the tasks' guardrails. See `hospital/crew/README.md`
   and `make crew-demo`.
-- **Insurer crew: still plain Python** (migration step 3 of `docs/CREWAI_MIGRATION_PLAN.md`). Each agent is a function with
-  a prompt, a strict output schema, and code that checks what the model said.
+- **Insurer crew: CrewAI.** Each of the seven agents is a CrewAI agent (`insurer_crew/config/agents.yaml`, backstory = its
+  versioned prompt) run by `insurer_crew/crewai_team.py`; the schema check is the task's guardrail. Two CrewAI Flows chain
+  them: `VerificationFlow` (identity → authenticity → coverage → calc mapper → supervisor → proceed | review) and
+  `QueryFlow` (draft | triage), served at `POST /v1/flows/verification` and `/v1/flows/query`. See `make ins-crew-demo`.
+  Each agent function still computes the facts in code before the call and overrides the answer after it.
 
 ### 3.1 The insurer crew (`insurer/crew/insurer_crew/`) — the one to show
 
@@ -117,7 +120,11 @@ Top-level folders:
 |---|---|
 | **`main.py`** | the entry file: `uvicorn insurer_crew.main:app`. Builds settings, the model client, the RAG client, then `create_app(...)` |
 | **`app.py`** | the web service: one `POST` route per agent, token check, request limits, caching, timing, health, `/v1/agents` list |
-| **`agents.py`** | **the agents themselves** (seven functions, see below) |
+| **`agents.py`** | **the agents themselves** (seven functions, see below); `Runner.ask` hands each model call to a CrewAI agent |
+| **`crewai_team.py`** | CrewAI agent + task + sequential crew per call; schema-repair guardrail; `GatewayBridge` (CrewAI LLM over `runtime.GatewayLLM`) |
+| **`flows.py`** | CrewAI Flows: `VerificationFlow`, `QueryFlow` |
+| `config/agents.yaml` | role and goal of each CrewAI agent |
+| `demo.py` | `crewai run` demo on built-in synthetic claims |
 | **`runtime.py`** | talks to the model: `GatewayLLM` sends a chat request to Ollama (`/v1/chat/completions`), asks for JSON that matches the schema, retries with a "fix your JSON" message if invalid; also concurrency limits |
 | `schemas.py` | strict input and output shapes (pydantic) for every agent |
 | `validators.py` | the safety net: strip forbidden/accusing words, drop amounts the AI invented, neutralise prompt-injection text, check that quotes really appear in the retrieved text |

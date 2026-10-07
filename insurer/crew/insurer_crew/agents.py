@@ -1,5 +1,5 @@
-"""The seven agents (03-08 §6.5). Each agent = deterministic precompute (facts) + one or more schema-constrained LLM calls +
-code ``enforce`` that overrides anything the model got wrong. No agent can write anywhere: they only *return* values."""
+"""The seven agents (03-08 §6.5). Each agent = deterministic precompute (facts) + one or more schema-constrained CrewAI
+agent tasks (crewai_team.py) + code ``enforce`` that overrides anything the model got wrong. No agent can write anywhere: they only *return* values."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
-from . import tools, validators
+from . import crewai_team, tools, validators
 from .runtime import PromptRegistry, Settings, Trace
 from .schemas import (
     ALL_CORES,
@@ -92,29 +92,8 @@ class Runner:
         return text
 
     async def ask(self, core: type[BaseModel], system_name: str, user: str) -> BaseModel:
-        """One schema-constrained call; up to ``crew_repair_retries`` repair attempts, then ``AgentInvalidOutput``."""
-        messages = [{"role": "system", "content": self.system_prompt(system_name)}, {"role": "user", "content": user}]
-        schema = core.model_json_schema()
-        retries = self.deps.settings.crew_repair_retries
-        for attempt in range(retries + 1):
-            async with self.trace.span("llm", agent=self.agent, attempt=attempt):
-                res = await self.deps.llm.complete(alias=self.alias, messages=messages, schema=schema, metadata={"agent": self.agent, "prompt_version": self.prompt_versions[-1], "claim_ref": self.trace.case_id,
-                                                                                                                 "request_id": self.trace.request_id, "trace_id": self.trace.id},
-                                                   max_tokens=self.max_tokens, timeout=self.timeout)
-            self.usage_prompt += res.prompt_tokens
-            self.usage_completion += res.completion_tokens
-            self.degraded = self.degraded or res.degraded
-            self.served_alias = res.served_by or self.alias
-            try:
-                return core.model_validate(validators.parse_json(res.text))
-            except (ValidationError, ValueError) as e:
-                errs = e.errors() if isinstance(e, ValidationError) else [{"msg": str(e)}]
-                if attempt == retries:
-                    raise AgentInvalidOutput(errs) from e
-                self.trace.repairs += 1
-                compact = "; ".join(f"{'.'.join(str(p) for p in x.get('loc', ()))}: {x.get('msg')}" for x in errs)[:400]
-                messages = messages + [{"role": "assistant", "content": res.text[:2000]}, {"role": "user", "content": REPAIR_TMPL.format(errors=compact)}]
-        raise AgentInvalidOutput()  # pragma: no cover
+        """One schema-constrained CrewAI task (crewai_team.ask); up to ``crew_repair_retries`` repairs, then ``AgentInvalidOutput``."""
+        return await crewai_team.ask(self, core, self.system_prompt(system_name), user)
 
 
 def _docs_block(docs: list[Any], limit_tokens: int) -> tuple[str, bool]:

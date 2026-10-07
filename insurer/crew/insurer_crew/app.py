@@ -1,4 +1,5 @@
-"""insurer-crew FastAPI app: seven stateless agent endpoints (03-08 §4). No write tools, no provider keys, no confidence field."""
+"""insurer-crew FastAPI app: seven stateless agent endpoints (03-08 §4), each a CrewAI agent, plus two CrewAI Flow endpoints
+(`/v1/flows/verification`, `/v1/flows/query`) that chain them. No write tools, no provider keys, no confidence field."""
 
 from __future__ import annotations
 
@@ -6,6 +7,7 @@ import asyncio
 import hashlib
 import json
 import time
+import uuid
 from typing import Any
 
 import httpx
@@ -14,9 +16,9 @@ from claim_contract.errors import ProblemError, install_handlers
 from fastapi import Depends, FastAPI, Header, Request
 from fastapi.responses import JSONResponse, Response
 from prometheus_client import CollectorRegistry, Counter, Histogram, generate_latest
-from pydantic import ValidationError
+from pydantic import Field, ValidationError
 
-from . import validators
+from . import crewai_team, validators
 from .agents import (
     SPECS,
     AgentInvalidOutput,
@@ -40,7 +42,16 @@ from .runtime import (
     body_hash,
     get_settings,
 )
-from .schemas import ALL_OUTPUTS, AgentRequest, TokenUsage
+from .schemas import ALL_OUTPUTS, AgentOptions, AgentRequest, Strict, TokenUsage
+
+
+class FlowRequest(Strict):
+    request_id: uuid.UUID
+    case_id: uuid.UUID | str
+    contexts: dict[str, dict[str, Any]]
+    kind: str | None = None  # query flow: draft | triage
+    options: AgentOptions = Field(default_factory=AgentOptions)
+
 
 ALLOWED_SERVICES = {"svc-insurer-api", "svc-n8n-insurer", "svc-eval"}
 
@@ -159,9 +170,31 @@ def create_app(settings: Settings | None = None, *, llm: Any, rag: Any = None, c
     for spec in SPECS.values():
         app.add_api_route(spec.path, make_endpoint(spec), methods=["POST"], name=spec.name)
 
+    async def run_flow(name: str, req: FlowRequest, svc: str) -> dict[str, Any]:
+        from .flows import FLOWS
+
+        unknown = sorted(set(req.contexts) - set(SPECS))
+        if unknown:
+            raise ProblemError("context_invalid", f"unknown agents in contexts: {unknown}", status=422)
+        flow = FLOWS[name].create(lambda agent, r: execute(SPECS[agent], r, svc))
+        return await flow.kickoff_async(inputs={"request_id": str(req.request_id), "case_id": str(req.case_id), "contexts": req.contexts,
+                                                "options": req.options.model_dump(), "kind": req.kind or "draft"})  # fmt: skip
+
+    @app.post("/v1/flows/verification")
+    async def verification_flow(req: FlowRequest, svc: str = Depends(auth)) -> JSONResponse:
+        """Identity -> authenticity -> coverage -> calc mapper -> supervisor, as one CrewAI Flow (steps without a context are skipped)."""
+        return JSONResponse(await run_flow("verification", req, svc))
+
+    @app.post("/v1/flows/query")
+    async def query_flow(req: FlowRequest, svc: str = Depends(auth)) -> JSONResponse:
+        """kind=draft runs the query drafter; kind=triage runs the triage agent on the hospital's reply."""
+        if (req.kind or "draft") not in ("draft", "triage"):
+            raise ProblemError("context_invalid", "kind must be draft or triage", status=422)
+        return JSONResponse(await run_flow("query", req, svc))
+
     @app.get("/v1/agents")
     async def agents(_: str = Depends(auth)) -> list[dict[str, Any]]:
-        return [{"agent": s.name, "endpoint": s.path, "alias": alias_for(s, cfg), "prompt_version": deps.prompts.get(s.prompt)[1], "schema_sha256": schema_sha(s.name), "last_eval_report": None} for s in SPECS.values()]
+        return [{"agent": s.name, "endpoint": s.path, "framework": "crewai", "role": crewai_team.AGENTS[s.name]["role"], "alias": alias_for(s, cfg), "prompt_version": deps.prompts.get(s.prompt)[1], "schema_sha256": schema_sha(s.name), "last_eval_report": None} for s in SPECS.values()]
 
     @app.get("/v1/health")
     async def health() -> dict[str, Any]:

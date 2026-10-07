@@ -197,3 +197,20 @@ overdue job. Duplicating that in n8n would give two owners of the same state, so
   local models are unreliable at multi-step tool use.
 - CrewAI memory and knowledge stay off (they default to OpenAI embeddings); telemetry is opted out in the Makefile,
   `.env.example` and the Dockerfiles.
+
+## 2026-10-07 — insurer crew moved to CrewAI
+
+- The seven agents are CrewAI agents: `Runner.ask` (the one place every agent called the model) now runs a CrewAI agent
+  (role/goal from `config/agents.yaml`, backstory = the versioned system prompt, so `prompt_version` is unchanged) on one
+  task in a sequential crew. The JSON-schema repair loop is the task's guardrail (same retry count, same repair message,
+  same `agent_invalid_output` at the end). `GatewayBridge` sends every call through the existing `GatewayLLM`, so token
+  usage, degraded/fallback flags, Langfuse spans and the "gateway key only" rule are unchanged; CrewAI's extra message
+  keys are stripped before the gateway.
+- The seven HTTP endpoints are unchanged, so insurer-api and the n8n flows keep calling them per step. New:
+  `POST /v1/flows/verification` (VerificationFlow: identity → authenticity → coverage → calc mapper → supervisor →
+  proceed | review) and `POST /v1/flows/query` (QueryFlow: draft | triage). Each flow step goes through the same
+  `execute` as the endpoints (validation, PII scan, idempotency, gate, output checks). A failed step becomes
+  `{"failure": code}`, which the supervisor's code treats as a blocker, so the flow routes to human review.
+- insurer-api does not call the flow endpoints yet: its inline/n8n orchestrators already sequence the steps and own the
+  decision gate. The flows are for `crewai run`, the evaluation and a future `INS_ORCHESTRATOR=crew`.
+- CrewAI is imported when the service starts (about 2.5 s) so the first request does not pay it inside its timeout.
