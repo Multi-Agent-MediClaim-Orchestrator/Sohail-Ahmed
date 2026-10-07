@@ -34,6 +34,7 @@ COMPOSE_FILES = ["docker-compose.base.yml", "shared.yml", "hospital.yml", "insur
 HOST_PORTS = {8010: "hospital crew", 8100: "hospital api", 8200: "doc-pipeline", 8300: "vision", 8400: "rag-service",
               8500: "tpa simulator", 8600: "insurer api", 8610: "insurer crew"}  # fmt: skip
 RESULTS: list[tuple[str, bool, float, str]] = []
+FAILURE: list[str] = []  # the failing step's full message, repeated after the summary table
 
 
 class StepFailed(Exception):
@@ -86,6 +87,7 @@ def step(title: str, fn: Callable[[], str | None]) -> None:
         note = fn() or ""
     except StepFailed as e:
         RESULTS.append((title, False, time.time() - t, str(e).splitlines()[0]))
+        FAILURE.append(f"{title}: {e}")
         say(f"    FAILED: {e}")
         raise
     RESULTS.append((title, True, time.time() - t, note))
@@ -112,6 +114,56 @@ def port_busy(port: int) -> bool:
     with socket.socket() as s:
         s.settimeout(0.3)
         return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+def container_ports() -> dict[int, tuple[str, str | None]]:
+    """Host ports the containers publish: {port: (what, .env key that moves it, if any)}."""
+    e = env_file()
+
+    def p(key: str, default: int) -> int:
+        try:
+            return int(e.get(key) or default)
+        except ValueError:
+            return default
+
+    return {p("HOSP_DB_PORT", 5432): ("hospital Postgres", "HOSP_DB_PORT"), p("INS_DB_PORT", 5453): ("insurer Postgres", "INS_DB_PORT"),
+            p("SHARED_REDIS_PORT", 6379): ("Redis", "SHARED_REDIS_PORT"), p("SHARED_MINIO_PORT", 9000): ("MinIO", "SHARED_MINIO_PORT"),
+            p("SHARED_MINIO_CONSOLE_PORT", 9001): ("MinIO console", "SHARED_MINIO_CONSOLE_PORT"), 3310: ("ClamAV", None),
+            8080: ("Keycloak", None), 9090: ("Keycloak health", None), p("HOSP_N8N_PORT", 5688): ("hospital n8n", "HOSP_N8N_PORT"),
+            6333: ("Qdrant", None)}  # fmt: skip
+
+
+def ours_running() -> set[int]:
+    """Ports already held by this project's own containers (a re-run is fine)."""
+    try:
+        out = subprocess.run(["docker", "ps", "--format", "{{.Names}}\t{{.Ports}}"], capture_output=True, text=True, timeout=10).stdout  # noqa: S603, S607
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    held: set[int] = set()
+    e = env_file()
+    for line in out.splitlines():
+        name, _, ports = line.partition("\t")
+        if not name.startswith("claims-"):
+            continue
+        for part in ports.split(","):
+            if "->" in part:
+                try:
+                    held.add(int(part.split("->")[0].rsplit(":", 1)[1]))
+                except (ValueError, IndexError):
+                    pass
+        if "hospital-n8n" in name:  # host networking: no published ports to read
+            held.add(int(e.get("HOSP_N8N_PORT") or 5688))
+    return held
+
+
+def who_listens(port: int) -> str:
+    if shutil.which("lsof") is None:
+        return "another program"
+    out = subprocess.run(["lsof", "-nP", f"-iTCP:{port}", "-sTCP:LISTEN"], capture_output=True, text=True).stdout.splitlines()  # noqa: S603, S607
+    if len(out) < 2:
+        return "another program"
+    cols = out[1].split()
+    return f"`{cols[0]}` (pid {cols[1]})"
 
 
 def ollama_url() -> str:
@@ -153,6 +205,13 @@ def preflight(offline: bool, containers: bool = True) -> list[str]:
     if busy:
         problems.append("ports already in use (an earlier run still up? `make demo-down`): "
                         + ", ".join(f"{p} ({n})" for p, n in busy.items()))  # fmt: skip
+    if containers and shutil.which("docker"):
+        held = ours_running()
+        for port, (what, key) in container_ports().items():
+            if port in held or not port_busy(port):
+                continue
+            fix = f"stop it, or set {key}=<free port> in .env" if key else "stop it (this port is fixed)"
+            problems.append(f"port {port} ({what}) is already used by {who_listens(port)} on this machine: {fix}")
     if not offline:
         try:
             tags = httpx.get(f"{ollama_url()}/api/tags", timeout=3).json()
@@ -311,6 +370,8 @@ def summary(offline: bool, ok: bool) -> None:
         say(f"  {'PASS' if good else 'FAIL'}  {title:<88} {secs:6.0f}s  {note[:60]}")
     say("=" * 100)
     say(f"{'DEMO PASSED' if ok else 'DEMO FAILED'} ({'offline: no model' if offline else 'real local model'}); logs in {LOGS.relative_to(ROOT)}")
+    for f in FAILURE:
+        say(f"\nWhat failed:\n{f}")
     if ok:
         say("Next: `make crew-demo` / `make ins-crew-demo` (CrewAI flows alone), `make crew-plot` (flow diagrams),"
             " `make demo-down` (stop everything).")  # fmt: skip
