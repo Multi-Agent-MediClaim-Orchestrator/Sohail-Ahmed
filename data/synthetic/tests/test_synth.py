@@ -147,6 +147,6 @@ def test_corpus_manifest_golden_and_lint(tmp_path):
     assert again["archetype_counts"] == m["archetype_counts"]
     assert all((out / k).read_bytes() == (tmp_path / "out2" / k).read_bytes() for k in list(h)[:20])
     (out / "SYN-000000" / "case.json").write_text(
-        '{"x": "id %s"}' % ids.with_check_digit("23412341234")
+        '{"x": "id ' + ids.with_check_digit("23412341234") + '"}'
     )
     assert lint.scan_dir(out)  # the lint catches a real-looking number

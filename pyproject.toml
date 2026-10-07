@@ -21,6 +21,7 @@ ignore = ["E501"]  # ruff format owns code wrapping; docstrings and comments may
 "hospital/n8n/tests/*" = ["S101", "S105", "S106", "S310", "S603", "S607", "E501"]
 "hospital/api/app/**" = ["B008"]  # FastAPI Depends() defaults
 "hospital/api/app/services/cases.py" = ["S608"]
+"scripts/e2e_hospital.py" = ["ASYNC212", "ASYNC210", "ASYNC251", "S603", "S607", "S101", "E501", "SIM115"]
 "data/**" = ["S101", "S603", "S607", "S311", "E501"]
 "services/**" = ["S101", "B008", "S105", "S106", "E501", "S603", "S607"]
 "hospital/crew/**" = ["S105", "S106", "E501"]

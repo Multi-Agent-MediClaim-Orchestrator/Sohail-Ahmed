@@ -27,8 +27,8 @@ def test_score_math_and_targets():
 
 
 def test_harness_runs_end_to_end_on_a_small_corpus(tmp_path):
-    import asyncio
     import argparse
+    import asyncio
 
     from evalh.run import main_async
 

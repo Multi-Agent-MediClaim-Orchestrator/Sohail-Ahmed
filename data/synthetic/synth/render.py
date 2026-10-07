@@ -132,7 +132,7 @@ class Doc:
 
 def _table(doc: Doc, lines: list[dict[str, Any]]) -> None:
     doc.text(f"{'Description':<34}{'Qty':>5}{'Rate':>13}{'Amount':>14}")
-    for i, ln in enumerate(lines):
+    for ln in lines:
         s = f"{ln['description'][:33]:<34}{ln['qty']:>5}{money(ln['unit_price']):>13}{money(ln['amount']):>14}"
         doc.text(s, "bill_line", f"{ln['description']}|{ln['amount']}")
 

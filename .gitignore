@@ -13,3 +13,4 @@ infra/keycloak/rendered/
 backups/
 data/synthetic/out/
 data/eval/report.json
+.e2e-logs/

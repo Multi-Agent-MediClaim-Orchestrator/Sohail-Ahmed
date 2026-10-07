@@ -60,7 +60,6 @@ def detect(rgb: np.ndarray, page: int) -> list[Stamp]:
                 continue
             per = cv2.arcLength(c, True)
             circ = 4 * math.pi * cv2.contourArea(c) / (per * per) if per else 0
-            ink = float((m[y : y + h, x : x + w] > 0).mean())
             aspect = max(w, h) / max(1, min(w, h))
             round_ = circ > 0.55 and aspect < 1.4
             extent = cv2.contourArea(c) / max(1, w * h)

@@ -1,5 +1,5 @@
 COMPOSE = docker compose --env-file .env -f infra/compose/docker-compose.base.yml -f infra/compose/shared.yml -f infra/compose/hospital.yml
-.PHONY: seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
+.PHONY: e2e-hospital seed-data seed-golden eval-hospital run-vision test-llm run-docpipe run-ui run-api run-crew flows up-n8n n8n-test fixtures schemas migrate seed db-reset db-shell db-dump db-restore test-db test-infra render kc-reset init init-secrets up-infra down nuke smoke test lint fmt typecheck config-check
 
 init: init-secrets
 	uv sync --all-packages
@@ -51,6 +51,9 @@ seed-golden:
 
 eval-hospital:
 	uv run python -m evalh.run --corpus data/synthetic/out --out data/eval/report.json
+
+e2e-hospital:
+	uv run python scripts/e2e_hospital.py
 
 down:
 	$(COMPOSE) --profile infra down
