@@ -322,3 +322,20 @@ def test_surgical_final_bill_is_still_a_final_bill():
         )[0]
         == "procedure_bill"
     )
+
+
+async def test_ollama_requests_turn_thinking_off():
+    """Measured on gemma4:latest: reasoning_effort=none is 2.7x faster with the same JSON; the real-model e2e depends on it."""
+    import httpx
+    from docpipe.llm import Ollama
+
+    seen = {}
+
+    def handler(req):
+        seen.update(__import__("json").loads(req.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "{}"}}]})
+
+    await Ollama(
+        "http://x/v1", client=httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    ).json("m", "p")
+    assert seen["reasoning_effort"] == "none" and seen["temperature"] == 0

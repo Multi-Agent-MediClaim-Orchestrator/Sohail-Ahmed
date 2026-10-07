@@ -48,7 +48,7 @@ class Escalator:
         self.day = (self.day[0], self.day[1] + 1)
         try:
             r = await self.c.post(f"{self.s.llm_base_url}/chat/completions", json={
-                "model": self.s.vision_model, "temperature": 0, "stream": False, "response_format": {"type": "json_object"},
+                "model": self.s.vision_model, "temperature": 0, "stream": False, "response_format": {"type": "json_object"}, "reasoning_effort": "none",
                 "messages": [{"role": "user", "content": [{"type": "text", "text": PROMPT}, {"type": "image_url", "image_url": {"url": uri}}]}]})  # fmt: skip
             r.raise_for_status()
             res = json.loads(r.json()["choices"][0]["message"]["content"])

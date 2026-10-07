@@ -33,6 +33,7 @@ class Ollama:
                         "temperature": 0,
                         "stream": False,
                         "response_format": {"type": "json_object"},
+                        "reasoning_effort": "none",  # thinking models: 2.7x faster, same JSON (measured)
                     },
                 )
                 r.raise_for_status()

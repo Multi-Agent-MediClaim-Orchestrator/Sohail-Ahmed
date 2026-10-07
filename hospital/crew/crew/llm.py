@@ -50,7 +50,7 @@ class OllamaLLM:
         last_err = ""
         for _attempt in range(3):
             body: dict[str, Any] = {"model": model, "messages": messages, "temperature": 0, "stream": False,
-                                    "response_format": {"type": "json_object"}}  # fmt: skip
+                                    "response_format": {"type": "json_object"}, "reasoning_effort": "none"}  # fmt: skip
             try:
                 r = await self.client.post(f"{self.base}/chat/completions", json=body)
                 r.raise_for_status()
