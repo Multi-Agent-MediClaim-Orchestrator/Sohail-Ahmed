@@ -28,7 +28,8 @@ Options: `DEMO_SCENARIO=all make demo-offline` runs every claim scenario (defaul
 insurer's n8n flows sequence verification (default `inline`). Every step is idempotent, so a failed run can simply be started
 again; each step logs to `.e2e-logs/demo/<step>.log`. The sections below are the same steps by hand.
 
-**On a Mac (Docker Desktop):** turn on *Settings → Resources → Network → Enable host networking* once (the two n8n
+**On a Mac:** install the PDF and OCR tools once: `brew install poppler tesseract` (Linux: `sudo apt-get install -y
+poppler-utils tesseract-ocr`); `make demo-check` lists anything missing. **Docker Desktop:** turn on *Settings → Resources → Network → Enable host networking* once (the two n8n
 containers use host networking; the demo stops with this hint if it is off). The first `make demo` also builds the MinIO
 image from source (a few minutes, cached afterwards): MinIO no longer publishes `minio/minio` images.
 

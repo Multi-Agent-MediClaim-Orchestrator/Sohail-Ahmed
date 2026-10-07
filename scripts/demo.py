@@ -186,6 +186,11 @@ def preflight(offline: bool, containers: bool = True) -> list[str]:
     for tool, why in tools:
         if shutil.which(tool) is None:
             problems.append(f"`{tool}` is not installed (needed for {why})")
+    missing = [t for t in ("pdftoppm", "pdftotext", "pdfinfo", "tesseract") if shutil.which(t) is None]
+    if missing:  # called by doc-pipeline, vision-service and hospital-api on this machine (not in containers)
+        how = {"Darwin": "brew install poppler tesseract",
+               "Linux": "sudo apt-get install -y poppler-utils tesseract-ocr"}.get(platform.system(), "install Poppler and Tesseract")  # fmt: skip
+        problems.append(f"missing {', '.join(missing)} (PDF rendering and OCR for the document pipeline): `{how}`")
     if not containers:
         e = env_file()
         for name, url in (("Keycloak", "http://localhost:8080/realms/hospital"), ("hospital n8n", f"http://localhost:{e.get('HOSP_N8N_PORT', '5688')}/healthz")):
