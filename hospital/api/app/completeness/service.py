@@ -190,7 +190,7 @@ async def run(
         await s.execute(
             text(
                 "SELECT c.*, c.status::text AS status_t, c.claim_type::text AS claim_type_t, "
-                "c.admission_type::text AS admission_type_t FROM claim_case c WHERE c.id=:i FOR UPDATE"
+                "c.admission_type::text AS admission_type_t FROM claim_case c WHERE c.id=:i FOR NO KEY UPDATE"
             ),
             {"i": uuid.UUID(str(case_id))},
         )

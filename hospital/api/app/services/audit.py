@@ -31,6 +31,12 @@ async def append(
     ca.assert_known(event_type)
     case_id = uuid.UUID(str(case_id))
     clean = ca.redact(payload or {})
+    # One lock order everywhere: case row first, audit head second. Status transitions already update the case row and
+    # then append; without this, two requests on one case could take the two locks in opposite orders and deadlock
+    # (the UI's three parallel uploads did). NO KEY UPDATE does not block foreign-key checks from child inserts.
+    await session.execute(
+        text("SELECT 1 FROM claim_case WHERE id = :c FOR NO KEY UPDATE"), {"c": case_id}
+    )
     await session.execute(
         text(
             "INSERT INTO case_audit_head (case_id, last_seq, last_hash) VALUES (:c, 0, :g) "

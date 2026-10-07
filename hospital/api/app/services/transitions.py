@@ -46,7 +46,7 @@ async def transition(
     row = (
         await uow.session.execute(
             text(
-                "SELECT id, status::text AS status, version FROM claim_case WHERE id = :i FOR UPDATE"
+                "SELECT id, status::text AS status, version FROM claim_case WHERE id = :i FOR NO KEY UPDATE"
             ),
             {"i": uuid.UUID(str(case_id))},
         )

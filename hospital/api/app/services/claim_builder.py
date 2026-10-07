@@ -39,7 +39,7 @@ async def load_case_row(uow: UoW, case_id: Any, lock: bool = False) -> Any:
     )
     row = (
         await uow.session.execute(
-            text(sql + (" FOR UPDATE" if lock else "")), {"i": uuid.UUID(str(case_id))}
+            text(sql + (" FOR NO KEY UPDATE" if lock else "")), {"i": uuid.UUID(str(case_id))}
         )
     ).first()
     if row is None:

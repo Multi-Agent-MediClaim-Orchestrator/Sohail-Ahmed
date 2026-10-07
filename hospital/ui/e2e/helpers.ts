@@ -36,3 +36,6 @@ export async function a11y(page: Page, label: string) {
 }
 
 export async function shot(page: Page, name: string) { await page.screenshot({ path: `e2e/screens/${name}.png`, fullPage: true }); }
+
+/** Visible alerts only: Next.js adds its own role=alert route announcer to every page. */
+export const alerts = (page: Page) => page.locator('[role="alert"]:not(#__next-route-announcer__)');

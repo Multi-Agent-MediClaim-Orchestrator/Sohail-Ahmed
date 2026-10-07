@@ -542,7 +542,9 @@ async def send(uow: UoW, p: Principal, query_id: str, hub: Any, store: Any) -> d
         )
     s = uow.session
     case = (
-        await s.execute(text("SELECT * FROM claim_case WHERE id=:i FOR UPDATE"), {"i": q.case_id})
+        await s.execute(
+            text("SELECT * FROM claim_case WHERE id=:i FOR NO KEY UPDATE"), {"i": q.case_id}
+        )
     ).one()
     settings_ttl = 3600 * 24 * 3
     from app.services.submission import doc_refs_for

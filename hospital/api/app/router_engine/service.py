@@ -50,7 +50,7 @@ _LOAD = (
     "SELECT c.*, c.status::text AS status_t, c.claim_type::text AS claim_type_t, "
     "c.admission_type::text AS admission_type_t FROM claim_case c WHERE c.id=:i"
 )
-_LOAD_FOR_UPDATE = _LOAD + " FOR UPDATE"
+_LOAD_FOR_UPDATE = _LOAD + " FOR NO KEY UPDATE"
 
 
 async def load(uow: UoW, case_id: Any, lock: bool = True) -> Any:

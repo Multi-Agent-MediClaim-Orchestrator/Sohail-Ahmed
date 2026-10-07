@@ -326,16 +326,21 @@ async def _ingest_one(
             actor_id=p.actor_id,
         )
         await audit.append(s, case.id, "doc.scanned", {"doc_id": str(doc_id), "result": "clean"})
+        # The audit appends above took the case row lock: read the status NOW, not the one loaded before waiting for it
+        # (a parallel upload may already have moved the case to docs_pending).
+        current = (
+            await s.execute(text("SELECT status::text FROM claim_case WHERE id=:i"), {"i": case.id})
+        ).scalar()
         new_status = {
             "draft": "docs_pending",
             "docs_complete": "docs_pending",
             "ready_for_review": "docs_pending",
-        }.get(status_of(case))
+        }.get(current)
         if new_status and purpose != "query":
             await transitions.transition(
                 uow, case.id, new_status, p, reason="document uploaded", hub=d.hub
             )
-            if status_of(case) == "ready_for_review":
+            if current == "ready_for_review":
                 await invalidate_signoffs(uow, case.id, "document uploaded")
         await s.execute(
             text("UPDATE document SET last_trigger_at = now() WHERE id=:i"), {"i": doc_id}

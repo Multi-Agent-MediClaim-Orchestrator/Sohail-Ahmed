@@ -425,7 +425,8 @@ async def reevaluate(
     for cid in ids:
         old = (
             await s.execute(
-                text("SELECT config_versions FROM claim_case WHERE id=:i FOR UPDATE"), {"i": cid}
+                text("SELECT config_versions FROM claim_case WHERE id=:i FOR NO KEY UPDATE"),
+                {"i": cid},
             )
         ).scalar()
         if (

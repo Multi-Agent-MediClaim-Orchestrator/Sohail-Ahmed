@@ -37,7 +37,7 @@ async def lock_case(uow: UoW, claim_ref: str) -> Any:
     row = (
         await uow.session.execute(
             text(
-                "SELECT c.*, c.status::text AS status_t FROM claim_case c WHERE c.claim_ref=:r FOR UPDATE"
+                "SELECT c.*, c.status::text AS status_t FROM claim_case c WHERE c.claim_ref=:r FOR NO KEY UPDATE"
             ),
             {"r": claim_ref},
         )

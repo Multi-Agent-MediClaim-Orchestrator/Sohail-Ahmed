@@ -331,7 +331,7 @@ async def load_case(uow: UoW, p: Principal, case_id: str, *, for_update: bool = 
     except ValueError:
         raise ApiError("not_found", "unknown case") from None
     scope_sql, params = case_scope_sql(p)
-    lock = " FOR UPDATE OF c" if for_update else ""
+    lock = " FOR NO KEY UPDATE OF c" if for_update else ""
     row = (
         await uow.session.execute(
             text(

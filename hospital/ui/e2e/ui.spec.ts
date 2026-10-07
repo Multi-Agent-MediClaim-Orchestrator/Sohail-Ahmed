@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { a11y, caseJson, docFiles, login, push, shot } from "./helpers";
+import { a11y, alerts, caseJson, docFiles, login, push, shot } from "./helpers";
 import { randomUUID } from "crypto";
 
 const state: { caseUrl?: string; claimRef?: string } = {};
@@ -11,7 +11,7 @@ test.describe.serial("hospital UI against the real stack", () => {
     await page.getByLabel("User name").fill("desk1");
     await page.getByLabel("Password").fill("definitely-wrong");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("alert")).toContainText(/Wrong user name or password|failed/i);
+    await expect(alerts(page).first()).toContainText(/Wrong user name or password|failed/i);
     await a11y(page, "login");
     await shot(page, "01-login");
     const { page: p, ctx } = await login(browser, "desk1");
@@ -38,7 +38,7 @@ test.describe.serial("hospital UI against the real stack", () => {
     const { page, ctx, errors } = await login(browser, "desk1");
     await page.goto("/cases/new");
     await page.getByRole("button", { name: "Create case" }).click();
-    await expect(page.getByRole("alert").first()).toBeVisible();
+    await expect(alerts(page).first()).toBeVisible();
     await a11y(page, "new case (errors)");
     const c = caseJson();
     const m = c.member, a = c.admission;
