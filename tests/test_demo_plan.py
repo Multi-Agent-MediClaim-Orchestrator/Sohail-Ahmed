@@ -29,3 +29,10 @@ def test_no_containers_skips_docker_steps(monkeypatch):
     assert any("n8n" in x for x in titles(offline=True))
     t = titles(offline=True, containers=False)
     assert not any("container" in x.lower() or "n8n" in x for x in t)
+
+
+def test_rerun_recognises_own_containers_including_port_ranges(monkeypatch):
+    out = "claims-minio-1\t0.0.0.0:9000-9001->9000-9001/tcp\nclaims-redis-1\t0.0.0.0:6379->6379/tcp\nother\t0.0.0.0:7000->7000/tcp\n"
+    monkeypatch.setattr(demo.subprocess, "run", lambda *a, **k: type("R", (), {"stdout": out})())
+    held = demo.ours_running()
+    assert {9000, 9001, 6379} <= held and 7000 not in held

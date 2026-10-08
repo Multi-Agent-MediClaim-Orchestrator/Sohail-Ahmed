@@ -146,9 +146,10 @@ def ours_running() -> set[int]:
         if not name.startswith("claims-"):
             continue
         for part in ports.split(","):
-            if "->" in part:
+            if "->" in part:  # "0.0.0.0:9000-9001->9000-9001/tcp": Docker joins consecutive ports into a range
                 try:
-                    held.add(int(part.split("->")[0].rsplit(":", 1)[1]))
+                    lo, _, hi = part.split("->")[0].rsplit(":", 1)[1].partition("-")
+                    held.update(range(int(lo), int(hi or lo) + 1))
                 except (ValueError, IndexError):
                     pass
         if "hospital-n8n" in name:  # host networking: no published ports to read
